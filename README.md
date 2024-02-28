@@ -1,6 +1,6 @@
 # CrowdSec NodeJS Bouncer
 
-![CrowdSec NodeJS Bouncer](https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/banner.png "CrowdSec Express Bouncer")
+![CrowdSec NodeJS Bouncer](https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/banner.png 'CrowdSec Express Bouncer')
 
 CrowdSec is composed of a behavior detection engine, able to block classical attacks like credential brute-force, port scans, web scans, etc.
 
