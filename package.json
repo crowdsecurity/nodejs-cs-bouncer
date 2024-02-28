@@ -1,0 +1,29 @@
+{
+  "name": "@crowdsec/nodejs-bouncer",
+  "version": "0.0.1",
+  "description": "CrowdSec NodeJS Bouncer. Composed of a behavior detection engine, able to block classical attacks like credential bruteforce, port scans, web scans, etc. Based on the type and number of blocked attacks, and after curation of those signals to avoid false positives and poisoning, a global IP reputation DB is maintained and shared with all network members. This npm module is a “bouncer”, which purpose is to block detected attacks with two remediation systems: ban or challenge detected attackers with a Captcha.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --runInBand"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crowdsecurity/nodejs-cs-bouncer.git"
+  },
+  "keywords": [
+    "crowdsec",
+    "bouncer",
+    "js",
+    "nodejs",
+    "remediation-component",
+    "captcha",
+    "firewall",
+    "security"
+  ],
+  "author": "CrowdSec Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/crowdsecurity/nodejs-cs-bouncer/issues"
+  },
+  "homepage": "https://github.com/crowdsecurity/nodejs-cs-bouncer#readme"
+}
