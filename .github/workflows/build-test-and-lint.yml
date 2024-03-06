@@ -30,3 +30,10 @@ jobs:
 
             - name: Check code formatting
               run: npm run prettify-check
+
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v4.0.1
+              if: always()
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  slug: crowdsecurity/nodejs-cs-bouncer
