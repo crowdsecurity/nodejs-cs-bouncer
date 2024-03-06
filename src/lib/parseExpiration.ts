@@ -1,5 +1,11 @@
+/**
+ * The function `parseExpiration` takes a duration string and returns a Date
+ * object representing the expiration time based on the parsed duration.
+ * @param {string} duration - string like "3h59m49.481837158s" (hours, minutes, seconds, milliseconds) and calculate the expiration time.
+ * @returns `Date` object representing the expiration time.
+ */
 const parseExpiration = (duration: string): Date => {
-    const re = /^(-?)(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?(?:(\d+)ms)?$/;
+    const re = /^(-?)(?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?$/;
     const matches = re.exec(duration);
     if (!matches) {
         throw new Error(`Unable to parse the following duration: ${duration}.`);
@@ -8,12 +14,10 @@ const parseExpiration = (duration: string): Date => {
     const isNegative = matches[1] === '-';
     const hours = parseInt(matches[2] || '0', 10);
     const minutes = parseInt(matches[3] || '0', 10);
-    const seconds = parseInt(matches[4] || '0', 10);
-    const milliseconds = parseInt(matches[5] || '0', 10);
+    const seconds = parseFloat(matches[4] || '0');
 
     // Calculate total duration in milliseconds
-    let totalMilliseconds =
-        (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
+    let totalMilliseconds = (hours * 3600 + minutes * 60 + seconds) * 1000;
 
     if (isNegative) {
         totalMilliseconds *= -1;

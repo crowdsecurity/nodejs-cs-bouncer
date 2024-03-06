@@ -1,6 +1,8 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 
 import parseExpiration from 'src/lib/parseExpiration';
+
+jest.useFakeTimers().setSystemTime(new Date('2020-01-01'));
 
 describe('⏳ Parse expiration', () => {
     it('should parse a positive duration', () => {
@@ -12,21 +14,20 @@ describe('⏳ Parse expiration', () => {
 
         expect(result).toEqual(expectedExpiration);
     });
-
-    it('should parse a negative duration', () => {
-        const duration = '-30s';
+    it('should parse a complex duration', () => {
+        const duration = '3h59m49.481837158s';
         const expectedExpiration = new Date();
-        expectedExpiration.setTime(expectedExpiration.getTime() - 30000); // 30 seconds in milliseconds
+        expectedExpiration.setTime(expectedExpiration.getTime() + 14389481); // 3 hours 59 minutes 49.481837158 seconds in milliseconds
 
         const result = parseExpiration(duration);
 
         expect(result).toEqual(expectedExpiration);
     });
 
-    it('should parse a duration with milliseconds', () => {
-        const duration = '500ms';
+    it('should parse a negative duration', () => {
+        const duration = '-30s';
         const expectedExpiration = new Date();
-        expectedExpiration.setTime(expectedExpiration.getTime() + 500); // 500 milliseconds
+        expectedExpiration.setTime(expectedExpiration.getTime() - 30000); // 30 seconds in milliseconds
 
         const result = parseExpiration(duration);
 
