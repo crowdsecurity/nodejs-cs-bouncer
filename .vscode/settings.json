@@ -1,3 +1,4 @@
 {
-    "conventionalCommits.scopes": ["dx"]
+    "conventionalCommits.scopes": ["dx"],
+    "cSpell.words": ["pino"]
 }

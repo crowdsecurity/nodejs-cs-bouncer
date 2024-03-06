@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "baseUrl": ".",
         "target": "es2016",
         "module": "commonjs",
         "outDir": "dist",
@@ -9,5 +10,6 @@
         "strict": true,
         "skipLibCheck": true
     },
+    "include": ["src/**/*"],
     "exclude": ["node_modules", "dist", "jest.config.ts"]
 }
