@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
-import LapiClient from 'src/lib/lapi-client';
+import LapiClient from 'src/lib/LapiClient';
 import { Decision } from 'src/lib/types';
 
 describe('LapiClient', () => {
