@@ -1,11 +1,5 @@
-import { Decision, DecisionOrigin, DecisionScope } from 'src/lib/types';
-
-type LapiClientOptions = {
-    lapiUrl: string;
-    bouncerApiToken: string;
-    userAgent?: string;
-    timeout?: number;
-};
+import { GetDecisionsOptions, LapiClientOptions } from 'src/lib/lapi-client/libs/types';
+import { ConnectionHealth, Decision } from 'src/lib/types';
 
 class LapiClient {
     private bouncerApiToken: string;
@@ -13,7 +7,7 @@ class LapiClient {
     private userAgent: string;
 
     constructor(options: LapiClientOptions) {
-        const isValidUrl = options.lapiUrl && (options.lapiUrl.startsWith('http://') || options.lapiUrl.startsWith('https://'));
+        const isValidUrl = options.url && (options.url.startsWith('http://') || options.url.startsWith('https://'));
 
         if (!isValidUrl) {
             throw new Error('`lapiUrl` seems invalid. It should start with "http://" or "https://"');
@@ -23,14 +17,14 @@ class LapiClient {
             throw new Error('`bouncerApiToken` is required and must be non-empty');
         }
 
-        this.lapiUrl = options.lapiUrl;
+        this.lapiUrl = options.url;
         this.bouncerApiToken = options.bouncerApiToken;
         this.userAgent = options.userAgent ?? 'nodejs-cs-bouncer';
     }
 
-    private callLapiGetEndpoint = async <T>(path: string): Promise<T> => {
+    private callLapiGetEndpoint = async <T>(path: string, method: 'GET' | 'OPTIONS' = 'GET'): Promise<T> => {
         const response = await fetch(`${this.lapiUrl}/${path}`, {
-            method: 'GET',
+            method,
             headers: {
                 'Content-Type': 'application/json',
                 'X-Api-Key': this.bouncerApiToken,
@@ -60,13 +54,7 @@ class LapiClient {
         scopes,
         scenariosContaining,
         scenariosNotContaining,
-    }: {
-        isFirstFetch?: boolean;
-        origins?: DecisionOrigin[];
-        scopes?: DecisionScope[];
-        scenariosContaining?: string[];
-        scenariosNotContaining?: string[];
-    } = {}): Promise<{ new: Decision[]; deleted: Decision[] }> => {
+    }: GetDecisionsOptions = {}): Promise<{ new: Decision[]; deleted: Decision[] }> => {
         const params = new URLSearchParams({
             startup: isFirstFetch.toString(),
             ...(scopes ? { scopes: scopes.join(',') } : {}),
@@ -91,6 +79,51 @@ class LapiClient {
         const params = new URLSearchParams({ ip });
         const fullUrl = `v1/decisions?${params.toString()}`;
         return this.callLapiGetEndpoint<Decision[]>(fullUrl);
+    };
+
+    public checkConnectionHealth = async (): Promise<ConnectionHealth> => {
+        try {
+            const response = await fetch(`${this.lapiUrl}/v1/decisions`, {
+                method: 'HEAD',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Api-Key': this.bouncerApiToken,
+                    'User-Agent': this.userAgent,
+                },
+            });
+
+            if (!response.ok) {
+                if (response.status === 403) {
+                    return {
+                        status: 'ERROR',
+                        error: 'INVALID_API_TOKEN',
+                    };
+                }
+
+                if (response.status >= 500) {
+                    return {
+                        status: 'ERROR',
+                        error: 'SECURITY_ENGINE_SERVER_ERROR',
+                    };
+                }
+
+                // Should we log something here?
+                return {
+                    status: 'ERROR',
+                    error: 'UNEXPECTED_STATUS',
+                };
+            }
+
+            return {
+                status: 'OK',
+                error: null,
+            };
+        } catch (error) {
+            return {
+                status: 'ERROR',
+                error: 'SECURITY_ENGINE_UNREACHABLE',
+            };
+        }
     };
 }
 
