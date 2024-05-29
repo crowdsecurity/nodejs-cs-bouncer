@@ -3,11 +3,12 @@
     "version": "0.0.1",
     "description": "CrowdSec NodeJS Bouncer. Composed of a behavior detection engine, able to block classical attacks like credential bruteforce, port scans, web scans, etc. Based on the type and number of blocked attacks, and after curation of those signals to avoid false positives and poisoning, a global IP reputation DB is maintained and shared with all network members. This npm module is a “bouncer”, which purpose is to block detected attacks with two remediation systems: ban or challenge detected attackers with a Captcha.",
     "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
         "lint": "eslint .",
         "lint:all": "npm run lint && npm run prettify-check",
-        "prettify": "prettier --write .",
+        "prettify": "prettier --plugin=prettier-plugin-ejs --write .",
         "prettify-check": "prettier --check .",
         "test": "jest"
     },
@@ -33,6 +34,7 @@
     "homepage": "https://github.com/crowdsecurity/nodejs-cs-bouncer#readme",
     "devDependencies": {
         "@jest/globals": "^29.7.0",
+        "@types/lodash": "^4.17.7",
         "@typescript-eslint/eslint-plugin": "^7.1.0",
         "@typescript-eslint/parser": "^7.1.0",
         "eslint": "^8.57.0",
@@ -45,12 +47,14 @@
         "jest": "^29.7.0",
         "nock": "^14.0.0-beta.4",
         "prettier": "^3.2.5",
+        "prettier-plugin-ejs": "^1.0.3",
         "ts-jest": "^29.1.2",
         "ts-node": "^10.9.2",
         "tsx": "^4.7.1",
         "typescript": "^5.3.3"
     },
     "dependencies": {
+        "lodash": "^4.17.21",
         "pino": "^8.19.0",
         "pino-pretty": "^10.3.1"
     }
