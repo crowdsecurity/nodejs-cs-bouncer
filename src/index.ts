@@ -1,1 +1,1 @@
-console.log('Hello World');
+export { renderCaptchaWall, renderBanWall } from './lib/rendered/index';

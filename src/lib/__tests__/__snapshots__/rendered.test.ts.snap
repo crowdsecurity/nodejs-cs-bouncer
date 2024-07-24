@@ -1,0 +1,322 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`📄 Generate Template should generate a ban template 1`] = `
+"<!doctype html>
+<html lang="en">
+    <head>
+        <title>Oops..</title>
+        <meta content="text/html; charset=utf-8" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            html {
+                height: 100%;
+                color: <!- colors.text.primary !>;
+            }
+            body {
+                background: <!- colors.background.page !>;
+                font-family: Arial, Helvetica, sans-serif;
+                height: 100%;
+            }
+            .container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+            }
+            .main {
+                background: <!- colors.background.container !>;
+                padding: 50px 50px 30px 50px;
+                box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                z-index: 1;
+                position: relative;
+            }
+            h1 {
+                padding: 10px;
+            }
+            .desc {
+                font-size: 1.2em;
+                margin-bottom: 30px;
+            }
+            .powered {
+                margin-top: 30px;
+                font-size: small;
+                color: <!- colors.text.secondary !>;
+            }
+            .warning {
+                width: 40px;
+                display: inline-block;
+                vertical-align: -4px;
+            }
+            .logo {
+                width: 17px;
+                display: inline-block;
+                vertical-align: -12px;
+                margin-left: 5px;
+            }
+            a {
+                color: <!- colors.text.secondary !>;
+            }
+            <! print(customCss) !>
+        </style>
+        
+        <script>
+            function newImage() {
+                document.getElementById('refresh').value = '1';
+                document.getElementById('captcha').submit();
+            }
+        </script>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="main">
+                <h1>🤭 Oh!</h1>
+<p class="desc">This page is protected against cyber attacks and your IP has been banned by our system.</p>
+ 
+            </div>
+        </div>
+    </body>
+</html>
+"
+`;
+
+exports[`📄 Generate Template should generate a base template 1`] = `
+"<!doctype html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta content="text/html; charset=utf-8" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            html {
+                height: 100%;
+                color: <!- colors.text.primary !>;
+            }
+            body {
+                background: <!- colors.background.page !>;
+                font-family: Arial, Helvetica, sans-serif;
+                height: 100%;
+            }
+            .container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+            }
+            .main {
+                background: <!- colors.background.container !>;
+                padding: 50px 50px 30px 50px;
+                box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                z-index: 1;
+                position: relative;
+            }
+            h1 {
+                padding: 10px;
+            }
+            .desc {
+                font-size: 1.2em;
+                margin-bottom: 30px;
+            }
+            .powered {
+                margin-top: 30px;
+                font-size: small;
+                color: <!- colors.text.secondary !>;
+            }
+            .warning {
+                width: 40px;
+                display: inline-block;
+                vertical-align: -4px;
+            }
+            .logo {
+                width: 17px;
+                display: inline-block;
+                vertical-align: -12px;
+                margin-left: 5px;
+            }
+            a {
+                color: <!- colors.text.secondary !>;
+            }
+            <! print(customCss) !>
+        </style>
+        
+        <script>
+            function newImage() {
+                document.getElementById('refresh').value = '1';
+                document.getElementById('captcha').submit();
+            }
+        </script>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="main">
+                Hello World 
+            </div>
+        </div>
+    </body>
+</html>
+"
+`;
+
+exports[`📄 Generate Template should generate a captcha template 1`] = `
+"<!doctype html>
+<html lang="en">
+    <head>
+        <title>Oops..</title>
+        <meta content="text/html; charset=utf-8" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            html {
+                height: 100%;
+                color: <!- colors.text.primary !>;
+            }
+            body {
+                background: <!- colors.background.page !>;
+                font-family: Arial, Helvetica, sans-serif;
+                height: 100%;
+            }
+            .container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+            }
+            .main {
+                background: <!- colors.background.container !>;
+                padding: 50px 50px 30px 50px;
+                box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 3px -2px, rgba(0, 0, 0, 0.14) 0px 3px 4px 0px, rgba(0, 0, 0, 0.12) 0px 1px 8px 0px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                z-index: 1;
+                position: relative;
+            }
+            h1 {
+                padding: 10px;
+            }
+            .desc {
+                font-size: 1.2em;
+                margin-bottom: 30px;
+            }
+            .powered {
+                margin-top: 30px;
+                font-size: small;
+                color: <!- colors.text.secondary !>;
+            }
+            .warning {
+                width: 40px;
+                display: inline-block;
+                vertical-align: -4px;
+            }
+            .logo {
+                width: 17px;
+                display: inline-block;
+                vertical-align: -12px;
+                margin-left: 5px;
+            }
+            a {
+                color: <!- colors.text.secondary !>;
+            }
+            <! print(customCss) !>
+        </style>
+        <style>
+    input {
+        margin-top: 10px;
+        padding: 10px;
+        font-size: 1.1em;
+        width: 150px;
+    }
+    button {
+        margin: 30px 0 30px;
+        padding: 10px 0;
+        font-size: 1.1em;
+        background-color: <!- colors.background.button !>;
+        color: <!- colors.text.button !>;
+        border: none;
+        width: 150px;
+        border-radius: 5px;
+    }
+    button:hover {
+        background-color: <!- colors.background.button_hover !>;
+        cursor: pointer;
+    }
+    img {
+        padding: 10px;
+    }
+    .error {
+        color: <!- colors.text.error_message !>;
+        padding: 5px;
+    }
+</style>
+
+        <script>
+            function newImage() {
+                document.getElementById('refresh').value = '1';
+                document.getElementById('captcha').submit();
+            }
+        </script>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="main">
+                <h1>
+    <svg
+        aria-hidden="true"
+        focusable="false"
+        data-prefix="fas"
+        data-icon="exclamation-triangle"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 576 512"
+        class="warning"
+    >
+        <path
+            fill="#f39b2f"
+            d="M569.517 440.013C587.975 472.007 564.806 512 527.94 512H48.054c-36.937 0-59.999-40.055-41.577-71.987L246.423 23.985c18.467-32.009 64.72-31.951 83.154 0l239.94 416.028zM288 354c-25.405 0-46 20.595-46 46s20.595 46 46 46 46-20.595 46-46-20.595-46-46-46zm-43.673-165.346l7.418 136c.347 6.364 5.609 11.346 11.982 11.346h48.546c6.373 0 11.635-4.982 11.982-11.346l7.418-136c.375-6.874-5.098-12.654-11.982-12.654h-63.383c-6.884 0-12.356 5.78-11.981 12.654z"
+        ></path>
+    </svg>
+    Hmm, sorry but...
+</h1>
+<p class="desc">Please complete the security check.</p>
+
+
+<p>
+    <small><button id="refresh_link" onclick="newImage()">refresh image</button></small>
+</p>
+
+<form method="POST" id="captcha" action="">
+    <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
+    <input name="crowdsec_captcha" value="1" />
+    <input name="refresh" value="0" id="refresh" />
+    
+
+    <button type="submit">CONTINUE</button>
+</form>
+ 
+            </div>
+        </div>
+    </body>
+</html>
+"
+`;

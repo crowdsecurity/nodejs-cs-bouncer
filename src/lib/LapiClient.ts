@@ -13,21 +13,14 @@ class LapiClient {
     private userAgent: string;
 
     constructor(options: LapiClientOptions) {
-        const isValidUrl =
-            options.lapiUrl &&
-            (options.lapiUrl.startsWith('http://') ||
-                options.lapiUrl.startsWith('https://'));
+        const isValidUrl = options.lapiUrl && (options.lapiUrl.startsWith('http://') || options.lapiUrl.startsWith('https://'));
 
         if (!isValidUrl) {
-            throw new Error(
-                '`lapiUrl` seems invalid. It should start with "http://" or "https://"',
-            );
+            throw new Error('`lapiUrl` seems invalid. It should start with "http://" or "https://"');
         }
 
         if (!options.bouncerApiToken) {
-            throw new Error(
-                '`bouncerApiToken` is required and must be non-empty',
-            );
+            throw new Error('`bouncerApiToken` is required and must be non-empty');
         }
 
         this.lapiUrl = options.lapiUrl;
@@ -78,12 +71,8 @@ class LapiClient {
             startup: isFirstFetch.toString(),
             ...(scopes ? { scopes: scopes.join(',') } : {}),
             ...(origins ? { origins: origins.join(',') } : {}),
-            ...(scenariosContaining
-                ? { scenarios_containing: scenariosContaining.join(',') }
-                : {}),
-            ...(scenariosNotContaining
-                ? { scenarios_not_containing: scenariosNotContaining.join(',') }
-                : {}),
+            ...(scenariosContaining ? { scenarios_containing: scenariosContaining.join(',') } : {}),
+            ...(scenariosNotContaining ? { scenarios_not_containing: scenariosNotContaining.join(',') } : {}),
         });
 
         const fullUrl = `v1/decisions/stream?${params.toString()}`;

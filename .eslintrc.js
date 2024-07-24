@@ -3,12 +3,7 @@ module.exports = {
         browser: true,
         es2021: true,
     },
-    extends: [
-        'eslint:recommended',
-        'plugin:@typescript-eslint/recommended',
-        'plugin:import/recommended',
-        'plugin:import/typescript',
-    ],
+    extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:import/recommended', 'plugin:import/typescript'],
     overrides: [
         {
             env: {
@@ -41,20 +36,12 @@ module.exports = {
         'import/order': [
             'error',
             {
-                groups: [
-                    'external',
-                    ['builtin', 'index', 'sibling', 'parent', 'internal'],
-                    'object',
-                    'type',
-                ],
+                groups: ['external', ['builtin', 'index', 'sibling', 'parent', 'internal'], 'object', 'type'],
                 'newlines-between': 'always',
                 alphabetize: { order: 'asc', caseInsensitive: true },
             },
         ],
-        'no-relative-import-paths/no-relative-import-paths': [
-            'error',
-            { allowSameFolder: false },
-        ],
+        'no-relative-import-paths/no-relative-import-paths': ['error', { allowSameFolder: false }],
         'prefer-arrow-functions/prefer-arrow-functions': [
             'error',
             {
@@ -68,10 +55,6 @@ module.exports = {
         'prefer-template': 'error',
         'no-nested-ternary': 'error',
     },
-    plugins: [
-        '@typescript-eslint',
-        'prefer-arrow-functions',
-        'eslint-plugin-import',
-        'no-relative-import-paths',
-    ],
+    ignorePatterns: ['**/*.ejs', 'dist/'],
+    plugins: ['@typescript-eslint', 'prefer-arrow-functions', 'eslint-plugin-import', 'no-relative-import-paths'],
 };

@@ -23,16 +23,12 @@ describe('LapiClient', () => {
                 ...options,
                 lapiUrl: 'ftp://example.com/api',
             };
-            expect(() => new LapiClient(invalidOptions)).toThrow(
-                '`lapiUrl` seems invalid. It should start with "http://" or "https://"',
-            );
+            expect(() => new LapiClient(invalidOptions)).toThrow('`lapiUrl` seems invalid. It should start with "http://" or "https://"');
         });
 
         it('should throw an error if `bouncerApiToken` is empty', () => {
             const invalidOptions = { ...options, bouncerApiToken: '' };
-            expect(() => new LapiClient(invalidOptions)).toThrow(
-                '`bouncerApiToken` is required and must be non-empty',
-            );
+            expect(() => new LapiClient(invalidOptions)).toThrow('`bouncerApiToken` is required and must be non-empty');
         });
 
         it('should use default userAgent if not provided', () => {
@@ -40,14 +36,9 @@ describe('LapiClient', () => {
                 ...options,
                 userAgent: undefined,
             };
-            const clientWithDefaultUserAgent = new LapiClient(
-                defaultUserAgentOptions,
-            );
+            const clientWithDefaultUserAgent = new LapiClient(defaultUserAgentOptions);
             expect(clientWithDefaultUserAgent).toBeDefined();
-            expect(
-                (clientWithDefaultUserAgent as unknown as { userAgent: string })
-                    .userAgent,
-            ).toBe('nodejs-cs-bouncer');
+            expect((clientWithDefaultUserAgent as unknown as { userAgent: string }).userAgent).toBe('nodejs-cs-bouncer');
         });
     });
 
@@ -85,14 +76,9 @@ describe('LapiClient', () => {
         });
 
         it('should throw an error with an explicit error message if the decision stream response is not ok', async () => {
-            nock(options.lapiUrl)
-                .get('/v1/decisions/stream')
-                .query(true)
-                .reply(500);
+            nock(options.lapiUrl).get('/v1/decisions/stream').query(true).reply(500);
 
-            await expect(client.getDecisionStream()).rejects.toThrow(
-                'Call to v1/decisions/stream?startup=false failed',
-            );
+            await expect(client.getDecisionStream()).rejects.toThrow('Call to v1/decisions/stream?startup=false failed');
         });
     });
 
@@ -141,9 +127,7 @@ describe('LapiClient', () => {
         it('should throw an error with an explicit error message if the response is not ok', async () => {
             nock(options.lapiUrl).get(`/v1/decisions?ip=${ip}`).reply(500);
 
-            await expect(client.getDecisionsMatchingIp(ip)).rejects.toThrow(
-                'Call to v1/decisions?ip=192.168.1.1 failed',
-            );
+            await expect(client.getDecisionsMatchingIp(ip)).rejects.toThrow('Call to v1/decisions?ip=192.168.1.1 failed');
         });
     });
 });
