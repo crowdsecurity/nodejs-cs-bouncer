@@ -1,3 +1,15 @@
+export type OkConnectionHealth = {
+    status: 'OK';
+    error: null;
+};
+
+export type ErrorConnectionHealth = {
+    status: 'ERROR';
+    error: 'INVALID_API_TOKEN' | 'SECURITY_ENGINE_SERVER_ERROR' | 'SECURITY_ENGINE_UNREACHABLE' | 'UNEXPECTED_STATUS';
+};
+
+export type ConnectionHealth = OkConnectionHealth | ErrorConnectionHealth;
+
 export type DecisionOrigin = 'cscli' | 'crowdsec';
 
 export type DecisionScope = 'ip' | 'range' | 'username';

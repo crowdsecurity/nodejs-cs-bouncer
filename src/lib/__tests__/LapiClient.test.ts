@@ -1,12 +1,15 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
-import LapiClient from 'src/lib/LapiClient';
+import LapiClient from 'src/lib/lapi-client';
+import { LapiClientOptions } from 'src/lib/lapi-client/libs/types';
 import { Decision } from 'src/lib/types';
 
 describe('LapiClient', () => {
-    const options = {
-        lapiUrl: 'http://example.com/api',
+    const options: LapiClientOptions & {
+        userAgent: string;
+    } = {
+        url: 'http://example.com/api',
         bouncerApiToken: 'test-api-key',
         userAgent: 'test-user-agent',
     };
@@ -19,9 +22,9 @@ describe('LapiClient', () => {
 
     describe('constructor', () => {
         it('should throw an error if `lapiUrl` does not start with http:// or https://', () => {
-            const invalidOptions = {
+            const invalidOptions: LapiClientOptions = {
                 ...options,
-                lapiUrl: 'ftp://example.com/api',
+                url: 'ftp://example.com/api',
             };
             expect(() => new LapiClient(invalidOptions)).toThrow('`lapiUrl` seems invalid. It should start with "http://" or "https://"');
         });
@@ -44,7 +47,7 @@ describe('LapiClient', () => {
 
     describe('getDecisionStream', () => {
         it('should properly handle query parameters for the decision stream', async () => {
-            const nockScope = nock(options.lapiUrl)
+            const nockScope = nock(options.url)
                 .get('/v1/decisions/stream')
                 .query({
                     startup: 'true',
@@ -76,7 +79,7 @@ describe('LapiClient', () => {
         });
 
         it('should throw an error with an explicit error message if the decision stream response is not ok', async () => {
-            nock(options.lapiUrl).get('/v1/decisions/stream').query(true).reply(500);
+            nock(options.url).get('/v1/decisions/stream').query(true).reply(500);
 
             await expect(client.getDecisionStream()).rejects.toThrow('Call to v1/decisions/stream?startup=false failed');
         });
@@ -109,7 +112,7 @@ describe('LapiClient', () => {
         ];
 
         it('should return decisions matching a given IP', async () => {
-            const nockScope = nock(options.lapiUrl)
+            const nockScope = nock(options.url)
                 .get('/v1/decisions')
                 .query({ ip })
                 .matchHeader('X-Api-Key', options.bouncerApiToken)
@@ -125,9 +128,96 @@ describe('LapiClient', () => {
         });
 
         it('should throw an error with an explicit error message if the response is not ok', async () => {
-            nock(options.lapiUrl).get(`/v1/decisions?ip=${ip}`).reply(500);
+            nock(options.url).get(`/v1/decisions?ip=${ip}`).reply(500);
 
             await expect(client.getDecisionsMatchingIp(ip)).rejects.toThrow('Call to v1/decisions?ip=192.168.1.1 failed');
+        });
+    });
+
+    describe('checkConnectionHealth', () => {
+        it('should return an OK status when the connection is healthy', async () => {
+            const nockScope = nock(options.url)
+                .head('/v1/decisions')
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('User-Agent', options.userAgent)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(
+                    200,
+                    { status: 'ok' },
+                    {
+                        'Content-Type': 'application/json',
+                    },
+                );
+
+            const { status, error } = await client.checkConnectionHealth();
+            expect(nockScope.isDone()).toBe(true);
+            expect(status).toEqual('OK');
+            expect(error).toEqual(null);
+        });
+
+        it('should return an ERROR status with a INVALID_BOUNCER_API_TOKEN error when the API token is invalid', async () => {
+            const nockScope = nock(options.url)
+                .head('/v1/decisions')
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('User-Agent', options.userAgent)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(403);
+
+            const { status, error } = await client.checkConnectionHealth();
+
+            expect(nockScope.isDone()).toBe(true);
+            expect(status).toEqual('ERROR');
+            expect(error).toEqual('INVALID_API_TOKEN');
+        });
+
+        it('should return an ERROR status with a SECURITY_ENGINE_SERVER_ERROR error when the status is 500', async () => {
+            const nockScope = nock(options.url)
+                .head('/v1/decisions')
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('User-Agent', options.userAgent)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(500);
+
+            const { status, error } = await client.checkConnectionHealth();
+
+            expect(nockScope.isDone()).toBe(true);
+            expect(status).toEqual('ERROR');
+            expect(error).toEqual('SECURITY_ENGINE_SERVER_ERROR');
+        });
+
+        it('should return an ERROR status with a UNEXPECTED_STATUS error when the HTTP status is unexpected', async () => {
+            const nockScope = nock(options.url)
+                .head('/v1/decisions')
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('User-Agent', options.userAgent)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(400);
+
+            const { status, error } = await client.checkConnectionHealth();
+
+            expect(nockScope.isDone()).toBe(true);
+            expect(status).toEqual('ERROR');
+            expect(error).toEqual('UNEXPECTED_STATUS');
+        });
+
+        it('should return an ERROR status with a SECURITY_ENGINE_UNREACHABLE error when the URL is unreachable', async () => {
+            const nockScope = nock(options.url)
+                .head('/v1/decisions')
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('User-Agent', options.userAgent)
+                .matchHeader('Content-Type', 'application/json')
+                .replyWithError({
+                    code: 'ENOTFOUND',
+                    errno: 'ENOTFOUND',
+                    syscall: 'getaddrinfo',
+                    hostname: 'www.example.com',
+                });
+
+            const { status, error } = await client.checkConnectionHealth();
+
+            expect(nockScope.isDone()).toBe(true);
+            expect(status).toEqual('ERROR');
+            expect(error).toEqual('SECURITY_ENGINE_UNREACHABLE');
         });
     });
 });
