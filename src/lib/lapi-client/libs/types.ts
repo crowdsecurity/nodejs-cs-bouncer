@@ -1,6 +1,6 @@
 import { DecisionOrigin, DecisionScope } from 'src/lib/types';
 
-export type LapiClientOptions = {
+export type LapiClientConfigurations = {
     url: string;
     bouncerApiToken: string;
     userAgent?: string;

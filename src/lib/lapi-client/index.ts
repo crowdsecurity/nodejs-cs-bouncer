@@ -1,4 +1,5 @@
-import { GetDecisionsOptions, LapiClientOptions } from 'src/lib/lapi-client/libs/types';
+import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
+import logger from 'src/lib/logger';
 import { ConnectionHealth, Decision } from 'src/lib/types';
 
 class LapiClient {
@@ -6,7 +7,7 @@ class LapiClient {
     private lapiUrl: string;
     private userAgent: string;
 
-    constructor(options: LapiClientOptions) {
+    constructor(options: LapiClientConfigurations) {
         const isValidUrl = options.url && (options.url.startsWith('http://') || options.url.startsWith('https://'));
 
         if (!isValidUrl) {
@@ -20,6 +21,16 @@ class LapiClient {
         this.lapiUrl = options.url;
         this.bouncerApiToken = options.bouncerApiToken;
         this.userAgent = options.userAgent ?? 'nodejs-cs-bouncer';
+
+        // check connection health
+
+        this.checkConnectionHealth().then((response) => {
+            if (response.status === 'ERROR') {
+                logger.error(`Connection with LAPI is unhealthy: ${response.error}`);
+            } else {
+                logger.info('Connection with LAPI is healthy');
+            }
+        });
     }
 
     private callLapiGetEndpoint = async <T>(path: string, method: 'GET' | 'OPTIONS' = 'GET'): Promise<T> => {
@@ -75,12 +86,13 @@ class LapiClient {
      * Retrieves decisions that match the given IP address.
      * @param ip - The IP address to match against the decisions.
      */
-    public getDecisionsMatchingIp = async (ip: string): Promise<Decision[]> => {
+    public getDecisionsMatchingIp = async (ip: string): Promise<Decision[] | null> => {
         const params = new URLSearchParams({ ip });
         const fullUrl = `v1/decisions?${params.toString()}`;
         return this.callLapiGetEndpoint<Decision[]>(fullUrl);
     };
 
+    // Check the health of the connection with the LAPI
     public checkConnectionHealth = async (): Promise<ConnectionHealth> => {
         try {
             const response = await fetch(`${this.lapiUrl}/v1/decisions`, {
