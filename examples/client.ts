@@ -1,5 +1,5 @@
 import LapiClient from 'src/lib/lapi-client';
-import { LapiClientOptions } from 'src/lib/lapi-client/libs/types';
+import { LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
 
 /**
  * Example usage of the LAPI client.
@@ -11,7 +11,7 @@ import { LapiClientOptions } from 'src/lib/lapi-client/libs/types';
  **/
 
 const main = async () => {
-    const options: LapiClientOptions = {
+    const options: LapiClientConfigurations = {
         url: 'http://localhost:8080', // Ex: with a local docker -> $ docker run -d -p 8080:8080 --name "crowdsecurity/crowdsec" "crowdsec"
         bouncerApiToken: 'your-api-key', // Ex: $ cscli bouncer add nodejs-cs-bouncer -> API key for: nodejs-cs-bouncer
     };

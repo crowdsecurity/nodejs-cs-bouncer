@@ -2,18 +2,18 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
 import LapiClient from 'src/lib/lapi-client';
-import { LapiClientOptions } from 'src/lib/lapi-client/libs/types';
+import { LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
 import { Decision } from 'src/lib/types';
 
-describe('LapiClient', () => {
-    const options: LapiClientOptions & {
-        userAgent: string;
-    } = {
-        url: 'http://example.com/api',
-        bouncerApiToken: 'test-api-key',
-        userAgent: 'test-user-agent',
-    };
+const options: LapiClientConfigurations & {
+    userAgent: string;
+} = {
+    url: 'http://example.com/api',
+    bouncerApiToken: 'test-api-key',
+    userAgent: 'test-user-agent',
+};
 
+describe('👩🏻‍⚖️ LAPI Client', () => {
     const client = new LapiClient(options);
 
     afterEach(() => {
@@ -21,8 +21,8 @@ describe('LapiClient', () => {
     });
 
     describe('constructor', () => {
-        it('should throw an error if `lapiUrl` does not start with http:// or https://', () => {
-            const invalidOptions: LapiClientOptions = {
+        it('should throw an error if `url` does not start with http:// or https://', () => {
+            const invalidOptions: LapiClientConfigurations = {
                 ...options,
                 url: 'ftp://example.com/api',
             };

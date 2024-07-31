@@ -55,3 +55,5 @@ export type Decision = {
      */
     simulated: boolean;
 };
+
+export type RemediationType = 'ban' | 'captcha' | 'custom' | 'bypass';
