@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
 import LapiClient from 'src/lib/lapi-client';
 import { LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
+import logger from 'src/lib/logger';
 import { Decision } from 'src/lib/types';
 
 const options: LapiClientConfigurations & {
@@ -42,6 +43,22 @@ describe('👩🏻‍⚖️ LAPI Client', () => {
             const clientWithDefaultUserAgent = new LapiClient(defaultUserAgentOptions);
             expect(clientWithDefaultUserAgent).toBeDefined();
             expect((clientWithDefaultUserAgent as unknown as { userAgent: string }).userAgent).toBe('nodejs-cs-bouncer');
+        });
+
+        it('should log error if connection is unhealthy', async () => {
+            const spyOnError = jest.spyOn(logger, 'error');
+            const nockScope = nock(options.url)
+                .head('/v1/decisions')
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('User-Agent', options.userAgent)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(500);
+
+            const tempClient = new LapiClient(options);
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            expect(spyOnError).toHaveBeenCalled();
+            expect(nockScope.isDone()).toBe(true);
+            expect(tempClient).toBeDefined();
         });
     });
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, beforeAll, describe, expect, it } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
 import CrowdSecBouncer from 'src/lib/bouncer';
@@ -11,7 +11,22 @@ const options: CrowdSecBouncerConfiguration = {
 };
 
 describe('🛡️ Bouncer', () => {
-    const bouncer = new CrowdSecBouncer(options);
+    let bouncer: CrowdSecBouncer;
+
+    beforeAll(() => {
+        nock(options.url)
+            .head('/v1/decisions')
+            .matchHeader('X-Api-Key', options.bouncerApiToken)
+            .matchHeader('Content-Type', 'application/json')
+            .reply(
+                200,
+                { status: 'ok' },
+                {
+                    'Content-Type': 'application/json',
+                },
+            );
+        bouncer = new CrowdSecBouncer(options);
+    });
 
     afterEach(() => {
         nockCleanAll();
@@ -132,6 +147,108 @@ describe('🛡️ Bouncer', () => {
             const responseRemediation = await bouncer.getIpRemediation(ip);
             expect(nockScope.isDone()).toBe(true);
             expect(responseRemediation).toEqual('bypass');
+        });
+
+        it('should return fallback remediation if decisions remediation types are unknown', async () => {
+            const ip = '1.2.3.4';
+
+            const nockScope = nock(options.url)
+                .get('/v1/decisions')
+                .query(true)
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(
+                    200,
+                    [
+                        {
+                            duration: '3h59m56.919518073s',
+                            id: 1,
+                            origin: 'cscli',
+                            scenario: "manual 'ban' from 'localhost'",
+                            scope: 'Ip',
+                            type: 'unknown',
+                            value: ip,
+                        },
+                    ],
+                    {
+                        'Content-Type': 'application/json',
+                    },
+                );
+
+            const responseRemediation = await bouncer.getIpRemediation(ip);
+            expect(nockScope.isDone()).toBe(true);
+            expect(responseRemediation).toEqual('bypass');
+        });
+
+        it('should return fallback remediation if decisions are not related to the IP', async () => {
+            const ip = '1.2.3.4';
+
+            const nockScope = nock(options.url)
+                .get('/v1/decisions')
+                .query(true)
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(
+                    200,
+                    [
+                        {
+                            duration: '3h59m56.919518073s',
+                            id: 1,
+                            origin: 'cscli',
+                            scenario: "manual 'ban' from 'localhost'",
+                            scope: 'Ip',
+                            type: 'unknown',
+                            value: '1.2.3.5',
+                        },
+                    ],
+                    {
+                        'Content-Type': 'application/json',
+                    },
+                );
+
+            const responseRemediation = await bouncer.getIpRemediation(ip);
+            expect(nockScope.isDone()).toBe(true);
+            expect(responseRemediation).toEqual('bypass');
+        });
+
+        it('should return highest remediation if there is multiple decisions about the IP', async () => {
+            const ip = '1.2.3.4';
+
+            const nockScope = nock(options.url)
+                .get('/v1/decisions')
+                .query(true)
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(
+                    200,
+                    [
+                        {
+                            duration: '3h59m56.919518073s',
+                            id: 1,
+                            origin: 'cscli',
+                            scenario: "manual 'ban' from 'localhost'",
+                            scope: 'Ip',
+                            type: 'bypass',
+                            value: ip,
+                        },
+                        {
+                            duration: '3h59m56.919518073s',
+                            id: 1,
+                            origin: 'cscli',
+                            scenario: "manual 'ban' from 'localhost'",
+                            scope: 'Ip',
+                            type: 'captcha',
+                            value: ip,
+                        },
+                    ],
+                    {
+                        'Content-Type': 'application/json',
+                    },
+                );
+
+            const responseRemediation = await bouncer.getIpRemediation(ip);
+            expect(nockScope.isDone()).toBe(true);
+            expect(responseRemediation).toEqual('captcha');
         });
     });
 });
