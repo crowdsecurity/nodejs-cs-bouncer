@@ -1,8 +1,9 @@
-import { afterEach, beforeAll, describe, expect, it } from '@jest/globals';
+import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
 import CrowdSecBouncer from 'src/lib/bouncer';
 import { CrowdSecBouncerConfiguration } from 'src/lib/bouncer/libs/types';
+import logger from 'src/lib/logger';
 import { RemediationType } from 'src/lib/types';
 
 const options: CrowdSecBouncerConfiguration = {
@@ -249,6 +250,70 @@ describe('🛡️ Bouncer', () => {
             const responseRemediation = await bouncer.getIpRemediation(ip);
             expect(nockScope.isDone()).toBe(true);
             expect(responseRemediation).toEqual('captcha');
+        });
+
+        it('should log the remediation if it is not "bypass"', async () => {
+            const ip = '1.2.3.4';
+            const remediation = 'ban';
+
+            const nockScope = nock(options.url)
+                .get('/v1/decisions')
+                .query(true)
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(
+                    200,
+                    [
+                        {
+                            duration: '3h59m56.919518073s',
+                            id: 1,
+                            origin: 'cscli',
+                            scenario: "manual 'ban' from 'localhost'",
+                            scope: 'Ip',
+                            type: remediation,
+                            value: ip,
+                        },
+                    ],
+                    {
+                        'Content-Type': 'application/json',
+                    },
+                );
+
+            const logSpy = jest.spyOn(logger, 'info');
+
+            await bouncer.getIpRemediation(ip);
+
+            expect(nockScope.isDone()).toBe(true);
+            expect(logSpy).toHaveBeenCalledWith(`Remediation for IP ${ip} is ${remediation}`);
+
+            const nockScopeBypass = nock(options.url)
+                .get('/v1/decisions')
+                .query(true)
+                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(
+                    200,
+                    [
+                        {
+                            duration: '3h59m56.919518073s',
+                            id: 1,
+                            origin: 'cscli',
+                            scenario: "manual 'ban' from 'localhost'",
+                            scope: 'Ip',
+                            type: 'bypass',
+                            value: ip,
+                        },
+                    ],
+                    {
+                        'Content-Type': 'application/json',
+                    },
+                );
+
+            logSpy.mockClear();
+            await bouncer.getIpRemediation(ip);
+
+            expect(nockScopeBypass.isDone()).toBe(true);
+            expect(logSpy).not.toHaveBeenCalled();
         });
     });
 });

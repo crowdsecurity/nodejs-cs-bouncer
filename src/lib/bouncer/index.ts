@@ -69,7 +69,13 @@ class CrowdSecBouncer {
     public getIpRemediation = async (ip: string): Promise<RemediationType> => {
         const validatedIp = parseIpOrRange(ip);
         const decisions = await this.lapiClient.getDecisionsMatchingIp(validatedIp.startAddress().address);
-        return this.getIpHighestRemediation(validatedIp.startAddress().address, decisions);
+        const remediation = this.getIpHighestRemediation(validatedIp.startAddress().address, decisions);
+
+        if (remediation !== 'bypass') {
+            logger.info(`Remediation for IP ${ip} is ${remediation}`);
+        }
+
+        return remediation;
     };
 }
 
