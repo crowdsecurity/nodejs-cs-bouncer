@@ -1,33 +1,32 @@
 export const DEFAULT_COLORS = {
     text: {
-        primary: 'black',
-        secondary: '#AAA',
-        button: 'white',
-        error_message: '#b90000',
+        primary: '#F9FAFA',
+        secondary: '#B0B5BF',
+        button: 'F9FAFA',
+        error_message: '#F55B60',
     },
     background: {
-        page: '#eee',
-        container: 'white',
-        button: '#626365',
-        button_hover: '#333',
+        page: '#04041F',
+        container: '#162131',
+        button: '#888BCE',
     },
 };
 
 export const DEFAULT_TEXTS = {
     ban: {
-        tabTitle: 'Oops..',
-        title: '🤭 Oh!',
-        subtitle: 'This page is protected against cyber attacks and your IP has been banned by our system.',
+        tabTitle: 'CrowdSec | Ban Wall',
+        title: 'Access Denied',
+        subtitle: 'This page is secured against cyber attacks, and your IP has been blocked by our system',
         footer: '',
     },
     captcha: {
-        tabTitle: 'Oops..',
-        title: 'Hmm, sorry but...',
+        tabTitle: 'CrowdSec | Captcha Wall',
+        title: 'Access Denied',
         subtitle: 'Please complete the security check.',
-        refresh_image_link: 'refresh image',
+        refresh_image_link: 'Reload the image',
         captcha_placeholder: 'Type here...',
-        send_button: 'CONTINUE',
-        error_message: 'Please try again.',
+        send_button: 'Continue',
+        error: 'Please try again.',
         footer: '',
     },
 };

@@ -58,6 +58,7 @@
         "ip-address": "^9.0.5",
         "lodash": "^4.17.21",
         "pino": "^9.3.2",
-        "pino-pretty": "^11.2.2"
+        "pino-pretty": "^11.2.2",
+        "svg-captcha": "^1.4.0"
     }
 }

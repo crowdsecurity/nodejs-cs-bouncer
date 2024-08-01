@@ -7,24 +7,25 @@ export type StyleConfig = Partial<{
     background: Partial<(typeof DEFAULT_COLORS)['background']>;
 }>;
 
-export type BaseOptions = {
+export type BaseWallOptions = Partial<{
     texts: Partial<(typeof DEFAULT_TEXTS)['ban']>;
     content: string;
     colors: StyleConfig;
     hideCrowdSecMentions: boolean;
     style: string;
-};
+}>;
 
-export type BanWallOptions = {
-    texts: Partial<(typeof DEFAULT_TEXTS)['ban']>;
-    colors: StyleConfig;
-};
+export type BanWallOptions = BaseWallOptions &
+    Partial<{
+        texts: Partial<(typeof DEFAULT_TEXTS)['ban']>;
+        colors: StyleConfig;
+    }>;
 
-export type CaptchaWallOptions = {
-    texts: Partial<(typeof DEFAULT_TEXTS)['captcha']>;
-    colors: StyleConfig;
-    hideCrowdSecMentions: boolean;
-    error: string | null;
-    captchaImageTag: string;
-    captchaResolutionFormUrl: string;
-};
+export type CaptchaWallOptions = BaseWallOptions &
+    Partial<{
+        texts: Partial<(typeof DEFAULT_TEXTS)['captcha']>;
+        error: string;
+    }> & {
+        captchaImageTag: string;
+        redirectUrl: string; // When the captcha is resolved, the user will be redirected to this URL
+    };

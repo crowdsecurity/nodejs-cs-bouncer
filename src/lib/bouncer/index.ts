@@ -54,8 +54,8 @@ class CrowdSecBouncer {
         // Sort remediation types by priority
         const orderedRemediationTypes = sortBy(remediationTypes, [(d) => ORDERED_REMEDIATIONS.indexOf(d)]);
 
-        // The last remediation type is the higher priority remediation
-        const higherPriorityRemediation = last(orderedRemediationTypes) ?? this.fallbackRemediation;
+        // The last remediation type is the higher priority remediation, could never be empty with previous checks
+        const higherPriorityRemediation = last(orderedRemediationTypes) as RemediationType;
 
         logger.debug(`Higher priority remediation for IP ${ip} is ${higherPriorityRemediation}`);
         return higherPriorityRemediation;

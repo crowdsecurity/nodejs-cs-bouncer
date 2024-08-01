@@ -55,7 +55,7 @@ describe('👩🏻‍⚖️ LAPI Client', () => {
                 .reply(500);
 
             const tempClient = new LapiClient(options);
-            await new Promise((resolve) => setTimeout(resolve, 10));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             expect(spyOnError).toHaveBeenCalled();
             expect(nockScope.isDone()).toBe(true);
             expect(tempClient).toBeDefined();
