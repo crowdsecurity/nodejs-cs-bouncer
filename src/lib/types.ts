@@ -14,7 +14,7 @@ export type DecisionOrigin = 'cscli' | 'crowdsec';
 
 export type DecisionScope = 'ip' | 'range' | 'username';
 
-export type DecisionType = 'ban' | 'captcha' | 'custom';
+export type RemediationType = 'ban' | 'captcha' | 'custom' | 'bypass';
 
 export type Decision = {
     /**
@@ -28,7 +28,7 @@ export type Decision = {
     /**
      * The remediation to apply to the IP.
      */
-    type: DecisionType;
+    type: RemediationType;
     /**
      * Whether the decision applies to an IP, a range of IPs or a username.
      */
@@ -55,5 +55,3 @@ export type Decision = {
      */
     simulated: boolean;
 };
-
-export type RemediationType = 'ban' | 'captcha' | 'custom' | 'bypass';
