@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/app-sec.png" width="200px" align="center" alt="Crowdsec Bouncer logo" />
+  <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/app-sec.webp" width="200px" align="center" alt="Crowdsec Bouncer logo" />
   <h1 align="center">CrowdSec NodeJS Bouncer</h1>
   <p align="center">
     ✨ <a href="https://www.crowdsec.net/">Crowdsec</a> ✨
   </p>
 </p>
 <p align="center">
-    <a href="https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer/branch/main/graph/badge.svg?token=BQA733CC26)](https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer">
-    <img src="https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer/branch/main/graph/badge.svg?token=BQA733CC26)](https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer" alt="Crowdsec JS Bouncer Codecov" />
+    <a href="https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer">
+      <img src="https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer/branch/main/graph/badge.svg?token=BQA733CC26" alt="Crowdsec JS Bouncer Codecov" />
     </a>
     <a href="https://opensource.org/licenses/MIT">
-      <img src="https://img.shields.io/badge/License-MIT-yellow.svg)" alt="Crowdsec JS Bouncer License" />
+      <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="Crowdsec JS Bouncer License" />
     </a>
     <a href="https://discord.gg/wGN7ShmEE8">
       <img src="https://img.shields.io/discord/463752820026376202.svg?logo=discord&logoColor=fff&label=Discord&color=7389d8" alt="Discord conversation" />
@@ -71,10 +71,11 @@ const wallOptions: BanWallOptions = {
 const banWall = await renderBanWall(wallOptions);
 ```
 
-Example of a ban wall:
+Example of a ban or captcha wall:
 
 <div align="center">
-  <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/ban-wall.png" width="200px" align="center" alt="Crowdsec Bouncer Ban wall" />
+  <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/ban-wall.png" height="200px" align="center" alt="Crowdsec Bouncer Ban wall" />
+  <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/captcha-wall.png" height="200px" align="center" alt="Crowdsec Bouncer Captcha wall" />
 </div>
 
 ## API
@@ -89,9 +90,9 @@ Create a new instance of the CrowdSecBouncer.
 
 ```typescript
 {
-    url: string; // The URL of your CrowdSec Local API
-    bouncerApiToken: string; // The API token to use the bouncer
-    fallbackRemediation: RemediationType; // The fallback remediation to use. Default: 'ban'
+    url: 'string'; // The URL of your CrowdSec Local API
+    bouncerApiToken: 'string'; // The API token to use the bouncer
+    fallbackRemediation: 'RemediationType'; // The fallback remediation to use. Default: 'ban'
 }
 ```
 
