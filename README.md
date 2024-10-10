@@ -20,6 +20,8 @@
 <div align="center">
   <a href="https://docs.crowdsec.net/">Documentation</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://app.crowdsec.net/hub">Hub</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.npmjs.com/package/@crowdsec/express-bouncer">npm</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/crowdsecurity/nodejs-cs-bouncer/issues">Issues</a>
@@ -29,9 +31,8 @@
   <br/>
 </div>
 
-CrowdSec is composed of a behavior detection engine, able to block classical attacks like credential brute-force, port scans, web scans, etc.
-
-Based on the type and number of blocked attacks, and after curation of those signals to avoid false positives and poisoning, a global IP reputation DB is maintained and shared with all network members.
+CrowdSec is a behavior detection engine that blocks common attacks like credential brute-force, port scans, and web scans.
+It maintains a global IP reputation database, curated to avoid false positives, and shares it with all network members.
 
 ## Basic Usage
 
@@ -82,11 +83,11 @@ Example of a ban or captcha wall:
 
 ### CrowdSecBouncer
 
-#### `constructor(config: CrowdSecBouncerConfiguration)`
+[Check the initialization example](./examples/bouncer-init.ts)
 
-Create a new instance of the CrowdSecBouncer.
+-   `constructor(config: CrowdSecBouncerConfiguration)` : Create a new instance of the CrowdSecBouncer.
 
-#### `CrowdSecBouncerConfiguration`
+-   `CrowdSecBouncerConfiguration`
 
 ```typescript
 {
@@ -96,21 +97,13 @@ Create a new instance of the CrowdSecBouncer.
 }
 ```
 
-[Check the initialization example](./examples/bouncer-init.ts)
-
-#### `getIpRemediation(ip: string): Promise<Remediation>`
-
-Get the remediation for a given IP.
+-   `getIpRemediation(ip: string): Promise<Remediation>`: Get the remediation for a given IP.
 
 ### Render ban wall
 
-#### `renderBanWall(options: BanWallOptions): Promise<string>`
+-   `renderBanWall(options: BanWallOptions): Promise<string>`: Return a computed HTML page with the ban wall.
 
-Return a computed HTML page with the ban wall.
-
-#### `BanWallOptions`
-
-Default options:
+-   `BanWallOptions` Default options:
 
 ```typescript
 {
@@ -126,13 +119,8 @@ Default options:
 
 ### Render captcha wall
 
-#### `renderCaptchaWall(options: CaptchaWallOptions): Promise<string>`
-
-Return a computed HTML page with the captcha wall.
-
-#### `CaptchaWallOptions`
-
-Default options:
+-   `renderCaptchaWall(options: CaptchaWallOptions): Promise<string>` : Return a computed HTML page with the captcha wall.
+-   `CaptchaWallOptions` Default options:
 
 ```typescript
 {
