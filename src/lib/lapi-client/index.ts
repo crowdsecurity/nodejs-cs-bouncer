@@ -3,9 +3,9 @@ import logger from 'src/lib/logger';
 import { ConnectionHealth, Decision } from 'src/lib/types';
 
 class LapiClient {
-    private bouncerApiToken: string;
-    private lapiUrl: string;
-    private userAgent: string;
+    private readonly bouncerApiToken: string;
+    private readonly lapiUrl: string;
+    private readonly userAgent: string;
 
     constructor(options: LapiClientConfigurations) {
         const isValidUrl = options.url && (options.url.startsWith('http://') || options.url.startsWith('https://'));
@@ -22,8 +22,10 @@ class LapiClient {
         this.bouncerApiToken = options.bouncerApiToken;
         this.userAgent = options.userAgent ?? 'nodejs-cs-bouncer';
 
-        // check connection health
+        this.initializeConnectionHealth();
+    }
 
+    private initializeConnectionHealth(): void {
         this.checkConnectionHealth().then((response) => {
             if (response.status === 'ERROR') {
                 logger.error(`Connection with LAPI is unhealthy: ${response.error}`);
@@ -33,7 +35,7 @@ class LapiClient {
         });
     }
 
-    private callLapiGetEndpoint = async <T>(path: string, method: 'GET' | 'OPTIONS' = 'GET'): Promise<T> => {
+    private readonly callLapiGetEndpoint = async <T>(path: string, method: 'GET' | 'OPTIONS' = 'GET'): Promise<T> => {
         const response = await fetch(`${this.lapiUrl}/${path}`, {
             method,
             headers: {
@@ -130,7 +132,7 @@ class LapiClient {
                 status: 'OK',
                 error: null,
             };
-        } catch (error) {
+        } catch {
             return {
                 status: 'ERROR',
                 error: 'SECURITY_ENGINE_UNREACHABLE',
