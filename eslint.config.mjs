@@ -21,7 +21,7 @@ const compat = new FlatCompat({
 
 export default [
     {
-        ignores: ['**/*.ejs', '**/dist/'],
+        ignores: ['**/*.ejs', '**/dist/', '**/tests/'],
     },
     ...fixupConfigRules(
         compat.extends(
