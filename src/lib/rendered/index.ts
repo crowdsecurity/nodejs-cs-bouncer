@@ -37,8 +37,7 @@ export const renderBanWall = async (options?: BanWallOptions) => {
         content,
     };
 
-    const base = await generateTemplate('base', baseOptions);
-    return base;
+    return generateTemplate('base', baseOptions);
 };
 
 export const renderCaptchaWall = async (options?: CaptchaWallOptions) => {
@@ -71,6 +70,5 @@ export const renderCaptchaWall = async (options?: CaptchaWallOptions) => {
         content,
     };
 
-    const base = await generateTemplate('base', baseOptions);
-    return base;
+    return await generateTemplate('base', baseOptions);
 };

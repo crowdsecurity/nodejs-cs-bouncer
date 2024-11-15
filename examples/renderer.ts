@@ -1,4 +1,4 @@
-import { create } from 'svg-captcha';
+import { create } from 'svg-captcha-fixed';
 
 import fs from 'fs';
 import { renderBanWall, renderCaptchaWall } from 'src/lib/rendered';

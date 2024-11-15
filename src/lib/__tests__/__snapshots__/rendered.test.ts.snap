@@ -18,10 +18,10 @@ exports[`📄 Generate Template should be able to customize ban template 1`] = `
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #000000;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #FFFFFF;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -32,7 +32,7 @@ exports[`📄 Generate Template should be able to customize ban template 1`] = `
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #000000;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -56,7 +56,7 @@ exports[`📄 Generate Template should be able to customize ban template 1`] = `
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #FFFFFF;
             }
             .warning {
                 width: 40px;
@@ -70,16 +70,10 @@ exports[`📄 Generate Template should be able to customize ban template 1`] = `
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #FFFFFF;
             }
         </style>
         
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -198,10 +192,10 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #000000;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #FFFFFF;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -212,7 +206,7 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #000000;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -236,7 +230,7 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #FFFFFF;
             }
             .warning {
                 width: 40px;
@@ -250,7 +244,7 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #FFFFFF;
             }
         </style>
         <style>
@@ -290,12 +284,6 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
     }
 </style>
 
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -307,14 +295,20 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
 <p class="desc">Custom Subtitle</p>
 
 <span class="captcha-img"> <img src="captcha.png" /> </span>
+<script>
+    function newImage() {
+        document.getElementById('refresh').value = '1';
+        document.getElementById('captcha').submit();
+    }
+</script>
 <p>
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <!-- <input name="crowdsec_captcha" value="1" />
-    <input name="refresh" value="0" id="refresh" /> -->
+    <input type="hidden" name="crowdsec_captcha" value="1" />
+    <input type="hidden" name="refresh" value="0" id="refresh" />
     
 
     <button type="submit">Continue</button>
@@ -430,10 +424,10 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #F9FAFA;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #04041F;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -444,7 +438,7 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #162131;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -468,7 +462,7 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
             .warning {
                 width: 40px;
@@ -482,16 +476,10 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
         </style>
         
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -525,10 +513,10 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #F9FAFA;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #04041F;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -539,7 +527,7 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #162131;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -563,7 +551,7 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
             .warning {
                 width: 40px;
@@ -577,7 +565,7 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
         </style>
         <style>
@@ -617,12 +605,6 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
     }
 </style>
 
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -634,14 +616,20 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
 <p class="desc">Please complete the security check.</p>
 
 <span class="captcha-img"> <img src="captcha.png" /> </span>
+<script>
+    function newImage() {
+        document.getElementById('refresh').value = '1';
+        document.getElementById('captcha').submit();
+    }
+</script>
 <p>
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <!-- <input name="crowdsec_captcha" value="1" />
-    <input name="refresh" value="0" id="refresh" /> -->
+    <input type="hidden" name="crowdsec_captcha" value="1" />
+    <input type="hidden" name="refresh" value="0" id="refresh" />
     
 
     <button type="submit">Continue</button>
@@ -672,10 +660,10 @@ exports[`📄 Generate Template should be table to display error message on capt
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #F9FAFA;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #04041F;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -686,7 +674,7 @@ exports[`📄 Generate Template should be table to display error message on capt
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #162131;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -710,7 +698,7 @@ exports[`📄 Generate Template should be table to display error message on capt
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
             .warning {
                 width: 40px;
@@ -724,7 +712,7 @@ exports[`📄 Generate Template should be table to display error message on capt
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
         </style>
         <style>
@@ -764,12 +752,6 @@ exports[`📄 Generate Template should be table to display error message on capt
     }
 </style>
 
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -781,14 +763,20 @@ exports[`📄 Generate Template should be table to display error message on capt
 <p class="desc">Please complete the security check.</p>
 
 <span class="captcha-img"> <img src="captcha.png" /> </span>
+<script>
+    function newImage() {
+        document.getElementById('refresh').value = '1';
+        document.getElementById('captcha').submit();
+    }
+</script>
 <p>
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <!-- <input name="crowdsec_captcha" value="1" />
-    <input name="refresh" value="0" id="refresh" /> -->
+    <input type="hidden" name="crowdsec_captcha" value="1" />
+    <input type="hidden" name="refresh" value="0" id="refresh" />
     
     <p class="error">Custom Error Message</p>
     
@@ -906,10 +894,10 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #F9FAFA;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #04041F;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -920,7 +908,7 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #162131;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -944,7 +932,7 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
             .warning {
                 width: 40px;
@@ -958,16 +946,10 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
         </style>
         
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -1086,10 +1068,10 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #F9FAFA;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #04041F;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -1100,7 +1082,7 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #162131;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -1124,7 +1106,7 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
             .warning {
                 width: 40px;
@@ -1138,7 +1120,7 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
         </style>
         <style>
@@ -1178,12 +1160,6 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
     }
 </style>
 
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -1195,14 +1171,20 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
 <p class="desc">Please complete the security check.</p>
 
 <span class="captcha-img">  </span>
+<script>
+    function newImage() {
+        document.getElementById('refresh').value = '1';
+        document.getElementById('captcha').submit();
+    }
+</script>
 <p>
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
 <form method="POST" id="captcha" action="">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <!-- <input name="crowdsec_captcha" value="1" />
-    <input name="refresh" value="0" id="refresh" /> -->
+    <input type="hidden" name="crowdsec_captcha" value="1" />
+    <input type="hidden" name="refresh" value="0" id="refresh" />
     
 
     <button type="submit">Continue</button>
@@ -1318,10 +1300,10 @@ exports[`📄 Generate Template should generate a ban template 1`] = `
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #F9FAFA;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #04041F;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -1332,7 +1314,7 @@ exports[`📄 Generate Template should generate a ban template 1`] = `
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #162131;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -1356,7 +1338,7 @@ exports[`📄 Generate Template should generate a ban template 1`] = `
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
             .warning {
                 width: 40px;
@@ -1370,16 +1352,10 @@ exports[`📄 Generate Template should generate a ban template 1`] = `
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
         </style>
         
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -1498,10 +1474,10 @@ exports[`📄 Generate Template should generate a base template 1`] = `
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #F9FAFA;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #04041F;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -1512,7 +1488,7 @@ exports[`📄 Generate Template should generate a base template 1`] = `
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #162131;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -1536,7 +1512,7 @@ exports[`📄 Generate Template should generate a base template 1`] = `
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
             .warning {
                 width: 40px;
@@ -1550,16 +1526,10 @@ exports[`📄 Generate Template should generate a base template 1`] = `
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
         </style>
         
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -1676,10 +1646,10 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
             }
             html {
                 height: 100%;
-                color: <!- colors.text.primary !>;
+                color: #F9FAFA;
             }
             body {
-                background: <!- colors.background.page !>;
+                background: #04041F;
                 font-family: Arial, Helvetica, sans-serif;
                 height: 100%;
             }
@@ -1690,7 +1660,7 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
                 height: 100%;
             }
             .main {
-                background: <!- colors.background.container !>;
+                background: #162131;
                 padding: 50px 50px 30px 50px;
                 box-shadow:
                     rgba(0, 0, 0, 0.2) 0px 3px 3px -2px,
@@ -1714,7 +1684,7 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
             .powered {
                 margin-top: 30px;
                 font-size: small;
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
             .warning {
                 width: 40px;
@@ -1728,7 +1698,7 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
                 margin-left: 5px;
             }
             a {
-                color: <!- colors.text.secondary !>;
+                color: #B0B5BF;
             }
         </style>
         <style>
@@ -1768,12 +1738,6 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
     }
 </style>
 
-        <script>
-            function newImage() {
-                document.getElementById('refresh').value = '1';
-                document.getElementById('captcha').submit();
-            }
-        </script>
     </head>
 
     <body>
@@ -1785,14 +1749,20 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
 <p class="desc">Please complete the security check.</p>
 
 <span class="captcha-img">  </span>
+<script>
+    function newImage() {
+        document.getElementById('refresh').value = '1';
+        document.getElementById('captcha').submit();
+    }
+</script>
 <p>
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
 <form method="POST" id="captcha" action="">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <!-- <input name="crowdsec_captcha" value="1" />
-    <input name="refresh" value="0" id="refresh" /> -->
+    <input type="hidden" name="crowdsec_captcha" value="1" />
+    <input type="hidden" name="refresh" value="0" id="refresh" />
     
 
     <button type="submit">Continue</button>

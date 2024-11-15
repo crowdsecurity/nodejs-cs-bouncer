@@ -5,6 +5,7 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
+        "clean": "rm -rf dist",
         "build": "tsc",
         "lint": "eslint .",
         "lint:all": "npm run lint && npm run prettify-check",
@@ -63,6 +64,6 @@
         "lodash": "^4.17.21",
         "pino": "^9.4.0",
         "pino-pretty": "^11.2.2",
-        "svg-captcha": "^1.4.0"
+        "svg-captcha-fixed": "^1.5.2"
     }
 }

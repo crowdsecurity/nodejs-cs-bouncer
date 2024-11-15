@@ -1,3 +1,5 @@
+import path from 'path';
+
 export const DEFAULT_COLORS = {
     text: {
         primary: '#F9FAFA',
@@ -31,4 +33,5 @@ export const DEFAULT_TEXTS = {
     },
 };
 
-export const TEMPLATES_PATH = `${process.cwd()}/src/lib/rendered/templates`;
+export const TEMPLATES_PATH = path.join(__dirname, '..', 'templates');
+
