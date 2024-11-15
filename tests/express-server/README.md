@@ -3,75 +3,70 @@
 The `express-server` folder contains a basic implementation of the CrowdSec NodeJs
 remediation component.
 
-All the logic is done in the `server.ts` file: 
+All the logic is done in the `server.ts` file:
 
-- we use a middleware to act before rendering the page
+-   we use a middleware to act before rendering the page
 
-- We retrieve the remediation for the current tested IP:
-
-  ```js
-  const remediation = await bouncer.getIpRemediation(ip);
-  ```
-
-  
-
-- Depending on the value of the remediation, we apply it:
-
-  - let the process continue with `next()`if there is no remediation (bypass)
-    
-
-  - block the user with a ban wall for a ban remediation:
-    ```js
-    const banWall = await renderBanWall();
-    return res.status(403).send(banWall);
-    ```
-
-    
-
-  - block the user with captcha wall for a captcha remediation:
+-   We retrieve the remediation for the current tested IP:
 
     ```js
-    const captchaWall = await renderCaptchaWall({
-        captchaImageTag: captcha.data,
-        redirectUrl: CAPTCHA_VERIFICATION_URI,
-    });
-    return res.status(401).send(captchaWall);
+    const remediation = await bouncer.getIpRemediation(ip);
     ```
 
-    User will be blocked until the captcha is solved. To keep simple, we use a specific `verify-captcha` route and store the result of the user captcha solving status in session. 
+-   Depending on the value of the remediation, we apply it:
 
-    
+    -   let the process continue with `next()`if there is no remediation (bypass)
 
-  
+    -   block the user with a ban wall for a ban remediation:
+
+        ```js
+        const banWall = await renderBanWall();
+        return res.status(403).send(banWall);
+        ```
+
+    -   block the user with captcha wall for a captcha remediation:
+
+        ```js
+        const captchaWall = await renderCaptchaWall({
+            captchaImageTag: captcha.data,
+            redirectUrl: CAPTCHA_VERIFICATION_URI,
+        });
+        return res.status(401).send(captchaWall);
+        ```
+
+        User will be blocked until the captcha is solved. To keep simple, we use a specific `verify-captcha` route and store the result of the user captcha solving status in session.
 
 **Table of Contents**
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Pre-requisites](#pre-requisites)
-- [Test the bouncer](#test-the-bouncer)
-  - [Prepare the tests](#prepare-the-tests)
-  - [Test a "bypass" remediation](#test-a-bypass-remediation)
-  - [Test a "ban" remediation](#test-a-ban-remediation)
-  - [Test a "captcha" remediation](#test-a-captcha-remediation)
+-   [Pre-requisites](#pre-requisites)
+-   [Test the bouncer](#test-the-bouncer)
+    -   [Prepare the tests](#prepare-the-tests)
+    -   [Test a "bypass" remediation](#test-a-bypass-remediation)
+    -   [Test a "ban" remediation](#test-a-ban-remediation)
+    -   [Test a "captcha" remediation](#test-a-captcha-remediation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Pre-requisites
 
-- NodeJS and Docker installed on your machine
-    - You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
+-   NodeJS and Docker installed on your machine
 
-- Copy the `.env.example` file to `.env` and fill in the required values
+    -   You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
 
-- Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
+-   Copy the `.env.example` file to `.env` and fill in the required values
 
-- Install bouncer dependencies and test dependencies:
+-   Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
+
+-   Install bouncer dependencies and test dependencies:
+
     ```shell
     npm --prefix ../.. install && npm install
     ```
 
-- Build the project sources
+-   Build the project sources
 
     ```shell
     npm --prefix ../.. run build
@@ -103,7 +98,7 @@ We are using here the `BOUNCER_KEY` variable defined in `crowdsec/.env` file.
 npm run start
 ```
 
-This will launch an Express server accessible on `http://localhost:3000`  (aka "the home page") with
+This will launch an Express server accessible on `http://localhost:3000` (aka "the home page") with
 `tests/express-server/server.ts` file as entry point.
 
 The terminal will show you different log messages when you access the home page.
@@ -157,4 +152,4 @@ You should see `Remediation: captcha` in terminal.
 
 If you solve the captcha, you'll be redirected to the home page.
 
-For this basic implementation, we just store the result of your captcha status in the session. 
+For this basic implementation, we just store the result of your captcha status in the session.

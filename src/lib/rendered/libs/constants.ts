@@ -34,4 +34,3 @@ export const DEFAULT_TEXTS = {
 };
 
 export const TEMPLATES_PATH = path.join(__dirname, '..', 'templates');
-
