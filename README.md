@@ -1,3 +1,18 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [CrowdSec NodeJS Bouncer](#crowdsec-nodejs-bouncer)
+  - [Basic Usage](#basic-usage)
+    - [Apply the remediation](#apply-the-remediation)
+  - [API](#api)
+    - [CrowdSecBouncer](#crowdsecbouncer)
+    - [Render ban wall](#render-ban-wall)
+    - [Render captcha wall](#render-captcha-wall)
+  - [MIT Licence](#mit-licence)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 <p align="center">
   <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/app-sec.webp" width="200px" align="center" alt="Crowdsec Bouncer logo" />
   <h1 align="center">CrowdSec NodeJS Bouncer</h1>

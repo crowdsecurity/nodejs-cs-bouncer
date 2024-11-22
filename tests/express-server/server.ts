@@ -1,17 +1,27 @@
+// @ts-ignore
 import dotenv from 'dotenv';
+// @ts-ignore
+import dotenvSafe from 'dotenv-safe';
+// @ts-ignore
 import express from 'express';
+// @ts-ignore
 import session from 'express-session';
 import pino from 'pino';
+import nodeCron from 'node-cron';
 import { create as createCaptcha } from 'svg-captcha-fixed';
 import 'tests/express-server/crowdsec-alias';
 
+// @ts-ignore
 import path from 'path';
 
 // In a real project, you would have to install the package from npm: "npm install @crowdsec/nodejs-bouncer"
 // Here, for development and test purpose, we use the alias to load the package from the dist folder (@see ./crowdsec-alias.ts)
-// @ts-expect-error We load the CrowdSecBouncer from the dist folder
-// eslint-disable-next-line import/order,import/no-unresolved
-import { CrowdSecBouncer, CrowdSecBouncerConfiguration, renderBanWall, renderCaptchaWall } from '@crowdsec/nodejs-bouncer';
+import {
+    CrowdSecBouncer,
+    CrowdSecBouncerConfiguration,
+    renderBanWall,
+    renderCaptchaWall, // @ts-expect-error We load the CrowdSecBouncer from the dist folder
+} from '@crowdsec/nodejs-bouncer';
 
 declare module 'express-session' {
     interface SessionData {
@@ -20,9 +30,17 @@ declare module 'express-session' {
     }
 }
 const CAPTCHA_VERIFICATION_URI = '/verify-captcha';
-// Load environment variables from .env file
+// Load and validate environment variables from .env file
+dotenvSafe.config({
+    path: path.resolve(__dirname, '.env'),
+    example: path.resolve(__dirname, '.env.example'),
+});
 dotenv.config();
-// Load the .env file in the crowdsec folder (will override any duplicate values from the main .env)
+// Load and validate the .env file in the crowdsec folder (will override any duplicate values from the main .env)
+dotenvSafe.config({
+    path: path.resolve(__dirname, 'crowdsec/.env'),
+    example: path.resolve(__dirname, 'crowdsec/.env.example'),
+});
 dotenv.config({ path: path.resolve(__dirname, 'crowdsec/.env') });
 
 const app = express();
@@ -51,6 +69,12 @@ const logger = pino({
     },
 });
 
+const config: CrowdSecBouncerConfiguration = {
+    url: process.env.LAPI_URL ?? 'http://localhost:8080',
+    bouncerApiToken: process.env.BOUNCER_KEY,
+};
+const bouncer = new CrowdSecBouncer(config);
+
 // Middleware to retrieve IP and apply remediation
 app.use(async (req, res, next) => {
     if (req.path === CAPTCHA_VERIFICATION_URI && req.body.refresh !== '1') return next();
@@ -59,11 +83,6 @@ app.use(async (req, res, next) => {
 
     if (typeof ip === 'string') {
         try {
-            const config: CrowdSecBouncerConfiguration = {
-                url: process.env.LAPI_URL ?? 'http://localhost:8080',
-                bouncerApiToken: process.env.BOUNCER_KEY,
-            };
-            const bouncer = new CrowdSecBouncer(config);
             const remediation = await bouncer.getIpRemediation(ip);
             logger.info(`IP: ${ip}`);
             logger.info(`Remediation: ${remediation}`);
@@ -121,6 +140,28 @@ app.post(CAPTCHA_VERIFICATION_URI, express.json(), (req, res) => {
         logger.debug(`Captcha is incorrect: ${phrase} != ${req.session.captchaText}`);
     }
     res.redirect('/');
+});
+
+let counter = 0;
+const DECISIONS_REFRESH_INTERVAL = 60; // seconds
+// Retrieve decisions from the CrowdSec API
+nodeCron.schedule('* * * * * *', async () => {
+    if (counter % DECISIONS_REFRESH_INTERVAL === 0) {
+        logger.info('Running getDecisions');
+        try {
+            const decisionStream = await bouncer.refreshDecisions({
+                isFirstFetch: counter === 0, //@TODO: Use the cache item to decide if it's the first fetch
+                origins: ['cscli'],
+                scopes: ['ip'],
+            });
+
+            logger.info(`New decisions: ${JSON.stringify(decisionStream.new ?? '[]')}`);
+            logger.info(`Deleted decisions: ${JSON.stringify(decisionStream.deleted ?? '[]')}`);
+        } catch (error) {
+            logger.error(`Error fetching decision stream: ${(error as Error).message}`);
+        }
+    }
+    counter++;
 });
 
 // Start the server

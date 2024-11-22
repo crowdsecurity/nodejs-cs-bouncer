@@ -10,7 +10,7 @@ export type ErrorConnectionHealth = {
 
 export type ConnectionHealth = OkConnectionHealth | ErrorConnectionHealth;
 
-export type DecisionOrigin = 'cscli' | 'crowdsec';
+export type DecisionOrigin = 'cscli' | 'crowdsec' | 'CAPI';
 
 export type DecisionScope = 'ip' | 'range' | 'username';
 

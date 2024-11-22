@@ -20,7 +20,7 @@ class LapiClient {
 
         this.lapiUrl = options.url;
         this.bouncerApiToken = options.bouncerApiToken;
-        this.userAgent = options.userAgent ?? 'nodejs-cs-bouncer';
+        this.userAgent = options.userAgent ?? 'nodejs-cs-bouncer/v0.0.1';
 
         this.initializeConnectionHealth();
     }
@@ -67,7 +67,10 @@ class LapiClient {
         scopes,
         scenariosContaining,
         scenariosNotContaining,
-    }: GetDecisionsOptions = {}): Promise<{ new: Decision[]; deleted: Decision[] }> => {
+    }: GetDecisionsOptions = {}): Promise<{
+        new: Decision[];
+        deleted: Decision[];
+    }> => {
         const params = new URLSearchParams({
             startup: isFirstFetch.toString(),
             ...(scopes ? { scopes: scopes.join(',') } : {}),

@@ -4,6 +4,7 @@ import { parseIpOrRange } from 'src/helpers/ip';
 import { ORDERED_REMEDIATIONS } from 'src/lib/bouncer/libs/constants';
 import { CrowdSecBouncerConfiguration } from 'src/lib/bouncer/libs/types';
 import LapiClient from 'src/lib/lapi-client';
+import { GetDecisionsOptions } from 'src/lib/lapi-client/libs/types';
 import logger from 'src/lib/logger';
 import { Decision, RemediationType } from 'src/lib/types';
 
@@ -76,6 +77,26 @@ class CrowdSecBouncer {
         }
 
         return remediation;
+    };
+
+    public refreshDecisions = async ({
+        isFirstFetch = false,
+        origins,
+        scopes,
+        scenariosContaining,
+        scenariosNotContaining,
+    }: GetDecisionsOptions = {}): Promise<{
+        new: Decision[];
+        deleted: Decision[];
+    }> => {
+        // @TODO store retrieved decisions in a cache
+        return this.lapiClient.getDecisionStream({
+            isFirstFetch,
+            origins,
+            scopes,
+            scenariosContaining,
+            scenariosNotContaining,
+        });
     };
 }
 
