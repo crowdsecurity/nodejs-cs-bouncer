@@ -1,10 +1,9 @@
 /**
- * The function `parseExpiration` takes a duration string and returns a Date
- * object representing the expiration time based on the parsed duration.
+ * The function `parseExpiration` takes a duration string and returns the TTL in milliseconds.
  * @param {string} duration - string like "3h59m49.481837158s" (hours, minutes, seconds, milliseconds) and calculate the expiration time.
- * @returns `Date` object representing the expiration time.
+ * @returns `Number` representing the Time To Live.
  */
-const parseExpiration = (duration: string): Date => {
+export const convertDurationToMilliseconds = (duration: string): number => {
     const re = /^(-?)(?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?$/;
     const matches = re.exec(duration);
     if (!matches) {
@@ -23,10 +22,5 @@ const parseExpiration = (duration: string): Date => {
         totalMilliseconds *= -1;
     }
 
-    const expiration = new Date();
-    expiration.setTime(expiration.getTime() + totalMilliseconds);
-
-    return expiration;
+    return totalMilliseconds;
 };
-
-export default parseExpiration;

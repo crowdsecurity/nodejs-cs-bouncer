@@ -72,6 +72,7 @@ const logger = pino({
 const config: CrowdSecBouncerConfiguration = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
     bouncerApiToken: process.env.BOUNCER_KEY,
+    cleanIpCacheDuration: process.env.CLEAN_IP_CACHE_DURATION ?? 120,
 };
 const bouncer = new CrowdSecBouncer(config);
 
@@ -151,12 +152,12 @@ nodeCron.schedule('* * * * * *', async () => {
         try {
             const decisionStream = await bouncer.refreshDecisions({
                 isFirstFetch: counter === 0, //@TODO: Use the cache item to decide if it's the first fetch
-                origins: ['cscli'],
+                origins: ['cscli', 'CAPI'],
                 scopes: ['ip'],
             });
 
             logger.info(`New decisions: ${JSON.stringify(decisionStream.new ?? '[]')}`);
-            logger.info(`Deleted decisions: ${JSON.stringify(decisionStream.deleted ?? '[]')}`);
+            //logger.info(`Deleted decisions: ${JSON.stringify(decisionStream.deleted ?? '[]')}`);
         } catch (error) {
             logger.error(`Error fetching decision stream: ${(error as Error).message}`);
         }

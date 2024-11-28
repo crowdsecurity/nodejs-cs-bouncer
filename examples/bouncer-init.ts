@@ -1,5 +1,5 @@
 import CrowdSecBouncer from 'src/lib/bouncer';
-import { CrowdSecBouncerConfiguration } from 'src/lib/bouncer/libs/types';
+import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/libs/types';
 
 /**
  * Example of basic usage of the CrowdSec Bouncer.
@@ -10,7 +10,7 @@ import { CrowdSecBouncerConfiguration } from 'src/lib/bouncer/libs/types';
  **/
 
 const main = async () => {
-    const config: CrowdSecBouncerConfiguration = {
+    const config: CrowdSecBouncerConfigurations = {
         url: 'http://localhost:8080', // Ex: with a local docker -> $ docker run -d -p 8080:8080 --name "crowdsecurity/crowdsec" "crowdsec"
         bouncerApiToken: 'your-api-key', // Ex: $ cscli bouncer add nodejs-cs-bouncer -> API key for: nodejs-cs-bouncer
     };

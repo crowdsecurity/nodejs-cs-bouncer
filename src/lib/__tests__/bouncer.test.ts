@@ -2,11 +2,11 @@ import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals'
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
 import CrowdSecBouncer from 'src/lib/bouncer';
-import { CrowdSecBouncerConfiguration } from 'src/lib/bouncer/libs/types';
+import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/libs/types';
 import logger from 'src/lib/logger';
 import { RemediationType } from 'src/lib/types';
 
-const options: CrowdSecBouncerConfiguration = {
+const configs: CrowdSecBouncerConfigurations = {
     url: 'http://example.com/api',
     bouncerApiToken: 'test-api-key',
 };
@@ -15,9 +15,9 @@ describe('🛡️ Bouncer', () => {
     let bouncer: CrowdSecBouncer;
 
     beforeAll(() => {
-        nock(options.url)
+        nock(configs.url)
             .head('/v1/decisions')
-            .matchHeader('X-Api-Key', options.bouncerApiToken)
+            .matchHeader('X-Api-Key', configs.bouncerApiToken)
             .matchHeader('Content-Type', 'application/json')
             .reply(
                 200,
@@ -26,7 +26,7 @@ describe('🛡️ Bouncer', () => {
                     'Content-Type': 'application/json',
                 },
             );
-        bouncer = new CrowdSecBouncer(options);
+        bouncer = new CrowdSecBouncer(configs);
     });
 
     afterEach(() => {
@@ -43,7 +43,7 @@ describe('🛡️ Bouncer', () => {
         });
 
         it('should have fallback remediation customizable', () => {
-            const customBouncer = new CrowdSecBouncer({ ...options, fallbackRemediation: 'ban' });
+            const customBouncer = new CrowdSecBouncer({ ...configs, fallbackRemediation: 'ban' });
             expect(customBouncer.fallbackRemediation).toBe('ban');
         });
 
@@ -56,10 +56,10 @@ describe('🛡️ Bouncer', () => {
         it('should compute the correct remediation for the IP 3.4.5.6', async () => {
             const ipV4 = '3.4.5.6';
             const remediation: RemediationType = 'ban';
-            const nockScope = nock(options.url)
+            const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query({ ip: ipV4 })
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(
                     200,
@@ -88,10 +88,10 @@ describe('🛡️ Bouncer', () => {
             const ipV6 = '2001:0000:130F:0000:0000:09C0:876A:130B';
             const remediation: RemediationType = 'ban';
 
-            const nockScope = nock(options.url)
+            const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(
                     200,
@@ -119,10 +119,10 @@ describe('🛡️ Bouncer', () => {
         it('should return fallback remediation if there is no decision at all', async () => {
             const ip = '1.2.3.4';
 
-            const nockScope = nock(options.url)
+            const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(200, 'null', {
                     'Content-Type': 'application/json',
@@ -136,10 +136,10 @@ describe('🛡️ Bouncer', () => {
         it('should return fallback remediation if the IP is unknown', async () => {
             const ip = '1.2.3.4';
 
-            const nockScope = nock(options.url)
+            const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(200, [], {
                     'Content-Type': 'application/json',
@@ -153,10 +153,10 @@ describe('🛡️ Bouncer', () => {
         it('should return fallback remediation if decisions remediation types are unknown', async () => {
             const ip = '1.2.3.4';
 
-            const nockScope = nock(options.url)
+            const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(
                     200,
@@ -184,10 +184,10 @@ describe('🛡️ Bouncer', () => {
         it('should return fallback remediation if decisions are not related to the IP', async () => {
             const ip = '1.2.3.4';
 
-            const nockScope = nock(options.url)
+            const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(
                     200,
@@ -215,10 +215,10 @@ describe('🛡️ Bouncer', () => {
         it('should return highest remediation if there is multiple decisions about the IP', async () => {
             const ip = '1.2.3.4';
 
-            const nockScope = nock(options.url)
+            const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(
                     200,
@@ -253,13 +253,13 @@ describe('🛡️ Bouncer', () => {
         });
 
         it('should log the remediation if it is not "bypass"', async () => {
-            const ip = '1.2.3.4';
+            let ip = '1.2.3.4';
             const remediation = 'ban';
 
-            const nockScope = nock(options.url)
+            const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(
                     200,
@@ -286,10 +286,11 @@ describe('🛡️ Bouncer', () => {
             expect(nockScope.isDone()).toBe(true);
             expect(logSpy).toHaveBeenCalledWith(`Remediation for IP ${ip} is ${remediation}`);
 
-            const nockScopeBypass = nock(options.url)
+            ip = '1.2.3.5'; // Another IP as the first one has been cached
+            const nockScopeBypass = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
-                .matchHeader('X-Api-Key', options.bouncerApiToken)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(
                     200,

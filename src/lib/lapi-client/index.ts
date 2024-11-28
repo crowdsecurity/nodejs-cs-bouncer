@@ -7,20 +7,20 @@ class LapiClient {
     private readonly lapiUrl: string;
     private readonly userAgent: string;
 
-    constructor(options: LapiClientConfigurations) {
-        const isValidUrl = options.url && (options.url.startsWith('http://') || options.url.startsWith('https://'));
+    constructor(configs: LapiClientConfigurations) {
+        const isValidUrl = configs.url && (configs.url.startsWith('http://') || configs.url.startsWith('https://'));
 
         if (!isValidUrl) {
             throw new Error('`lapiUrl` seems invalid. It should start with "http://" or "https://"');
         }
 
-        if (!options.bouncerApiToken) {
+        if (!configs.bouncerApiToken) {
             throw new Error('`bouncerApiToken` is required and must be non-empty');
         }
 
-        this.lapiUrl = options.url;
-        this.bouncerApiToken = options.bouncerApiToken;
-        this.userAgent = options.userAgent ?? 'nodejs-cs-bouncer/v0.0.1';
+        this.lapiUrl = configs.url;
+        this.bouncerApiToken = configs.bouncerApiToken;
+        this.userAgent = configs.userAgent ?? 'nodejs-cs-bouncer/v0.0.1';
 
         this.initializeConnectionHealth();
     }

@@ -1,3 +1,5 @@
+import { ID_SEPARATOR } from 'src/lib/constants';
+
 export type OkConnectionHealth = {
     status: 'OK';
     error: null;
@@ -10,11 +12,27 @@ export type ErrorConnectionHealth = {
 
 export type ConnectionHealth = OkConnectionHealth | ErrorConnectionHealth;
 
-export type DecisionOrigin = 'cscli' | 'crowdsec' | 'CAPI';
+/**
+ * DecisionOrigin is a single value from the default CrowdSec decision origins (crowdsec, cscli, CAPI, lists:XXX, etc.) or any custom value.
+ */
+export type DecisionOrigin = string;
+/**
+ * DecisionScope is a single value from the default CrowdSec decision scopes (ip, range, username, country, etc.) or any custom value.
+ */
+export type DecisionScope = string;
+/**
+ * DecisionValue is a single value from the default CrowdSec decision values (an IP, a range of IPs, a username, a country, etc.) or any custom value.
+ */
+export type DecisionValue = string;
+/**
+ * RemediationType is a single value from the default CrowdSec remediation types (ban, captcha, bypass, etc.) or any custom value.
+ */
+export type RemediationType = string;
 
-export type DecisionScope = 'ip' | 'range' | 'username';
+export type CachableDecisionIdentifier =
+    `${DecisionOrigin}${typeof ID_SEPARATOR}${RemediationType}${typeof ID_SEPARATOR}${DecisionScope}${typeof ID_SEPARATOR}${DecisionValue}`;
 
-export type RemediationType = 'ban' | 'captcha' | 'custom' | 'bypass';
+export type CachableDecisionExpiresAt = number;
 
 export type Decision = {
     /**
@@ -30,13 +48,13 @@ export type Decision = {
      */
     type: RemediationType;
     /**
-     * Whether the decision applies to an IP, a range of IPs or a username.
+     * Whether the decision applies to an IP, a range of IPs, a username or a country.
      */
     scope: DecisionScope;
     /**
-     * The value of the decision scope: an IP, a range or a username.
+     * The value of the decision scope: an IP, a range, a username or a country.
      */
-    value: string;
+    value: DecisionValue;
     /**
      * The duration of the decision in a string format.
      *
@@ -54,4 +72,13 @@ export type Decision = {
      * Whether the decision results from a scenario in simulation mode.
      */
     simulated: boolean;
+};
+
+export type CachableDecision = {
+    identifier: CachableDecisionIdentifier;
+    origin: DecisionOrigin;
+    scope: DecisionScope;
+    value: DecisionValue;
+    type: RemediationType;
+    expiresAt: CachableDecisionExpiresAt; // Unix timestamp in milliseconds
 };
