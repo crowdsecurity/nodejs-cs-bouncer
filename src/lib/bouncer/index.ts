@@ -6,12 +6,12 @@ import { getIpToRemediate, getIpOrRangeType, getFirstIpFromRange } from 'src/hel
 import { ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
 import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
-import { CachableDecisionContent } from 'src/lib/cache/types';
+import { CachableDecisionContent, CachableOriginsCount } from 'src/lib/cache/types';
 import { CACHE_EXPIRATION_FOR_CLEAN_IP, IP_TYPE_V6, ORIGIN_CLEAN, REMEDIATION_BYPASS, SCOPE_IP, SCOPE_RANGE } from 'src/lib/constants';
 import LapiClient from 'src/lib/lapi-client';
 import { GetDecisionsOptions } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
-import { CachableDecision, Decision, Remediation } from 'src/lib/types';
+import { CachableDecision, Decision, Remediation, CachableOrigin } from 'src/lib/types';
 
 class CrowdSecBouncer {
     private cacheStorage: CacheStorage;
@@ -27,34 +27,32 @@ class CrowdSecBouncer {
         this.lapiClient = new LapiClient(configs);
     }
 
-    /**
-     * Found decisions for an IP address and get the highest remediation found if there is multiple decisions about it.
-     * @param ip The IP address to get the remediation for.
-     * @param contents The decisions to filter.
-     * @returns The highest remediation found, else the fallback remediation.
-     */
-    private getIpHighestRemediation = (ip: string, contents: CachableDecisionContent[] | null): Remediation => {
+    private getIpHighestRemediationWithOrigin = (
+        ip: string,
+        contents: CachableDecisionContent[] | null,
+    ): { remediation: Remediation; origin: CachableOrigin } => {
         if (!contents || contents.length === 0) {
             logger.debug('No cached contents found');
-            return REMEDIATION_BYPASS;
+            return { remediation: REMEDIATION_BYPASS, origin: ORIGIN_CLEAN };
         }
-        // Get all known remediation types from decision contents
-        const remediationTypes: Remediation[] = contents.map(({ value }) => {
-            // If we don't know the remediation type, we fall back to the fallback remediation.
-            if (ORDERED_REMEDIATIONS.indexOf(value) === -1) {
-                return this.fallbackRemediation;
-            }
-            return value;
-        });
 
-        // Sort remediation types by priority
-        const orderedRemediations = sortBy(remediationTypes, [(d) => ORDERED_REMEDIATIONS.indexOf(d)]);
+        // Map the remediation values with their associated origins
+        const remediationWithOrigins = contents.map(({ value, origin }) => ({
+            remediation: ORDERED_REMEDIATIONS.includes(value) ? value : this.fallbackRemediation,
+            origin,
+        }));
 
-        // The last remediation type is the higher priority remediation, could never be empty with previous checks
-        const higherPriorityRemediation = last(orderedRemediations) as Remediation;
+        // Sort the remediationWithOrigins array by remediation priority
+        const orderedRemediationsWithOrigins = sortBy(remediationWithOrigins, (entry) => ORDERED_REMEDIATIONS.indexOf(entry.remediation));
 
-        logger.debug(`Higher priority remediation for IP ${ip} is ${higherPriorityRemediation}`);
-        return higherPriorityRemediation ?? REMEDIATION_BYPASS;
+        // The last element contains the highest-priority remediation and its origin
+        const { remediation, origin } = last(orderedRemediationsWithOrigins) ?? {
+            remediation: REMEDIATION_BYPASS,
+            origin: ORIGIN_CLEAN,
+        };
+
+        logger.debug(`Higher priority remediation for IP ${ip} is ${remediation} with origin ${origin}`);
+        return { remediation, origin };
     };
 
     /**
@@ -85,7 +83,6 @@ class CrowdSecBouncer {
         const ipToRemediate = getIpToRemediate(ip);
 
         // Check cached decisions for current IP
-        logger.debug(`Checking cache for IP ${ip}`);
         const allCachedDecisionContents = await this.cacheStorage.getAllCachableDecisionContents(ipToRemediate);
 
         let cachedDecisionContents = this.cacheStorage.pruneCachedDecisionContents(allCachedDecisionContents);
@@ -95,7 +92,7 @@ class CrowdSecBouncer {
         if (!cachedDecisionContents || cachedDecisionContents.length === 0) {
             // In stream_mode, we do not store this bypass, and we do not call LAPI directly
             if (getConfig('streamMode', this.configs)) {
-                // @TODO updateRemediationOriginCount
+                await this.updateRemediationOriginCount(ORIGIN_CLEAN);
                 return REMEDIATION_BYPASS;
             }
 
@@ -121,13 +118,19 @@ class CrowdSecBouncer {
 
             cachedDecisionContents = await this.cacheStorage.storeDecisions(cachableDecisions);
         }
-        const remediation = this.getIpHighestRemediation(ipToRemediate, cachedDecisionContents);
+        const { remediation, origin } = this.getIpHighestRemediationWithOrigin(ipToRemediate, cachedDecisionContents);
+        logger.debug(`Remediation for IP ${ip} is ${remediation} with origin ${origin}`);
         if (remediation !== REMEDIATION_BYPASS) {
             logger.info(`Remediation for IP ${ip} is ${remediation}`);
         }
-        // @TODO updateRemediationOriginCount
+        await this.updateRemediationOriginCount(origin);
 
         return remediation;
+    };
+
+    private updateRemediationOriginCount = async (origin: CachableOrigin): Promise<CachableOriginsCount> => {
+        logger.debug(`Increment count for origin ${origin}`);
+        return this.cacheStorage.upsertOriginsCountItem(origin);
     };
 
     public refreshDecisions = async ({

@@ -1,4 +1,4 @@
-import { CachedItem } from 'src/lib/cache/types';
+import { CachableItem } from 'src/lib/cache/types';
 
 export interface CacheAdapter {
     /**
@@ -6,7 +6,7 @@ export interface CacheAdapter {
      * @param key - The key of the item to retrieve.
      * @returns A promise which resolves to the cached item or null if not found.
      */
-    getItem(key: string): Promise<CachedItem | null>;
+    getItem(key: string): Promise<CachableItem | null>;
 
     /**
      * Sets an item in the cache.
@@ -14,7 +14,7 @@ export interface CacheAdapter {
      * @param ttl - The time-to-live in milliseconds.
      * @returns A promise which resolves to the cached item.
      */
-    setItem(item: CachedItem, ttl?: number): Promise<CachedItem>;
+    setItem(item: CachableItem, ttl?: number): Promise<CachableItem>;
 
     /**
      * Deletes an item from the cache.

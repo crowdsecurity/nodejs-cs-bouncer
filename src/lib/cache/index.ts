@@ -3,15 +3,15 @@ import { updateDecisionItem } from 'src/lib/cache/decisions';
 import { getCacheKey } from 'src/lib/cache/helpers';
 import InMemory from 'src/lib/cache/in-memory';
 import { CacheAdapter } from 'src/lib/cache/interfaces';
-import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations } from 'src/lib/cache/types';
-import { SCOPE_IP, SCOPE_RANGE, IPV4_BUCKET_KEY, IP_TYPE_V4 } from 'src/lib/constants';
+import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations, CachableOriginsCount, OriginCount } from 'src/lib/cache/types';
+import { SCOPE_IP, SCOPE_RANGE, IPV4_BUCKET_KEY, IP_TYPE_V4, ORIGINS_COUNT_KEY } from 'src/lib/constants';
 import logger from 'src/lib/logger';
-import { CachableDecision, CachableIdentifier, Value, Remediation } from 'src/lib/types';
+import { CachableDecision, CachableIdentifier, Value, Remediation, CachableOrigin } from 'src/lib/types';
 
 class CacheStorage {
-    private adapter: CacheAdapter;
+    public adapter: CacheAdapter;
 
-    constructor(private configs: CacheConfigurations) {
+    constructor(configs: CacheConfigurations) {
         this.adapter = configs.cacheAdapter || new InMemory();
     }
 
@@ -173,6 +173,32 @@ class CacheStorage {
         const results = await Promise.all(decisions.map((decision) => this.storeDecision(decision)));
         logger.debug(`Stored decisions: ${JSON.stringify(results)}`);
         return results.filter((item): item is CachableDecisionContent => item !== null);
+    }
+
+    public async upsertOriginsCountItem(origin: CachableOrigin, ttl?: number): Promise<CachableOriginsCount> {
+        const cacheItem = (await this.adapter.getItem(ORIGINS_COUNT_KEY)) as CachableOriginsCount | null;
+        const itemContent = cacheItem?.content ?? [];
+        logger.debug(`Origin item initial content: ${JSON.stringify(itemContent)}`);
+        const updatedContent = this.getUpdatedOriginsCount(itemContent, origin);
+
+        const itemToCache = {
+            key: ORIGINS_COUNT_KEY,
+            content: updatedContent,
+        };
+
+        return (await this.adapter.setItem(itemToCache, ttl)) as CachableOriginsCount;
+    }
+
+    private getUpdatedOriginsCount(content: OriginCount[], origin: CachableOrigin): OriginCount[] {
+        const existingOrigin = content.find((item) => item.origin === origin);
+
+        if (existingOrigin) {
+            // Return a new array with the updated origin
+            return content.map((item) => (item.origin === origin ? { ...item, count: item.count + 1 } : item));
+        }
+
+        // Return a new array with the added origin
+        return [...content, { origin, count: 1 }];
     }
 }
 

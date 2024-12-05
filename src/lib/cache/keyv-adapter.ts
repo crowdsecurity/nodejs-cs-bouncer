@@ -3,7 +3,7 @@ import { createCache } from 'cache-manager';
 import { Keyv } from 'keyv';
 
 import { CacheAdapter } from 'src/lib/cache/interfaces';
-import { CachedItem } from 'src/lib/cache/types';
+import { CachableItem } from 'src/lib/cache/types';
 
 type CacheAdapterType = ReturnType<typeof createCache>;
 
@@ -16,11 +16,11 @@ class KeyvAdapter implements CacheAdapter {
         });
     }
 
-    async getItem(key: string): Promise<CachedItem | null> {
+    async getItem(key: string): Promise<CachableItem | null> {
         return { key, content: await this.adapter.get(key) };
     }
 
-    async setItem(item: CachedItem, ttl?: number): Promise<CachedItem> {
+    async setItem(item: CachableItem, ttl?: number): Promise<CachableItem> {
         await this.adapter.set(item.key, item.content, ttl);
         return item;
     }

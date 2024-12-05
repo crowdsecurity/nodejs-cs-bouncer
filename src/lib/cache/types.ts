@@ -8,13 +8,20 @@ export type CachableDecisionContent = {
     value: Remediation;
 };
 
-export type CachedItem<T = unknown> = {
+export type OriginCount = {
+    origin: CachableOrigin;
+    count: number;
+};
+
+export type CachableItem<T = unknown> = {
     key: string;
     content: T;
     ttl?: number; // Time to live in milliseconds
 };
 
-export type CachableDecisionItem = CachedItem<CachableDecisionContent[]>;
+export type CachableDecisionItem = CachableItem<CachableDecisionContent[]>;
+
+export type CachableOriginsCount = CachableItem<OriginCount[]>;
 
 export type CacheConfigurations = {
     cacheAdapter?: CacheAdapter;
