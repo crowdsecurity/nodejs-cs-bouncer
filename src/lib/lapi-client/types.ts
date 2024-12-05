@@ -1,4 +1,4 @@
-import { DecisionOrigin, DecisionScope } from 'src/lib/types';
+import { Origin, Scope } from 'src/lib/types';
 
 export type LapiClientConfigurations = {
     url: string;
@@ -9,8 +9,8 @@ export type LapiClientConfigurations = {
 
 export type GetDecisionsOptions = {
     isFirstFetch?: boolean;
-    origins?: DecisionOrigin[];
-    scopes?: DecisionScope[];
+    origins?: Origin[];
+    scopes?: Scope[];
     scenariosContaining?: string[];
     scenariosNotContaining?: string[];
 };

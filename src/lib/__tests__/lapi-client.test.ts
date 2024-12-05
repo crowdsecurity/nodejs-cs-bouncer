@@ -113,24 +113,20 @@ describe('👩🏻‍⚖️ LAPI Client', () => {
 
         const decisions: Decision[] = [
             {
-                id: 1,
                 type: 'ban',
                 value: ip,
                 duration: '1h',
                 origin: 'cscli',
                 scope: 'ip',
-                simulated: false,
-                until: '2022-01-01T00:00:00Z',
+                scenario: "manual 'ban' from 'localhost'",
             },
             {
-                id: 2,
                 type: 'captcha',
                 value: ip,
                 duration: '2h',
                 origin: 'cscli',
                 scope: 'ip',
-                simulated: false,
-                until: '2022-01-01T00:00:00Z',
+                scenario: "manual 'ban' from 'localhost'",
             },
         ];
 

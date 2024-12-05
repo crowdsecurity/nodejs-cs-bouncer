@@ -11,13 +11,13 @@ import { CACHE_EXPIRATION_FOR_CLEAN_IP, IP_TYPE_V6, ORIGIN_CLEAN, REMEDIATION_BY
 import LapiClient from 'src/lib/lapi-client';
 import { GetDecisionsOptions } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
-import { CachableDecision, Decision, RemediationType } from 'src/lib/types';
+import { CachableDecision, Decision, Remediation } from 'src/lib/types';
 
 class CrowdSecBouncer {
     private cacheStorage: CacheStorage;
     private lapiClient: LapiClient;
 
-    public fallbackRemediation: RemediationType = REMEDIATION_BYPASS;
+    public fallbackRemediation: Remediation = REMEDIATION_BYPASS;
 
     constructor(private configs: CrowdSecBouncerConfigurations) {
         logger.debug('Bouncer initialized.');
@@ -33,13 +33,13 @@ class CrowdSecBouncer {
      * @param contents The decisions to filter.
      * @returns The highest remediation found, else the fallback remediation.
      */
-    private getIpHighestRemediation = (ip: string, contents: CachableDecisionContent[] | null): RemediationType => {
+    private getIpHighestRemediation = (ip: string, contents: CachableDecisionContent[] | null): Remediation => {
         if (!contents || contents.length === 0) {
             logger.debug('No cached contents found');
             return REMEDIATION_BYPASS;
         }
         // Get all known remediation types from decision contents
-        const remediationTypes: RemediationType[] = contents.map(({ value }) => {
+        const remediationTypes: Remediation[] = contents.map(({ value }) => {
             // If we don't know the remediation type, we fall back to the fallback remediation.
             if (ORDERED_REMEDIATIONS.indexOf(value) === -1) {
                 return this.fallbackRemediation;
@@ -48,10 +48,10 @@ class CrowdSecBouncer {
         });
 
         // Sort remediation types by priority
-        const orderedRemediationTypes = sortBy(remediationTypes, [(d) => ORDERED_REMEDIATIONS.indexOf(d)]);
+        const orderedRemediations = sortBy(remediationTypes, [(d) => ORDERED_REMEDIATIONS.indexOf(d)]);
 
         // The last remediation type is the higher priority remediation, could never be empty with previous checks
-        const higherPriorityRemediation = last(orderedRemediationTypes) as RemediationType;
+        const higherPriorityRemediation = last(orderedRemediations) as Remediation;
 
         logger.debug(`Higher priority remediation for IP ${ip} is ${higherPriorityRemediation}`);
         return higherPriorityRemediation ?? REMEDIATION_BYPASS;
@@ -81,7 +81,7 @@ class CrowdSecBouncer {
      * @param ip - The IP address to get the remediation for.
      * @returns The remediation for the IP address.
      */
-    public getIpRemediation = async (ip: string): Promise<RemediationType> => {
+    public getIpRemediation = async (ip: string): Promise<Remediation> => {
         const ipToRemediate = getIpToRemediate(ip);
 
         // Check cached decisions for current IP

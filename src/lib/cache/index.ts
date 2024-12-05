@@ -6,7 +6,7 @@ import { CacheAdapter } from 'src/lib/cache/interfaces';
 import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations } from 'src/lib/cache/types';
 import { SCOPE_IP, SCOPE_RANGE, IPV4_BUCKET_KEY, IP_TYPE_V4 } from 'src/lib/constants';
 import logger from 'src/lib/logger';
-import { CachableDecision, CachableDecisionIdentifier, DecisionValue, RemediationType } from 'src/lib/types';
+import { CachableDecision, CachableIdentifier, Value, Remediation } from 'src/lib/types';
 
 class CacheStorage {
     private adapter: CacheAdapter;
@@ -60,7 +60,7 @@ class CacheStorage {
     /**
      * Check if some identifier is already cached.
      */
-    private getCachedIndex(identifier: CachableDecisionIdentifier, cachedValues: CachableDecisionContent[]): number | null {
+    private getCachedIndex(identifier: CachableIdentifier, cachedValues: CachableDecisionContent[]): number | null {
         const result = cachedValues.findIndex((item) => item.id === identifier);
 
         return result === -1 ? null : result;
@@ -74,7 +74,7 @@ class CacheStorage {
         });
     }
 
-    private formatDecision(decision: CachableDecision, mainValue: RemediationType | DecisionValue): CachableDecisionContent {
+    private formatDecision(decision: CachableDecision, mainValue: Remediation | Value): CachableDecisionContent {
         return {
             id: decision.identifier,
             origin: decision.origin,
@@ -90,7 +90,7 @@ class CacheStorage {
     }: {
         decision: CachableDecision;
         cacheKey: string;
-        mainValue: RemediationType | DecisionValue;
+        mainValue: Remediation | Value;
     }): Promise<CachableDecisionContent | null> {
         const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem;
         const cachedValues = item?.content || [];

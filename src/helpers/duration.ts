@@ -1,9 +1,11 @@
+import { Duration } from 'src/lib/types';
+
 /**
  * The function `parseExpiration` takes a duration string and returns the TTL in milliseconds.
  * @param {string} duration - string like "3h59m49.481837158s" (hours, minutes, seconds, milliseconds) and calculate the expiration time.
  * @returns `Number` representing the Time To Live.
  */
-export const convertDurationToMilliseconds = (duration: string): number => {
+export const convertDurationToMilliseconds = (duration: Duration): number => {
     const re = /^(-?)(?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?$/;
     const matches = re.exec(duration);
     if (!matches) {

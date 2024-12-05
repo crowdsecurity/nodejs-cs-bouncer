@@ -8,12 +8,6 @@ export const REMEDIATION_CAPTCHA = 'captcha';
 
 export const REMEDIATION_BYPASS = 'bypass';
 
-export const ORIGIN_CSCLI = 'cscli';
-
-export const ORIGIN_CROWDSEC = 'crowdsec';
-
-export const ORIGIN_CAPI = 'capi';
-
 export const ORIGIN_LISTS = 'lists';
 
 export const ORIGIN_CLEAN = 'clean';

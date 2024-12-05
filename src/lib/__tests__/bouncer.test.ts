@@ -4,7 +4,7 @@ import nock, { cleanAll as nockCleanAll } from 'nock';
 import CrowdSecBouncer from 'src/lib/bouncer';
 import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import logger from 'src/lib/logger';
-import { RemediationType } from 'src/lib/types';
+import { Remediation } from 'src/lib/types';
 
 const configs: CrowdSecBouncerConfigurations = {
     url: 'http://example.com/api',
@@ -55,7 +55,7 @@ describe('🛡️ Bouncer', () => {
     describe('getIpRemediation', () => {
         it('should compute the correct remediation for the IP 3.4.5.6', async () => {
             const ipV4 = '3.4.5.6';
-            const remediation: RemediationType = 'ban';
+            const remediation: Remediation = 'ban';
             const nockScope = nock(configs.url)
                 .get('/v1/decisions')
                 .query({ ip: ipV4 })
@@ -86,7 +86,7 @@ describe('🛡️ Bouncer', () => {
 
         it('should compute the correct remediation for the IPv6 2001:0000:130F:0000:0000:09C0:876A:130B', async () => {
             const ipV6 = '2001:0000:130F:0000:0000:09C0:876A:130B';
-            const remediation: RemediationType = 'ban';
+            const remediation: Remediation = 'ban';
 
             const nockScope = nock(configs.url)
                 .get('/v1/decisions')

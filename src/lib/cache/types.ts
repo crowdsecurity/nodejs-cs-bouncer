@@ -1,11 +1,11 @@
 import { CacheAdapter } from 'src/lib/cache/interfaces';
-import { DecisionOrigin, CachableDecisionIdentifier, RemediationType, CachableDecisionExpiresAt } from 'src/lib/types';
+import { CachableOrigin, CachableIdentifier, Remediation, CachableExpiresAt } from 'src/lib/types';
 
 export type CachableDecisionContent = {
-    id: CachableDecisionIdentifier;
-    origin: DecisionOrigin;
-    expiresAt: CachableDecisionExpiresAt;
-    value: RemediationType;
+    id: CachableIdentifier;
+    origin: CachableOrigin;
+    expiresAt: CachableExpiresAt;
+    value: Remediation;
 };
 
 export type CachedItem<T = unknown> = {
