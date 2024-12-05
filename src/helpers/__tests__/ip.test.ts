@@ -10,10 +10,9 @@ describe('getIpToRemediate', () => {
         expect(result).toBe(ip);
     });
 
-    it('should parse a valid IPv4 address range', () => {
+    it('should throw an error for range', () => {
         const ip = '192.168.0.0/24';
-        const result = getIpToRemediate(ip);
-        expect(result).toBe('192.168.0.0');
+        expect(() => getIpToRemediate(ip)).toThrowError('Input IP (192.168.0.0/24): range is not supported');
     });
 
     it('should parse a valid IPv6 address', () => {

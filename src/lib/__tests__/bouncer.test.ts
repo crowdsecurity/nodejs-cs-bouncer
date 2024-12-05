@@ -134,7 +134,7 @@ describe('🛡️ Bouncer', () => {
         });
 
         it('should return fallback remediation if the IP is unknown', async () => {
-            const ip = '1.2.3.4';
+            const ip = '1.2.3.7';
 
             const nockScope = nock(configs.url)
                 .get('/v1/decisions')
@@ -151,7 +151,7 @@ describe('🛡️ Bouncer', () => {
         });
 
         it('should return fallback remediation if decisions remediation types are unknown', async () => {
-            const ip = '1.2.3.4';
+            const ip = '1.2.3.8';
 
             const nockScope = nock(configs.url)
                 .get('/v1/decisions')
@@ -182,7 +182,7 @@ describe('🛡️ Bouncer', () => {
         });
 
         it('should return fallback remediation if decisions are not related to the IP', async () => {
-            const ip = '1.2.3.4';
+            const ip = '1.2.3.9';
 
             const nockScope = nock(configs.url)
                 .get('/v1/decisions')
@@ -213,7 +213,7 @@ describe('🛡️ Bouncer', () => {
         });
 
         it('should return highest remediation if there is multiple decisions about the IP', async () => {
-            const ip = '1.2.3.4';
+            const ip = '1.2.3.10';
 
             const nockScope = nock(configs.url)
                 .get('/v1/decisions')
@@ -253,7 +253,7 @@ describe('🛡️ Bouncer', () => {
         });
 
         it('should log the remediation if it is not "bypass"', async () => {
-            let ip = '1.2.3.4';
+            let ip = '1.2.3.11';
             const remediation = 'ban';
 
             const nockScope = nock(configs.url)
@@ -286,7 +286,7 @@ describe('🛡️ Bouncer', () => {
             expect(nockScope.isDone()).toBe(true);
             expect(logSpy).toHaveBeenCalledWith(`Remediation for IP ${ip} is ${remediation}`);
 
-            ip = '1.2.3.5'; // Another IP as the first one has been cached
+            ip = '1.2.3.12'; // Another IP as the first one has been cached
             const nockScopeBypass = nock(configs.url)
                 .get('/v1/decisions')
                 .query(true)
