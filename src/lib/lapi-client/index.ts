@@ -1,4 +1,4 @@
-import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
+import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
 import { ConnectionHealth, Decision } from 'src/lib/types';
 

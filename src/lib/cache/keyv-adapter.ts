@@ -2,8 +2,8 @@ import { createCache } from 'cache-manager';
 // @ts-expect-error - Keyv is a CommonJS module, TypeScript expects a different import style
 import { Keyv } from 'keyv';
 
-import { CacheAdapter } from 'src/lib/cache/libs/interfaces';
-import { CachedItem } from 'src/lib/cache/libs/types';
+import { CacheAdapter } from 'src/lib/cache/interfaces';
+import { CachedItem } from 'src/lib/cache/types';
 
 type CacheAdapterType = ReturnType<typeof createCache>;
 

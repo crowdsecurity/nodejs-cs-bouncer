@@ -1,6 +1,6 @@
 import { getConfig } from 'src/helpers/config';
 import { convertDurationToMilliseconds } from 'src/helpers/duration';
-import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/libs/types';
+import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import { ID_SEPARATOR, REMEDIATION_BYPASS, CACHE_EXPIRATION_FOR_BAD_IP } from 'src/lib/constants';
 import logger from 'src/lib/logger';
 import {

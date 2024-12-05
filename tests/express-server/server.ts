@@ -152,7 +152,7 @@ nodeCron.schedule('* * * * * *', async () => {
         try {
             const decisionStream = await bouncer.refreshDecisions({
                 isFirstFetch: counter === 0, //@TODO: Use the cache item to decide if it's the first fetch
-                origins: ['cscli', 'lists'],
+                origins: ['cscli'], // CAPI, lists, cscli, etc
                 scopes: ['ip'],
             });
 

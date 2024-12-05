@@ -1,6 +1,6 @@
 import Keyv from 'keyv';
 
-import KeyvAdapter from 'src/lib/cache/libs/keyv-adapter';
+import KeyvAdapter from 'src/lib/cache/keyv-adapter';
 
 const globalStorage = new Keyv();
 

@@ -1,5 +1,5 @@
 import LapiClient from 'src/lib/lapi-client';
-import { LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
+import { LapiClientConfigurations } from 'src/lib/lapi-client/types';
 
 /**
  * Example usage of the LAPI client.

@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { Address4, Address6 } from 'ip-address';
 
 import { getIpToRemediate } from 'src/helpers/ip';
 

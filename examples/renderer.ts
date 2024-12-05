@@ -2,7 +2,7 @@ import { create } from 'svg-captcha-fixed';
 
 import fs from 'fs';
 import { renderBanWall, renderCaptchaWall } from 'src/lib/rendered';
-import { BaseWallOptions } from 'src/lib/rendered/libs/types';
+import { BaseWallOptions } from 'src/lib/rendered/types';
 
 /*
  * Example usage of render methods

@@ -3,13 +3,13 @@ import { last, sortBy } from 'lodash';
 import { getConfig } from 'src/helpers/config';
 import { buildCachableDecision, convertRawDecisionsToDecisions } from 'src/helpers/decision';
 import { getIpToRemediate, getIpOrRangeType, getFirstIpFromRange } from 'src/helpers/ip';
-import { ORDERED_REMEDIATIONS } from 'src/lib/bouncer/libs/constants';
-import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/libs/types';
+import { ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
+import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
-import { CachableDecisionContent } from 'src/lib/cache/libs/types';
+import { CachableDecisionContent } from 'src/lib/cache/types';
 import { CACHE_EXPIRATION_FOR_CLEAN_IP, IP_TYPE_V6, ORIGIN_CLEAN, REMEDIATION_BYPASS, SCOPE_IP, SCOPE_RANGE } from 'src/lib/constants';
 import LapiClient from 'src/lib/lapi-client';
-import { GetDecisionsOptions } from 'src/lib/lapi-client/libs/types';
+import { GetDecisionsOptions } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
 import { CachableDecision, Decision, RemediationType } from 'src/lib/types';
 
@@ -38,8 +38,6 @@ class CrowdSecBouncer {
             logger.debug('No cached contents found');
             return REMEDIATION_BYPASS;
         }
-        logger.debug(`Found cached contents for IP ${ip}: ${JSON.stringify(contents)}`);
-
         // Get all known remediation types from decision contents
         const remediationTypes: RemediationType[] = contents.map(({ value }) => {
             // If we don't know the remediation type, we fall back to the fallback remediation.

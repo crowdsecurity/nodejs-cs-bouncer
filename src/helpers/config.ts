@@ -1,4 +1,4 @@
-import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/libs/types';
+import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 
 export const getConfig = <T extends keyof CrowdSecBouncerConfigurations>(
     key: T,

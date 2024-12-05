@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
 import LapiClient from 'src/lib/lapi-client';
-import { LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
+import { LapiClientConfigurations } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
 import { Decision } from 'src/lib/types';
 

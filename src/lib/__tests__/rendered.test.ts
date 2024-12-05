@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import fs from 'fs';
-import { generateTemplate, renderBanWall, renderCaptchaWall } from 'src/lib/rendered/index';
-import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/libs/constants';
-import { BaseWallOptions } from 'src/lib/rendered/libs/types';
+import { generateTemplate, renderBanWall, renderCaptchaWall } from 'src/lib/rendered';
+import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/constants';
+import { BaseWallOptions } from 'src/lib/rendered/types';
 
 jest.mock('fs/promises', () => ({
     readFile: jest.fn(),

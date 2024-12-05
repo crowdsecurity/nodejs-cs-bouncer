@@ -1,5 +1,5 @@
-import { CacheConfigurations } from 'src/lib/cache/libs/types';
-import { LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
+import { CacheConfigurations } from 'src/lib/cache/types';
+import { LapiClientConfigurations } from 'src/lib/lapi-client/types';
 import { RemediationType } from 'src/lib/types';
 
 export type CrowdSecBouncerConfigurations = {

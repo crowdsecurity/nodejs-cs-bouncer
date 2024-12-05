@@ -1,4 +1,4 @@
-import { CachableDecisionItem, CachableDecisionContent } from 'src/lib/cache/libs/types';
+import { CachableDecisionItem, CachableDecisionContent } from 'src/lib/cache/types';
 
 const getMaxExpiration = (valuesToCache: CachableDecisionContent[]): number => {
     return valuesToCache.reduce((maxExpiration, value) => {

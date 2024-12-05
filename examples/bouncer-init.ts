@@ -1,5 +1,5 @@
 import CrowdSecBouncer from 'src/lib/bouncer';
-import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/libs/types';
+import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 
 /**
  * Example of basic usage of the CrowdSec Bouncer.

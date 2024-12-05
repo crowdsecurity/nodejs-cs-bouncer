@@ -1,8 +1,8 @@
 import { template } from 'lodash';
 
 import fs from 'fs';
-import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/libs/constants';
-import { BanWallOptions, BaseWallOptions, CaptchaWallOptions, TemplateType } from 'src/lib/rendered/libs/types';
+import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/constants';
+import { BanWallOptions, BaseWallOptions, CaptchaWallOptions, TemplateType } from 'src/lib/rendered/types';
 
 export const generateTemplate = async (templateName: TemplateType, data: Record<string, unknown>) => {
     const templatePath = `${TEMPLATES_PATH}/${templateName}.ejs`;

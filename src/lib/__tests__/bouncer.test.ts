@@ -2,7 +2,7 @@ import { afterEach, beforeAll, describe, expect, it, jest } from '@jest/globals'
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
 import CrowdSecBouncer from 'src/lib/bouncer';
-import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/libs/types';
+import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import logger from 'src/lib/logger';
 import { RemediationType } from 'src/lib/types';
 

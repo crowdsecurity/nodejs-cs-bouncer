@@ -1,4 +1,4 @@
-import { CacheAdapter } from 'src/lib/cache/libs/interfaces';
+import { CacheAdapter } from 'src/lib/cache/interfaces';
 import { DecisionOrigin, CachableDecisionIdentifier, RemediationType, CachableDecisionExpiresAt } from 'src/lib/types';
 
 export type CachableDecisionContent = {
