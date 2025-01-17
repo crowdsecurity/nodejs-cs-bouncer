@@ -92,7 +92,7 @@ class CrowdSecBouncer {
         if (!cachedDecisionContents || cachedDecisionContents.length === 0) {
             // In stream_mode, we do not store this bypass, and we do not call LAPI directly
             if (getConfig('streamMode', this.configs)) {
-                await this.updateRemediationOriginCount(ORIGIN_CLEAN);
+                await this.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
                 return REMEDIATION_BYPASS;
             }
 
@@ -123,14 +123,14 @@ class CrowdSecBouncer {
         if (remediation !== REMEDIATION_BYPASS) {
             logger.info(`Remediation for IP ${ip} is ${remediation}`);
         }
-        await this.updateRemediationOriginCount(origin);
+        await this.updateRemediationOriginCount(origin, remediation);
 
         return remediation;
     };
 
-    private updateRemediationOriginCount = async (origin: CachableOrigin): Promise<CachableOriginsCount> => {
-        logger.debug(`Increment count for origin ${origin}`);
-        return this.cacheStorage.upsertOriginsCountItem(origin);
+    private updateRemediationOriginCount = async (origin: CachableOrigin, remediation: Remediation): Promise<CachableOriginsCount> => {
+        logger.debug(`Increment count for origin ${origin} with remediation ${remediation}`);
+        return this.cacheStorage.upsertMetricsOriginsCount({ origin, remediation });
     };
 
     public refreshDecisions = async ({

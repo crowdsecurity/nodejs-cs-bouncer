@@ -10,7 +10,7 @@ export type CachableDecisionContent = {
 
 export type OriginCount = {
     origin: CachableOrigin;
-    count: number;
+    remediation: Record<Remediation, number>;
 };
 
 export type CachableItem<T = unknown> = {

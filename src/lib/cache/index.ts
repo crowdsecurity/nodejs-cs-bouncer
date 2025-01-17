@@ -1,3 +1,5 @@
+import { max } from 'lodash';
+
 import { getIpV4Range, IpV4Range, getIpOrRangeType, getIpV4RangeIntForIp, isIpV4InRange } from 'src/helpers/ip';
 import { updateDecisionItem } from 'src/lib/cache/decisions';
 import { getCacheKey } from 'src/lib/cache/helpers';
@@ -7,6 +9,20 @@ import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations, Cac
 import { SCOPE_IP, SCOPE_RANGE, IPV4_BUCKET_KEY, IP_TYPE_V4, ORIGINS_COUNT_KEY } from 'src/lib/constants';
 import logger from 'src/lib/logger';
 import { CachableDecision, CachableIdentifier, Value, Remediation, CachableOrigin } from 'src/lib/types';
+
+type UpsertMetricsOriginsCountParams = {
+    origin: CachableOrigin;
+    remediation: Remediation;
+    delta?: number;
+    ttl?: number;
+};
+
+type GetUpdatedOriginsCountParams = {
+    content: OriginCount[];
+    origin: CachableOrigin;
+    remediation: Remediation;
+    delta?: number;
+};
 
 class CacheStorage {
     public adapter: CacheAdapter;
@@ -175,11 +191,12 @@ class CacheStorage {
         return results.filter((item): item is CachableDecisionContent => item !== null);
     }
 
-    public async upsertOriginsCountItem(origin: CachableOrigin, ttl?: number): Promise<CachableOriginsCount> {
+    public async upsertMetricsOriginsCount(params: UpsertMetricsOriginsCountParams): Promise<CachableOriginsCount> {
+        const { origin, remediation, delta, ttl } = params;
         const cacheItem = (await this.adapter.getItem(ORIGINS_COUNT_KEY)) as CachableOriginsCount | null;
         const itemContent = cacheItem?.content ?? [];
         logger.debug(`Origin item initial content: ${JSON.stringify(itemContent)}`);
-        const updatedContent = this.getUpdatedOriginsCount(itemContent, origin);
+        const updatedContent = this.getUpdatedOriginsCount({ content: itemContent, origin, remediation, delta });
 
         const itemToCache = {
             key: ORIGINS_COUNT_KEY,
@@ -189,16 +206,39 @@ class CacheStorage {
         return (await this.adapter.setItem(itemToCache, ttl)) as CachableOriginsCount;
     }
 
-    private getUpdatedOriginsCount(content: OriginCount[], origin: CachableOrigin): OriginCount[] {
+    private getUpdatedOriginsCount(params: GetUpdatedOriginsCountParams): OriginCount[] {
+        const { content, origin, remediation, delta } = params;
         const existingOrigin = content.find((item) => item.origin === origin);
 
         if (existingOrigin) {
-            // Return a new array with the updated origin
-            return content.map((item) => (item.origin === origin ? { ...item, count: item.count + 1 } : item));
+            // Return a new array with the updated remediation count for the existing origin
+            // By default, we increment the count by 1
+            return content.map((item) => {
+                const currentCount = item.remediation[remediation] || 0;
+                const finalCount = max([0, currentCount + (delta || 1)]) as number;
+
+                return item.origin === origin
+                    ? {
+                          ...item,
+                          remediation: {
+                              ...item.remediation,
+                              [remediation]: finalCount,
+                          },
+                      }
+                    : item;
+            });
         }
 
-        // Return a new array with the added origin
-        return [...content, { origin, count: 1 }];
+        // Return a new array with the added origin and initial remediation count
+        return [
+            ...content,
+            {
+                origin,
+                remediation: {
+                    [remediation]: max([0, delta || 1]) as number, // Set the initial count for the provided remediation type
+                },
+            },
+        ];
     }
 }
 
