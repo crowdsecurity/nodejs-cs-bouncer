@@ -151,13 +151,12 @@ nodeCron.schedule('* * * * * *', async () => {
         logger.info('Running getDecisions');
         try {
             const decisionStream = await bouncer.refreshDecisions({
-                isFirstFetch: counter === 0, //@TODO: Use the cache item to decide if it's the first fetch
                 origins: ['cscli'], // CAPI, lists, cscli, etc
                 scopes: ['ip'],
             });
 
             logger.info(`New decisions: ${JSON.stringify(decisionStream.new ?? '[]')}`);
-            //logger.info(`Deleted decisions: ${JSON.stringify(decisionStream.deleted ?? '[]')}`);
+            logger.info(`Deleted decisions: ${JSON.stringify(decisionStream.deleted ?? '[]')}`);
         } catch (error) {
             logger.error(`Error fetching decision stream: ${(error as Error).message}`);
         }

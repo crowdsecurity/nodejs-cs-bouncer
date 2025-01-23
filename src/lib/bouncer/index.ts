@@ -7,11 +7,19 @@ import { ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
 import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
 import { CachableDecisionContent, CachableOriginsCount } from 'src/lib/cache/types';
-import { CACHE_EXPIRATION_FOR_CLEAN_IP, IP_TYPE_V6, ORIGIN_CLEAN, REMEDIATION_BYPASS, SCOPE_IP, SCOPE_RANGE } from 'src/lib/constants';
+import {
+    CACHE_EXPIRATION_FOR_CLEAN_IP,
+    IP_TYPE_V6,
+    ORIGIN_CLEAN,
+    REMEDIATION_BYPASS,
+    SCOPE_IP,
+    SCOPE_RANGE,
+    REFRESH_KEYS,
+} from 'src/lib/constants';
 import LapiClient from 'src/lib/lapi-client';
 import { GetDecisionsOptions } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
-import { CachableDecision, Decision, Remediation, CachableOrigin } from 'src/lib/types';
+import { CachableDecision, Remediation, CachableOrigin } from 'src/lib/types';
 
 class CrowdSecBouncer {
     private cacheStorage: CacheStorage;
@@ -133,24 +141,32 @@ class CrowdSecBouncer {
         return this.cacheStorage.upsertMetricsOriginsCount({ origin, remediation });
     };
 
-    public refreshDecisions = async ({
-        isFirstFetch = false,
-        origins,
-        scopes,
-        scenariosContaining,
-        scenariosNotContaining,
-    }: GetDecisionsOptions = {}): Promise<{
-        new: Decision[];
-        deleted: Decision[];
-    }> => {
-        // @TODO store retrieved decisions in a cache
-        return this.lapiClient.getDecisionStream({
-            isFirstFetch,
+    public refreshDecisions = async ({ origins, scopes, scenariosContaining, scenariosNotContaining }: GetDecisionsOptions = {}): Promise<
+        Record<REFRESH_KEYS, CachableDecisionContent[]>
+    > => {
+        const isWarm = await this.cacheStorage.isWarm();
+        if (!isWarm) {
+            logger.info('Decisions cache is not warmed up yet');
+        }
+
+        const rawDecisions = await this.lapiClient.getDecisionStream({
+            isFirstFetch: !isWarm,
             origins,
             scopes,
             scenariosContaining,
             scenariosNotContaining,
         });
+
+        const newDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.NEW] ?? [], this.configs);
+        const deletedDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.DELETED] ?? [], this.configs);
+
+        const storedDecisions = await this.cacheStorage.storeDecisions(newDecisions);
+        const removedDecisions = await this.cacheStorage.removeDecisions(deletedDecisions);
+
+        return {
+            [REFRESH_KEYS.NEW]: storedDecisions,
+            [REFRESH_KEYS.DELETED]: removedDecisions,
+        };
     };
 }
 

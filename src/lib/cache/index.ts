@@ -6,7 +6,7 @@ import { getCacheKey } from 'src/lib/cache/helpers';
 import InMemory from 'src/lib/cache/in-memory';
 import { CacheAdapter } from 'src/lib/cache/interfaces';
 import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations, CachableOriginsCount, OriginCount } from 'src/lib/cache/types';
-import { SCOPE_IP, SCOPE_RANGE, IPV4_BUCKET_KEY, IP_TYPE_V4, ORIGINS_COUNT_KEY } from 'src/lib/constants';
+import { SCOPE_IP, SCOPE_RANGE, IPV4_BUCKET_KEY, IP_TYPE_V4, ORIGINS_COUNT_KEY, CONFIG, WARMUP } from 'src/lib/constants';
 import logger from 'src/lib/logger';
 import { CachableDecision, CachableIdentifier, Value, Remediation, CachableOrigin } from 'src/lib/types';
 
@@ -63,6 +63,11 @@ class CacheStorage {
         }
     }
 
+    public async isWarm(): Promise<boolean> {
+        const cacheKey = getCacheKey(CONFIG, WARMUP);
+        return (await this.adapter.getItem(cacheKey)) !== null;
+    }
+
     public async getAllCachableDecisionContents(ip: string): Promise<CachableDecisionContent[]> {
         // Ask cache for Ip scoped decision
         const ipContents = await this.retrieveDecisionContentsForIp(SCOPE_IP, ip);
@@ -99,6 +104,36 @@ class CacheStorage {
         };
     }
 
+    private async remove({
+        decision,
+        cacheKey,
+    }: {
+        decision: CachableDecision;
+        cacheKey: string;
+    }): Promise<CachableDecisionContent | null> {
+        const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem;
+        const cachedValues = item?.content || [];
+        const indexToRemove = this.getCachedIndex(decision.identifier, cachedValues);
+
+        // Early return if not in cache
+        if (indexToRemove === null) {
+            logger.debug(`Decision to remove is not in cache: ${decision.identifier}`);
+            return null;
+        }
+
+        const removed = cachedValues.splice(indexToRemove, 1)[0] as CachableDecisionContent;
+
+        // Remove expired decisions if any
+        const decisionsToCache = this.pruneCachedDecisionContents(cachedValues);
+
+        // Rebuild cache item
+        const itemToSave = updateDecisionItem(item, decisionsToCache);
+        logger.debug(`Removing decision: ${JSON.stringify(removed)}`);
+        await this.adapter.setItem(itemToSave, itemToSave.ttl);
+
+        return removed;
+    }
+
     private async store({
         decision,
         cacheKey,
@@ -106,7 +141,7 @@ class CacheStorage {
     }: {
         decision: CachableDecision;
         cacheKey: string;
-        mainValue: Remediation | Value;
+        mainValue: Remediation | Value; // Value when storing range scoped decisions using bucket, Remediation otherwise
     }): Promise<CachableDecisionContent | null> {
         const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem;
         const cachedValues = item?.content || [];
@@ -138,9 +173,19 @@ class CacheStorage {
         return this.store({ decision, cacheKey, mainValue: decision.value });
     }
 
+    private async removeIpBucketDecision(decision: CachableDecision, bucketInt: number): Promise<CachableDecisionContent | null> {
+        const cacheKey = getCacheKey(IPV4_BUCKET_KEY, bucketInt.toString());
+        return this.remove({ decision, cacheKey });
+    }
+
     private async storeIpDecision(decision: CachableDecision): Promise<CachableDecisionContent | null> {
         const cacheKey = getCacheKey(decision.scope, decision.value);
         return this.store({ decision, cacheKey, mainValue: decision.type });
+    }
+
+    private async removeIpDecision(decision: CachableDecision): Promise<CachableDecisionContent | null> {
+        const cacheKey = getCacheKey(decision.scope, decision.value);
+        return this.remove({ decision, cacheKey });
     }
 
     private manageRange(decision: CachableDecision): IpV4Range | null {
@@ -157,7 +202,7 @@ class CacheStorage {
         }
     }
 
-    private async handleRangeScoped(decision: CachableDecision): Promise<CachableDecisionContent | null> {
+    private async storeRangeScoped(decision: CachableDecision): Promise<CachableDecisionContent | null> {
         const range = this.manageRange(decision);
         if (!range) {
             return null;
@@ -170,6 +215,19 @@ class CacheStorage {
         return await this.storeIpDecision(decision);
     }
 
+    private async removeRangeScoped(decision: CachableDecision): Promise<CachableDecisionContent | null> {
+        const range = this.manageRange(decision);
+        if (!range) {
+            return null;
+        }
+        const { start, end } = range;
+        for (let i = start; i <= end; i++) {
+            await this.removeIpBucketDecision(decision, i);
+        }
+
+        return await this.removeIpDecision(decision);
+    }
+
     private async storeDecision(decision: CachableDecision): Promise<CachableDecisionContent | null> {
         const scope = decision.scope;
         switch (scope) {
@@ -177,7 +235,21 @@ class CacheStorage {
                 logger.debug(`Storing IP decision: ${decision.value}`);
                 return this.storeIpDecision(decision);
             case SCOPE_RANGE:
-                return this.handleRangeScoped(decision);
+                return this.storeRangeScoped(decision);
+            default:
+                logger.warn(`Unsupported scope: ${scope}`);
+                return null;
+        }
+    }
+
+    private async removeDecision(decision: CachableDecision): Promise<CachableDecisionContent | null> {
+        const scope = decision.scope;
+        switch (scope) {
+            case SCOPE_IP:
+                logger.debug(`Removing IP decision: ${decision.value}`);
+                return this.removeIpDecision(decision);
+            case SCOPE_RANGE:
+                return this.removeRangeScoped(decision);
             default:
                 logger.warn(`Unsupported scope: ${scope}`);
                 return null;
@@ -188,6 +260,13 @@ class CacheStorage {
         // Store decisions in cache
         const results = await Promise.all(decisions.map((decision) => this.storeDecision(decision)));
         logger.debug(`Stored decisions: ${JSON.stringify(results)}`);
+        return results.filter((item): item is CachableDecisionContent => item !== null);
+    }
+
+    public async removeDecisions(decisions: CachableDecision[]): Promise<CachableDecisionContent[]> {
+        // Remove decisions from cache
+        const results = await Promise.all(decisions.map((decision) => this.removeDecision(decision)));
+        logger.debug(`Removed decisions: ${JSON.stringify(results)}`);
         return results.filter((item): item is CachableDecisionContent => item !== null);
     }
 

@@ -29,3 +29,12 @@ export const IP_TYPE_V6 = 'ipv6';
 export const IPV4_BUCKET_KEY = 'range_bucket_ipv4';
 
 export const ORIGINS_COUNT_KEY = 'origins_count';
+
+export const CONFIG = 'config';
+
+export const WARMUP = 'warmed_up';
+
+export enum REFRESH_KEYS {
+    NEW = 'new',
+    DELETED = 'deleted',
+}

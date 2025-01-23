@@ -1,3 +1,4 @@
+import { REFRESH_KEYS } from 'src/lib/constants';
 import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
 import { ConnectionHealth, Decision } from 'src/lib/types';
@@ -49,7 +50,7 @@ class LapiClient {
             throw new Error(`Call to ${path} failed`);
         }
 
-        return response.json() as T;
+        return (await response.json()) as T;
     };
 
     /**
@@ -67,10 +68,7 @@ class LapiClient {
         scopes,
         scenariosContaining,
         scenariosNotContaining,
-    }: GetDecisionsOptions = {}): Promise<{
-        new: Decision[];
-        deleted: Decision[];
-    }> => {
+    }: GetDecisionsOptions = {}): Promise<Record<REFRESH_KEYS, Decision[]>> => {
         const params = new URLSearchParams({
             startup: isFirstFetch.toString(),
             ...(scopes ? { scopes: scopes.join(',') } : {}),
@@ -82,8 +80,8 @@ class LapiClient {
         const fullUrl = `v1/decisions/stream?${params.toString()}`;
 
         return this.callLapiGetEndpoint<{
-            new: Decision[];
-            deleted: Decision[];
+            [REFRESH_KEYS.NEW]: Decision[];
+            [REFRESH_KEYS.DELETED]: Decision[];
         }>(fullUrl);
     };
 
