@@ -176,7 +176,7 @@ class CrowdSecBouncer {
         const { remediation: initialRemediation, origin } = this.getIpHighestRemediationWithOrigin(ipToRemediate, cachedDecisionContents);
         let remediation = initialRemediation;
         if (remediation !== REMEDIATION_BYPASS) {
-            logger.debug(`LAPI Remediation for IP ${ip} is ${remediation} with origin ${origin}`);
+            logger.debug(`LAPI remediation for IP ${ip} is ${remediation} with origin ${origin}`);
         }
 
         if (remediation === REMEDIATION_CAPTCHA && !(await this.mustSolveCaptcha(ip, remediation))) {

@@ -81,7 +81,7 @@ describe('🛡️ Bouncer', () => {
 
             const responseRemediation = await bouncer.getIpRemediation(ipV4);
             expect(nockScope.isDone()).toBe(true);
-            expect(responseRemediation).toEqual(remediation);
+            expect(responseRemediation['remediation']).toEqual(remediation);
         });
 
         it('should compute the correct remediation for the IPv6 2001:0000:130F:0000:0000:09C0:876A:130B', async () => {
@@ -113,7 +113,7 @@ describe('🛡️ Bouncer', () => {
 
             const responseRemediation = await bouncer.getIpRemediation(ipV6);
             expect(nockScope.isDone()).toBe(true);
-            expect(responseRemediation).toEqual(remediation);
+            expect(responseRemediation['remediation']).toEqual(remediation);
         });
 
         it('should return fallback remediation if there is no decision at all', async () => {
@@ -130,7 +130,7 @@ describe('🛡️ Bouncer', () => {
 
             const responseRemediation = await bouncer.getIpRemediation(ip);
             expect(nockScope.isDone()).toBe(true);
-            expect(responseRemediation).toEqual('bypass');
+            expect(responseRemediation['remediation']).toEqual('bypass');
         });
 
         it('should return fallback remediation if the IP is unknown', async () => {
@@ -147,7 +147,7 @@ describe('🛡️ Bouncer', () => {
 
             const responseRemediation = await bouncer.getIpRemediation(ip);
             expect(nockScope.isDone()).toBe(true);
-            expect(responseRemediation).toEqual('bypass');
+            expect(responseRemediation['remediation']).toEqual('bypass');
         });
 
         it('should return fallback remediation if decisions remediation types are unknown', async () => {
@@ -178,7 +178,7 @@ describe('🛡️ Bouncer', () => {
 
             const responseRemediation = await bouncer.getIpRemediation(ip);
             expect(nockScope.isDone()).toBe(true);
-            expect(responseRemediation).toEqual('bypass');
+            expect(responseRemediation['remediation']).toEqual('bypass');
         });
 
         it('should return fallback remediation if decisions are not related to the IP', async () => {
@@ -209,7 +209,7 @@ describe('🛡️ Bouncer', () => {
 
             const responseRemediation = await bouncer.getIpRemediation(ip);
             expect(nockScope.isDone()).toBe(true);
-            expect(responseRemediation).toEqual('bypass');
+            expect(responseRemediation['remediation']).toEqual('bypass');
         });
 
         it('should return highest remediation if there is multiple decisions about the IP', async () => {
@@ -249,10 +249,10 @@ describe('🛡️ Bouncer', () => {
 
             const responseRemediation = await bouncer.getIpRemediation(ip);
             expect(nockScope.isDone()).toBe(true);
-            expect(responseRemediation).toEqual('captcha');
+            expect(responseRemediation['remediation']).toEqual('captcha');
         });
 
-        it('should log the remediation if it is not "bypass"', async () => {
+        it('should log the remediation', async () => {
             let ip = '1.2.3.11';
             const remediation = 'ban';
 
@@ -284,7 +284,7 @@ describe('🛡️ Bouncer', () => {
             await bouncer.getIpRemediation(ip);
 
             expect(nockScope.isDone()).toBe(true);
-            expect(logSpy).toHaveBeenCalledWith(`Remediation for IP ${ip} is ${remediation}`);
+            expect(logSpy).toHaveBeenCalledWith(`Final remediation for IP ${ip} is ${remediation}`);
 
             ip = '1.2.3.12'; // Another IP as the first one has been cached
             const nockScopeBypass = nock(configs.url)
@@ -314,7 +314,7 @@ describe('🛡️ Bouncer', () => {
             await bouncer.getIpRemediation(ip);
 
             expect(nockScopeBypass.isDone()).toBe(true);
-            expect(logSpy).not.toHaveBeenCalled();
+            expect(logSpy).toHaveBeenCalledWith(`Final remediation for IP ${ip} is bypass`);
         });
     });
 });
