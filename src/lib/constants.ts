@@ -20,21 +20,21 @@ export const CACHE_EXPIRATION_FOR_BAD_IP = 120;
 
 export const CACHE_EXPIRATION_FOR_CLEAN_IP = 60;
 
+export const CACHE_EXPIRATION_FOR_CAPTCHA_FLOW = 86400;
+
 export const IP_TYPE_V4 = 'ipv4';
 
 export const IPV4_BUCKET_SIZE = 256;
 
 export const IP_TYPE_V6 = 'ipv6';
 
-export const IPV4_BUCKET_KEY = 'range_bucket_ipv4';
-
-export const ORIGINS_COUNT_KEY = 'origins_count';
-
-export const CONFIG = 'config';
-
-export const WARMUP = 'warmed_up';
-
 export enum REFRESH_KEYS {
     NEW = 'new',
     DELETED = 'deleted',
+}
+
+export enum BOUNCER_KEYS {
+    REMEDIATION = 'remediation',
+    ORIGIN = 'origin',
+    CAPTCHA_PHRASE = 'captchaPhrase',
 }

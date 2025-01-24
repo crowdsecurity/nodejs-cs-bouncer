@@ -1,12 +1,20 @@
 import { max } from 'lodash';
 
 import { getIpV4Range, IpV4Range, getIpOrRangeType, getIpV4RangeIntForIp, isIpV4InRange } from 'src/helpers/ip';
+import { CONFIG, WARMUP, IPV4_BUCKET_KEY, ORIGINS_COUNT_KEY } from 'src/lib/cache/constants';
 import { updateDecisionItem } from 'src/lib/cache/decisions';
 import { getCacheKey } from 'src/lib/cache/helpers';
 import InMemory from 'src/lib/cache/in-memory';
 import { CacheAdapter } from 'src/lib/cache/interfaces';
-import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations, CachableOriginsCount, OriginCount } from 'src/lib/cache/types';
-import { SCOPE_IP, SCOPE_RANGE, IPV4_BUCKET_KEY, IP_TYPE_V4, ORIGINS_COUNT_KEY, CONFIG, WARMUP } from 'src/lib/constants';
+import {
+    CachableItem,
+    CachableDecisionContent,
+    CachableDecisionItem,
+    CacheConfigurations,
+    CachableOriginsCount,
+    OriginCount,
+} from 'src/lib/cache/types';
+import { SCOPE_IP, SCOPE_RANGE, IP_TYPE_V4 } from 'src/lib/constants';
 import logger from 'src/lib/logger';
 import { CachableDecision, CachableIdentifier, Value, Remediation, CachableOrigin } from 'src/lib/types';
 
@@ -71,10 +79,10 @@ class CacheStorage {
     public async getAllCachableDecisionContents(ip: string): Promise<CachableDecisionContent[]> {
         // Ask cache for Ip scoped decision
         const ipContents = await this.retrieveDecisionContentsForIp(SCOPE_IP, ip);
-        logger.debug(`IP contents: ${JSON.stringify(ipContents)}`);
+        logger.debug(`Cached decisions for IP: ${JSON.stringify(ipContents)}`);
         // Ask cache for Range scoped decision (Only for IPV4)
         const rangeContents = getIpOrRangeType(ip) === IP_TYPE_V4 ? await this.retrieveDecisionContentsForIp(SCOPE_RANGE, ip) : [];
-        logger.debug(`Range contents: ${JSON.stringify(rangeContents)}`);
+        logger.debug(`Cached decisions for RANGE: ${JSON.stringify(rangeContents)}`);
         return [...ipContents, ...rangeContents];
     }
 
@@ -271,18 +279,18 @@ class CacheStorage {
     }
 
     public async upsertMetricsOriginsCount(params: UpsertMetricsOriginsCountParams): Promise<CachableOriginsCount> {
-        const { origin, remediation, delta, ttl } = params;
+        const { origin, remediation, delta } = params;
         const cacheItem = (await this.adapter.getItem(ORIGINS_COUNT_KEY)) as CachableOriginsCount | null;
         const itemContent = cacheItem?.content ?? [];
-        logger.debug(`Origin item initial content: ${JSON.stringify(itemContent)}`);
         const updatedContent = this.getUpdatedOriginsCount({ content: itemContent, origin, remediation, delta });
+        logger.debug(`Updated origins count: ${JSON.stringify(updatedContent)}`);
 
         const itemToCache = {
             key: ORIGINS_COUNT_KEY,
             content: updatedContent,
         };
 
-        return (await this.adapter.setItem(itemToCache, ttl)) as CachableOriginsCount;
+        return (await this.adapter.setItem(itemToCache)) as CachableOriginsCount;
     }
 
     private getUpdatedOriginsCount(params: GetUpdatedOriginsCountParams): OriginCount[] {

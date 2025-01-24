@@ -22,6 +22,7 @@ import {
     renderBanWall,
     renderCaptchaWall, // @ts-expect-error We load the CrowdSecBouncer from the dist folder
 } from '@crowdsec/nodejs-bouncer';
+import { ORIGIN_CLEAN, REMEDIATION_BYPASS, BOUNCER_KEYS, REMEDIATION_CAPTCHA } from '../../src/lib/constants';
 
 declare module 'express-session' {
     interface SessionData {
@@ -78,36 +79,87 @@ const bouncer = new CrowdSecBouncer(config);
 
 // Middleware to retrieve IP and apply remediation
 app.use(async (req, res, next) => {
-    if (req.path === CAPTCHA_VERIFICATION_URI && req.body.refresh !== '1') return next();
-
     const ip = process.env.BOUNCED_IP || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
     if (typeof ip === 'string') {
         try {
-            const remediation = await bouncer.getIpRemediation(ip);
-            logger.info(`IP: ${ip}`);
-            logger.info(`Remediation: ${remediation}`);
+            const remediationData = await bouncer.getIpRemediation(ip);
+            const remediation = remediationData[BOUNCER_KEYS.REMEDIATION];
+            const origin = remediationData[BOUNCER_KEYS.ORIGIN];
             // In case of a ban, render the ban wall
             if (remediation === 'ban') {
                 const banWall = await renderBanWall();
+                await bouncer.updateRemediationOriginCount(origin, remediation);
                 return res.status(403).send(banWall);
             }
             // In case of a captcha (unresolved) , render the captcha wall
             if (remediation === 'captcha') {
-                if (req.session.captchaSolved) {
-                    logger.debug(`Captcha has already been resolved`);
+                const mustSolve = await bouncer.mustSolveCaptcha(ip, remediation);
+                if (!mustSolve) {
+                    await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
                     next();
                     return;
                 }
-                const captcha = createCaptcha();
-                req.session.captchaText = captcha.text; // Store captcha text in session
+
+                if (req.method === 'POST' && req.path === CAPTCHA_VERIFICATION_URI) {
+                    const { phrase, refresh } = req.body;
+
+                    // TODO: use the redirect uri stored in the captcha flow
+                    const redirectUri = '/'; // We could redirect to the referer with more complex logic
+
+                    const captchaResolution = await bouncer.handleCaptchaResolution({
+                        ip,
+                        userPhrase: phrase,
+                        refresh,
+                    });
+
+                    if (captchaResolution[BOUNCER_KEYS.REMEDIATION] === REMEDIATION_BYPASS) {
+                        await bouncer.saveCaptchaFlow(ip, {
+                            mustBeResolved: false,
+                            resolutionFailed: false,
+                        });
+                        await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
+                        return res.redirect(redirectUri);
+                    }
+
+                    // Verify the CAPTCHA
+                    const isCaptchaCorrect = phrase === captchaResolution[BOUNCER_KEYS.CAPTCHA_PHRASE];
+                    if (isCaptchaCorrect) {
+                        await bouncer.saveCaptchaFlow(ip, {
+                            mustBeResolved: false,
+                            resolutionFailed: false,
+                        });
+                        await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
+                        return res.redirect(redirectUri);
+                    } else {
+                        await bouncer.saveCaptchaFlow(ip, {
+                            mustBeResolved: true,
+                            resolutionFailed: true,
+                        });
+                        await bouncer.updateRemediationOriginCount(origin, remediation);
+                        if (refresh === '1') {
+                            logger.debug(`Captcha has been refreshed`);
+                        } else {
+                            logger.debug(`Captcha is incorrect: ${phrase} != ${req.session.captchaText}`);
+                        }
+                    }
+
+                    return res.redirect(redirectUri);
+                }
+
+                // TODO: create captcha if not already created
+
+                const captcha = await bouncer.saveCaptchaFlow(ip);
+                req.session.captchaText = captcha.phraseToGuess; // Store captcha text in session
 
                 const captchaWall = await renderCaptchaWall({
-                    captchaImageTag: captcha.data,
+                    captchaImageTag: captcha.inlineImage,
                     redirectUrl: CAPTCHA_VERIFICATION_URI,
                 });
+                await bouncer.updateRemediationOriginCount(origin, remediation);
                 return res.status(401).send(captchaWall);
             }
+            await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
         } catch (error: unknown) {
             if (error instanceof Error) {
                 logger.error(`Error while getting remediation for IP ${ip}: ${error.message}`);
@@ -124,23 +176,6 @@ app.use(async (req, res, next) => {
 // Serve a simple webpage
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Endpoint to verify the captcha
-app.post(CAPTCHA_VERIFICATION_URI, express.json(), (req, res) => {
-    const { phrase } = req.body;
-    // Redirect to the home page if no phrase is provided
-    if (!phrase) return res.redirect('/');
-
-    const isCaptchaCorrect = phrase === req.session.captchaText;
-
-    if (isCaptchaCorrect) {
-        logger.debug(`Captcha has been resolved.`);
-        req.session.captchaSolved = true;
-    } else {
-        logger.debug(`Captcha is incorrect: ${phrase} != ${req.session.captchaText}`);
-    }
-    res.redirect('/');
 });
 
 let counter = 0;
