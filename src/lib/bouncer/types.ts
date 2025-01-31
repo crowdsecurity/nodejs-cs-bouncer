@@ -14,7 +14,7 @@ export type CrowdSecBouncerConfigurations = {
 } & LapiClientConfigurations &
     CacheConfigurations;
 
-export type CaptchaResolution = {
+export type CaptchaSubmission = {
     userPhrase: string;
     ip: string;
     refresh: '0' | '1';

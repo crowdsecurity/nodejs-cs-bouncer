@@ -6,7 +6,7 @@ import { buildCachableDecision, convertRawDecisionsToDecisions } from 'src/helpe
 import { getFirstIpFromRange, getIpOrRangeType, getIpToRemediate } from 'src/helpers/ip';
 import { CaptchaGenerator } from 'src/lib/bouncer/captcha';
 import { ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
-import { CaptchaResolution, CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
+import { CaptchaSubmission, CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
 import { CAPTCHA_FLOW } from 'src/lib/cache/constants';
 import { getCacheKey } from 'src/lib/cache/helpers';
@@ -213,6 +213,7 @@ class CrowdSecBouncer {
 
         // Retrieve the existing captcha flow from the cache; if it doesn't exist, create a new one
         const existingItem = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow;
+
         const existingContent: CaptchaFlow =
             existingItem?.content ||
             (await this.createCaptcha({
@@ -288,15 +289,17 @@ class CrowdSecBouncer {
         ip,
         userPhrase,
         refresh,
-    }: CaptchaResolution): Promise<{
+    }: CaptchaSubmission): Promise<{
         [BOUNCER_KEYS.REMEDIATION]: Remediation;
         [BOUNCER_KEYS.CAPTCHA_PHRASE]: string;
+        [BOUNCER_KEYS.CAPTCHA_FAILED]?: boolean;
     }> => {
         if (refresh === '1') {
             const newCaptcha = await this.refreshCaptchaFlow(ip);
             return {
                 [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_CAPTCHA,
                 [BOUNCER_KEYS.CAPTCHA_PHRASE]: newCaptcha.phraseToGuess,
+                [BOUNCER_KEYS.CAPTCHA_FAILED]: false,
             };
         }
 
@@ -314,7 +317,11 @@ class CrowdSecBouncer {
             logger.debug(`Captcha has been resolved by IP ${ip}`);
         }
 
-        return { [BOUNCER_KEYS.REMEDIATION]: remediation, [BOUNCER_KEYS.CAPTCHA_PHRASE]: captchaFlow?.phraseToGuess };
+        return {
+            [BOUNCER_KEYS.REMEDIATION]: remediation,
+            [BOUNCER_KEYS.CAPTCHA_PHRASE]: captchaFlow?.phraseToGuess,
+            [BOUNCER_KEYS.CAPTCHA_FAILED]: remediation === REMEDIATION_CAPTCHA,
+        };
     };
 
     private mustSolveCaptcha = async (ip: string, remediation: Remediation): Promise<boolean> => {

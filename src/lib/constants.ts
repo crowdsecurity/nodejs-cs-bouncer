@@ -37,4 +37,5 @@ export enum BOUNCER_KEYS {
     REMEDIATION = 'remediation',
     ORIGIN = 'origin',
     CAPTCHA_PHRASE = 'captchaPhrase',
+    CAPTCHA_FAILED = 'captchaFailed',
 }

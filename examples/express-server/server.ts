@@ -93,13 +93,13 @@ app.use(async (req, res, next) => {
                 if (req.method === 'POST' && req.path === submitUrl) {
                     const { phrase, crowdsec_captcha_refresh: refresh } = req.body;
                     // User can refresh captcha image or submit a phrase to solve the captcha
-                    const captchaResolution = await bouncer.handleCaptchaSubmission({
+                    const captchaSubmission = await bouncer.handleCaptchaSubmission({
                         ip,
                         userPhrase: phrase,
                         refresh,
                     });
 
-                    if (captchaResolution[BOUNCER_KEYS.REMEDIATION] === REMEDIATION_BYPASS) {
+                    if (captchaSubmission[BOUNCER_KEYS.REMEDIATION] === REMEDIATION_BYPASS) {
                         // User has solved captcha
                         await bouncer.saveCaptchaFlow(ip, {
                             mustBeResolved: false,
@@ -110,7 +110,7 @@ app.use(async (req, res, next) => {
                     } else {
                         await bouncer.saveCaptchaFlow(ip, {
                             mustBeResolved: true,
-                            resolutionFailed: true,
+                            resolutionFailed: captchaSubmission[BOUNCER_KEYS.CAPTCHA_FAILED] === true,
                         });
                         await bouncer.updateRemediationOriginCount(origin, remediation);
                         return res.redirect(submitUrl);
