@@ -6,14 +6,7 @@ import { updateDecisionItem } from 'src/lib/cache/decisions';
 import { getCacheKey } from 'src/lib/cache/helpers';
 import InMemory from 'src/lib/cache/in-memory';
 import { CacheAdapter } from 'src/lib/cache/interfaces';
-import {
-    CachableItem,
-    CachableDecisionContent,
-    CachableDecisionItem,
-    CacheConfigurations,
-    CachableOriginsCount,
-    OriginCount,
-} from 'src/lib/cache/types';
+import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations, CachableOriginsCount, OriginCount } from 'src/lib/cache/types';
 import { SCOPE_IP, SCOPE_RANGE, IP_TYPE_V4 } from 'src/lib/constants';
 import logger from 'src/lib/logger';
 import { CachableDecision, CachableIdentifier, Value, Remediation, CachableOrigin } from 'src/lib/types';

@@ -10,7 +10,7 @@ import { CaptchaResolution, CrowdSecBouncerConfigurations } from 'src/lib/bounce
 import CacheStorage from 'src/lib/cache';
 import { CAPTCHA_FLOW } from 'src/lib/cache/constants';
 import { getCacheKey } from 'src/lib/cache/helpers';
-import { CachableCaptchaFlow, CachableDecisionContent, CachableOriginsCount, CaptchaFlow, OriginCount } from 'src/lib/cache/types';
+import { CachableCaptchaFlow, CachableDecisionContent, CachableOriginsCount, CaptchaFlow } from 'src/lib/cache/types';
 import {
     BOUNCER_KEYS,
     CACHE_EXPIRATION_FOR_CAPTCHA_FLOW,
