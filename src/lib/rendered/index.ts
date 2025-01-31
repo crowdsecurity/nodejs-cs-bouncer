@@ -56,7 +56,7 @@ export const renderCaptchaWall = async (options?: CaptchaWallOptions): Promise<s
         colors,
         error: options?.error ?? undefined,
         captchaImageTag: options?.captchaImageTag ?? '',
-        redirectUrl: options?.redirectUrl ?? '',
+        submitUrl: options?.submitUrl ?? '',
     };
 
     const content = await generateTemplate('captcha', captchaOptions);

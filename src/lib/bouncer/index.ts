@@ -5,12 +5,12 @@ import { getConfig } from 'src/helpers/config';
 import { buildCachableDecision, convertRawDecisionsToDecisions } from 'src/helpers/decision';
 import { getFirstIpFromRange, getIpOrRangeType, getIpToRemediate } from 'src/helpers/ip';
 import { CaptchaGenerator } from 'src/lib/bouncer/captcha';
-import { CAPTCHA_REDIRECT, ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
+import { ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
 import { CaptchaResolution, CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
 import { CAPTCHA_FLOW } from 'src/lib/cache/constants';
 import { getCacheKey } from 'src/lib/cache/helpers';
-import { CachableCaptchaFlow, CachableDecisionContent, CachableOriginsCount, CaptchaFlow } from 'src/lib/cache/types';
+import { CachableCaptchaFlow, CachableDecisionContent, CachableOriginsCount, CaptchaFlow, OriginCount } from 'src/lib/cache/types';
 import {
     BOUNCER_KEYS,
     CACHE_EXPIRATION_FOR_CAPTCHA_FLOW,
@@ -29,6 +29,12 @@ import logger from 'src/lib/logger';
 import { renderBanWall, renderCaptchaWall } from 'src/lib/rendered';
 import { BanWallOptions, CaptchaWallOptions, WallsOptions } from 'src/lib/rendered/types';
 import { CachableDecision, CachableOrigin, Remediation } from 'src/lib/types';
+
+type CaptchaCreation = {
+    cacheKey: string;
+    ttl: number;
+    submitUrl: CaptchaFlow['resolutionRedirect'];
+};
 
 class CrowdSecBouncer {
     private cacheStorage: CacheStorage;
@@ -102,22 +108,22 @@ class CrowdSecBouncer {
         });
     }
 
-    private createCaptcha = async (cacheKey: string, ttl: number): Promise<CaptchaFlow> => {
+    private createCaptcha = async (params: CaptchaCreation): Promise<CaptchaFlow> => {
         const captcha = this.captcha.create();
 
         const content = {
             ...captcha,
             mustBeResolved: true,
             resolutionFailed: false,
-            resolutionRedirect: CAPTCHA_REDIRECT,
+            resolutionRedirect: params.submitUrl,
         };
 
         const itemToCache = {
-            key: cacheKey,
+            key: params.cacheKey,
             content: content,
         };
 
-        const captchaFlowItem = (await this.cacheStorage.adapter.setItem(itemToCache, ttl)) as CachableCaptchaFlow;
+        const captchaFlowItem = (await this.cacheStorage.adapter.setItem(itemToCache, params.ttl)) as CachableCaptchaFlow;
 
         return captchaFlowItem.content;
     };
@@ -196,6 +202,10 @@ class CrowdSecBouncer {
         return this.cacheStorage.upsertMetricsOriginsCount({ origin, remediation });
     };
 
+    public getConfig = <T extends keyof CrowdSecBouncerConfigurations>(key: T): CrowdSecBouncerConfigurations[T] | null => {
+        return getConfig(key, this.configs);
+    };
+
     public saveCaptchaFlow = async (ip: string, content?: Partial<CaptchaFlow>): Promise<CaptchaFlow> => {
         const cacheKey = getCacheKey(CAPTCHA_FLOW, ip);
 
@@ -203,7 +213,13 @@ class CrowdSecBouncer {
 
         // Retrieve the existing captcha flow from the cache; if it doesn't exist, create a new one
         const existingItem = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow;
-        const existingContent: CaptchaFlow = existingItem?.content || (await this.createCaptcha(cacheKey, duration));
+        const existingContent: CaptchaFlow =
+            existingItem?.content ||
+            (await this.createCaptcha({
+                cacheKey,
+                ttl: duration,
+                submitUrl: content?.resolutionRedirect ?? '/',
+            }));
 
         const updatedContent: CaptchaFlow = content
             ? {
@@ -301,7 +317,7 @@ class CrowdSecBouncer {
         return { [BOUNCER_KEYS.REMEDIATION]: remediation, [BOUNCER_KEYS.CAPTCHA_PHRASE]: captchaFlow?.phraseToGuess };
     };
 
-    public mustSolveCaptcha = async (ip: string, remediation: Remediation): Promise<boolean> => {
+    private mustSolveCaptcha = async (ip: string, remediation: Remediation): Promise<boolean> => {
         if (remediation !== REMEDIATION_CAPTCHA) {
             return false;
         }

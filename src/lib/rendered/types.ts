@@ -27,7 +27,7 @@ export type CaptchaWallOptions = BaseWallOptions &
         error: string;
     }> & {
         captchaImageTag: string;
-        redirectUrl: string; // When the captcha is resolved, the user will be redirected to this URL
+        submitUrl: string; // Captcha form action
     };
 
 export type WallsOptions = {

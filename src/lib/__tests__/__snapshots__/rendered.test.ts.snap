@@ -297,7 +297,7 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
 <span class="captcha-img"> <img src="captcha.png" /> </span>
 <script>
     function newImage() {
-        document.getElementById('refresh').value = '1';
+        document.getElementById('crowdsec_captcha_refresh').value = '1';
         document.getElementById('captcha').submit();
     }
 </script>
@@ -307,8 +307,7 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
 
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <input type="hidden" name="crowdsec_captcha" value="1" />
-    <input type="hidden" name="refresh" value="0" id="refresh" />
+    <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
     
 
     <button type="submit">Continue</button>
@@ -618,7 +617,7 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
 <span class="captcha-img"> <img src="captcha.png" /> </span>
 <script>
     function newImage() {
-        document.getElementById('refresh').value = '1';
+        document.getElementById('crowdsec_captcha_refresh').value = '1';
         document.getElementById('captcha').submit();
     }
 </script>
@@ -628,8 +627,7 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
 
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <input type="hidden" name="crowdsec_captcha" value="1" />
-    <input type="hidden" name="refresh" value="0" id="refresh" />
+    <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
     
 
     <button type="submit">Continue</button>
@@ -765,7 +763,7 @@ exports[`📄 Generate Template should be table to display error message on capt
 <span class="captcha-img"> <img src="captcha.png" /> </span>
 <script>
     function newImage() {
-        document.getElementById('refresh').value = '1';
+        document.getElementById('crowdsec_captcha_refresh').value = '1';
         document.getElementById('captcha').submit();
     }
 </script>
@@ -775,8 +773,7 @@ exports[`📄 Generate Template should be table to display error message on capt
 
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <input type="hidden" name="crowdsec_captcha" value="1" />
-    <input type="hidden" name="refresh" value="0" id="refresh" />
+    <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
     
     <p class="error">Custom Error Message</p>
     
@@ -1173,7 +1170,7 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
 <span class="captcha-img">  </span>
 <script>
     function newImage() {
-        document.getElementById('refresh').value = '1';
+        document.getElementById('crowdsec_captcha_refresh').value = '1';
         document.getElementById('captcha').submit();
     }
 </script>
@@ -1183,8 +1180,7 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
 
 <form method="POST" id="captcha" action="">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <input type="hidden" name="crowdsec_captcha" value="1" />
-    <input type="hidden" name="refresh" value="0" id="refresh" />
+    <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
     
 
     <button type="submit">Continue</button>
@@ -1751,7 +1747,7 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
 <span class="captcha-img">  </span>
 <script>
     function newImage() {
-        document.getElementById('refresh').value = '1';
+        document.getElementById('crowdsec_captcha_refresh').value = '1';
         document.getElementById('captcha').submit();
     }
 </script>
@@ -1761,8 +1757,7 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
 
 <form method="POST" id="captcha" action="">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
-    <input type="hidden" name="crowdsec_captcha" value="1" />
-    <input type="hidden" name="refresh" value="0" id="refresh" />
+    <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
     
 
     <button type="submit">Continue</button>

@@ -10,13 +10,13 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
--   [Technical overview](#technical-overview)
--   [Pre-requisites](#pre-requisites)
--   [Test the bouncer](#test-the-bouncer)
-    -   [Prepare the tests](#prepare-the-tests)
-    -   [Test a "bypass" remediation](#test-a-bypass-remediation)
-    -   [Test a "ban" remediation](#test-a-ban-remediation)
-    -   [Test a "captcha" remediation](#test-a-captcha-remediation)
+- [Technical overview](#technical-overview)
+- [Pre-requisites](#pre-requisites)
+- [Test the bouncer](#test-the-bouncer)
+    - [Prepare the tests](#prepare-the-tests)
+    - [Test a "bypass" remediation](#test-a-bypass-remediation)
+    - [Test a "ban" remediation](#test-a-ban-remediation)
+    - [Test a "captcha" remediation](#test-a-captcha-remediation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -24,59 +24,59 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 
 All the logic is done in the `server.ts` file:
 
--   we use a middleware to act before rendering the page
+- we use a middleware to act before rendering the page
 
--   We retrieve the remediation for the current tested IP:
+- We retrieve the remediation for the current tested IP:
 
-    ```js
-    const remediation = await bouncer.getIpRemediation(ip);
-    ```
+```js
+  const remediationData = await bouncer.getIpRemediation(ip);
+  const remediation = remediationData[BOUNCER_KEYS.REMEDIATION];
+```
 
--   Depending on the value of the remediation, we apply it:
+- Depending on the value of the remediation, we apply it:
 
-    -   let the process continue with `next()`if there is no remediation (bypass)
+    - let the process continue with `next()`if there is no remediation (bypass)
 
-    -   block the user with a ban wall for a ban remediation:
+    - block the user with a ban wall for a ban remediation:
 
-        ```js
-        const banWall = await renderBanWall();
-        return res.status(403).send(banWall);
-        ```
+      ```js
+      const banWall = await bouncer.renderWall('ban');
+      return res.status(403).send(banWall);
+      ```
 
-    -   block the user with captcha wall for a captcha remediation:
+    - block the user with captcha wall for a captcha remediation:
 
-        ```js
-        const captchaWall = await renderCaptchaWall({
-            captchaImageTag: captcha.data,
-            redirectUrl: CAPTCHA_VERIFICATION_URI,
-        });
-        return res.status(401).send(captchaWall);
-        ```
+      ```js
+      const captchaWall = await bouncer.renderWall('captcha', {
+          captchaImageTag: captcha.data,
+          redirectUrl: CAPTCHA_VERIFICATION_URI,
+      });
+      return res.status(401).send(captchaWall);
+      ```
 
-        User will be blocked until the captcha is solved. To keep simple, we use a specific `verify-captcha` route and
-        store the result of the user captcha solving status in session.
+      User will be blocked until the captcha is solved.
 
 ## Pre-requisites
 
--   NodeJS and Docker installed on your machine
+- Node.js and Docker installed on your machine
 
-    -   You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
+    - You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
 
--   Copy the `.env.example` file to `.env` and fill in the required values
+- Copy the `.env.example` file to `.env` and fill in the required values
 
--   Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
+- Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
 
--   Install bouncer dependencies and test dependencies:
+- Install bouncer dependencies and test dependencies:
 
-    ```shell
-    npm --prefix ../.. install && npm install
-    ```
+  ```shell
+  npm --prefix ../.. install && npm install
+  ```
 
--   Build the project sources
+- Build the project sources
 
-    ```shell
-    npm --prefix ../.. run build
-    ```
+  ```shell
+  npm --prefix ../.. run build
+  ```
 
 ## Test the bouncer
 

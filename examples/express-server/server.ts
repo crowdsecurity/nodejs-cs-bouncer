@@ -19,7 +19,6 @@ import {
     // eslint-disable-next-line import/no-unresolved
 } from '@crowdsec/nodejs-bouncer';
 
-const CAPTCHA_VERIFICATION_URI = '/verify-captcha';
 // Load and validate environment variables from .env file
 dotenvSafe.config({
     path: path.resolve(__dirname, '.env'),
@@ -54,11 +53,13 @@ const config: CrowdSecBouncerConfiguration = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
     bouncerApiToken: process.env.BOUNCER_KEY,
     cleanIpCacheDuration: process.env.CLEAN_IP_CACHE_DURATION ?? 120,
+    captchaSuccessUrl: process.env.CAPTCHA_SUCCESS_URL ?? '/',
     wallsOptions: {
-        ban: {
+        captcha: {
             texts: {
-                title: 'PAS BIEN',
+                title: '🤭 Oh!',
             },
+            submitUrl: process.env.CAPTCHA_SUBMIT_URL ?? '/',
         },
     },
 };
@@ -81,18 +82,13 @@ app.use(async (req, res, next) => {
             }
             // In case of a captcha (unresolved) , render the captcha wall
             if (remediation === 'captcha') {
-                const mustSolve = await bouncer.mustSolveCaptcha(ip, remediation);
-                if (!mustSolve) {
-                    await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
-                    next();
-                    return;
-                }
+                const wallsOptions = await bouncer.getConfig('wallsOptions');
+                const submitUrl = wallsOptions?.captcha?.submitUrl;
+                const captchaSuccessUrl = await bouncer.getConfig('captchaSuccessUrl');
 
-                if (req.method === 'POST' && req.path === CAPTCHA_VERIFICATION_URI) {
-                    const { phrase, refresh } = req.body;
-
-                    // TODO: use the redirect uri stored in the captcha flow
-                    const redirectUri = '/'; // We could redirect to the referer with more complex logic
+                // User is trying to submit the captcha
+                if (req.method === 'POST' && req.path === submitUrl) {
+                    const { phrase, crowdsec_captcha_refresh: refresh } = req.body;
 
                     const captchaResolution = await bouncer.handleCaptchaResolution({
                         ip,
@@ -106,33 +102,21 @@ app.use(async (req, res, next) => {
                             resolutionFailed: false,
                         });
                         await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
-                        return res.redirect(redirectUri);
-                    }
-
-                    // Verify the CAPTCHA
-                    const isCaptchaCorrect = phrase === captchaResolution[BOUNCER_KEYS.CAPTCHA_PHRASE];
-                    if (isCaptchaCorrect) {
-                        await bouncer.saveCaptchaFlow(ip, {
-                            mustBeResolved: false,
-                            resolutionFailed: false,
-                        });
-                        await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
-                        return res.redirect(redirectUri);
+                        return res.redirect(captchaSuccessUrl);
                     } else {
                         await bouncer.saveCaptchaFlow(ip, {
                             mustBeResolved: true,
                             resolutionFailed: true,
                         });
                         await bouncer.updateRemediationOriginCount(origin, remediation);
+                        return res.redirect(submitUrl);
                     }
-
-                    return res.redirect(redirectUri);
                 }
                 const captcha = await bouncer.saveCaptchaFlow(ip);
 
                 const captchaWall = await bouncer.renderWall('captcha', {
                     captchaImageTag: captcha.inlineImage,
-                    redirectUrl: CAPTCHA_VERIFICATION_URI,
+                    submitUrl,
                 });
                 await bouncer.updateRemediationOriginCount(origin, remediation);
                 return res.status(401).send(captchaWall);

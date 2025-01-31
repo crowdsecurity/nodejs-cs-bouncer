@@ -23,6 +23,18 @@ const main = async () => {
         const remediationData = await bouncer.getIpRemediation(ip);
 
         console.log(`Remediation for IP ${ip} : ${remediationData[BOUNCER_KEYS.REMEDIATION]}`);
+        /**
+         * If remediation is a ban or a captcha, you can get the ban/captcha wall HTML with `renderWall` and render it.
+         *
+         * const banWall = await bouncer.renderWall('ban');
+         * return res.status(403).send(banWall);
+         *
+         * const captchaWall = await bouncer.renderWall('captcha', { captchaImageTag: <SOME_IMG_TAG>});
+         * return res.status(401).send(captchaWall);
+         *
+         * (See the express-server example for more details)
+         *
+         */
     } catch (error) {
         console.error('Error fetching remediation for IP:', error);
     }

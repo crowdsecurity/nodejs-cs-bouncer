@@ -107,7 +107,7 @@ describe('📄 Generate Template', () => {
         const subtitle = 'Custom Subtitle';
 
         const captchaImageTag = '<img src="captcha.png" />';
-        const redirectUrl = '/redirect';
+        const submitUrl = '/redirect';
 
         // Call the generateTemplate function
         const wall = await renderCaptchaWall({
@@ -126,7 +126,7 @@ describe('📄 Generate Template', () => {
                 subtitle: subtitle,
             },
             captchaImageTag: captchaImageTag,
-            redirectUrl: redirectUrl,
+            submitUrl: submitUrl,
         });
 
         expect(wall).toBeTruthy();
@@ -135,7 +135,7 @@ describe('📄 Generate Template', () => {
         expect(wall).toContain(title);
         expect(wall).toContain(subtitle);
         expect(wall).toContain(captchaImageTag);
-        expect(wall).toContain(redirectUrl);
+        expect(wall).toContain(submitUrl);
 
         // Assert that the generated template matches the snapshot
         expect(wall).toMatchSnapshot();
@@ -166,7 +166,7 @@ describe('📄 Generate Template', () => {
         const captchaWall = await renderCaptchaWall({
             hideCrowdSecMentions: true,
             captchaImageTag: '<img src="captcha.png" />',
-            redirectUrl: '/redirect',
+            submitUrl: '/redirect',
         });
 
         expect(banWall).toBeTruthy();
@@ -188,7 +188,7 @@ describe('📄 Generate Template', () => {
         const wall = await renderCaptchaWall({
             error: error,
             captchaImageTag: '<img src="captcha.png" />',
-            redirectUrl: '/redirect',
+            submitUrl: '/redirect',
         });
 
         expect(wall).toBeTruthy();

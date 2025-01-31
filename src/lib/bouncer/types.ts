@@ -8,6 +8,7 @@ export type CrowdSecBouncerConfigurations = {
     badIpCacheDuration?: number; // duration in seconds to cache bad IPs
     cleanIpCacheDuration?: number; // duration in seconds to cache clean IPs
     captchaFlowCacheDuration?: number; // duration in seconds to cache captcha flow
+    captchaSuccessUrl?: string; // URL to redirect to after successful captcha resolution
     streamMode?: boolean; // stream mode
     wallsOptions?: WallsOptions; // Ban and Captcha walls options
 } & LapiClientConfigurations &
@@ -16,5 +17,5 @@ export type CrowdSecBouncerConfigurations = {
 export type CaptchaResolution = {
     userPhrase: string;
     ip: string;
-    refresh: string;
+    refresh: '0' | '1';
 };

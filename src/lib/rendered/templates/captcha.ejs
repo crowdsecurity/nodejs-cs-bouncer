@@ -6,7 +6,7 @@
 <span class="captcha-img"> <% print(captchaImageTag) %> </span>
 <script>
     function newImage() {
-        document.getElementById('refresh').value = '1';
+        document.getElementById('crowdsec_captcha_refresh').value = '1';
         document.getElementById('captcha').submit();
     }
 </script>
@@ -14,10 +14,9 @@
     <small><button id="refresh_link" onclick="newImage()"><%- texts.refresh_image_link %></button></small>
 </p>
 
-<form method="POST" id="captcha" action="<%- redirectUrl %>">
+<form method="POST" id="captcha" action="<%- submitUrl %>">
     <input type="text" name="phrase" placeholder="<%- texts.captcha_placeholder %>" autofocus autocomplete="off" />
-    <input type="hidden" name="crowdsec_captcha" value="1" />
-    <input type="hidden" name="refresh" value="0" id="refresh" />
+    <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
     <% if (error) { %>
     <p class="error"><%- error %></p>
     <% } %>
