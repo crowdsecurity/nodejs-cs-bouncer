@@ -1,5 +1,6 @@
 import CrowdSecBouncer from 'src/lib/bouncer';
 import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
+import { BOUNCER_KEYS } from 'src/lib/constants';
 
 /**
  * Example of basic usage of the CrowdSec Bouncer.
@@ -19,9 +20,9 @@ const main = async () => {
 
     try {
         const ip = '1.2.3.4'; // This IP should be in your CrowdSec decisions to get a remediation
-        const remediation = await bouncer.getIpRemediation(ip);
+        const remediationData = await bouncer.getIpRemediation(ip);
 
-        console.log(`Remediation for IP ${ip} : ${remediation}`);
+        console.log(`Remediation for IP ${ip} : ${remediationData[BOUNCER_KEYS.REMEDIATION]}`);
     } catch (error) {
         console.error('Error fetching remediation for IP:', error);
     }

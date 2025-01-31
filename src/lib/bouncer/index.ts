@@ -26,6 +26,8 @@ import {
 import LapiClient from 'src/lib/lapi-client';
 import { GetDecisionsOptions } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
+import { renderBanWall, renderCaptchaWall } from 'src/lib/rendered';
+import { BanWallOptions, CaptchaWallOptions, WallsOptions } from 'src/lib/rendered/types';
 import { CachableDecision, CachableOrigin, Remediation } from 'src/lib/types';
 
 class CrowdSecBouncer {
@@ -191,7 +193,6 @@ class CrowdSecBouncer {
     };
 
     public updateRemediationOriginCount = async (origin: CachableOrigin, remediation: Remediation): Promise<CachableOriginsCount> => {
-        logger.debug(`Increment count for origin ${origin} with remediation ${remediation}`);
         return this.cacheStorage.upsertMetricsOriginsCount({ origin, remediation });
     };
 
@@ -235,7 +236,6 @@ class CrowdSecBouncer {
 
     public getCaptchaFlow = async (ip: string): Promise<CaptchaFlow> => {
         const cacheKey = getCacheKey(CAPTCHA_FLOW, ip);
-
         const cachedCaptchaFlow = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow;
 
         return cachedCaptchaFlow.content;
@@ -259,7 +259,6 @@ class CrowdSecBouncer {
 
         const newDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.NEW] ?? [], this.configs);
         const deletedDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.DELETED] ?? [], this.configs);
-
         const storedDecisions = await this.cacheStorage.storeDecisions(newDecisions);
         const removedDecisions = await this.cacheStorage.removeDecisions(deletedDecisions);
 
@@ -320,6 +319,16 @@ class CrowdSecBouncer {
         }
 
         return true;
+    };
+
+    public renderWall = async <T extends 'ban' | 'captcha'>(
+        type: T,
+        options?: T extends 'ban' ? BanWallOptions : CaptchaWallOptions,
+    ): Promise<string> => {
+        const bouncerOptions = (getConfig('wallsOptions', this.configs) as WallsOptions) || { ban: {}, captcha: {} };
+        const finalOptions = { ...bouncerOptions[type], ...(options ?? {}) };
+
+        return type === 'captcha' ? renderCaptchaWall(finalOptions as CaptchaWallOptions) : renderBanWall(finalOptions as BanWallOptions);
     };
 }
 

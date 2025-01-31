@@ -29,3 +29,8 @@ export type CaptchaWallOptions = BaseWallOptions &
         captchaImageTag: string;
         redirectUrl: string; // When the captcha is resolved, the user will be redirected to this URL
     };
+
+export type WallsOptions = {
+    ban: BanWallOptions;
+    captcha: CaptchaWallOptions;
+};

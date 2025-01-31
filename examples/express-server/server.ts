@@ -1,35 +1,24 @@
-// @ts-ignore
 import dotenv from 'dotenv';
-// @ts-ignore
 import dotenvSafe from 'dotenv-safe';
-// @ts-ignore
 import express from 'express';
-// @ts-ignore
-import session from 'express-session';
-import pino from 'pino';
 import nodeCron from 'node-cron';
-import { create as createCaptcha } from 'svg-captcha-fixed';
-import 'tests/express-server/crowdsec-alias';
+import pino from 'pino';
+import { ORIGIN_CLEAN, REMEDIATION_BYPASS, BOUNCER_KEYS } from 'src/lib/constants';
 
-// @ts-ignore
 import path from 'path';
+
+import 'examples/express-server/crowdsec-alias';
 
 // In a real project, you would have to install the package from npm: "npm install @crowdsec/nodejs-bouncer"
 // Here, for development and test purpose, we use the alias to load the package from the dist folder (@see ./crowdsec-alias.ts)
+// eslint-disable-next-line import/order
 import {
     CrowdSecBouncer,
     CrowdSecBouncerConfiguration,
-    renderBanWall,
-    renderCaptchaWall, // @ts-expect-error We load the CrowdSecBouncer from the dist folder
+    // @ts-expect-error We load the CrowdSecBouncer from the dist folder
+    // eslint-disable-next-line import/no-unresolved
 } from '@crowdsec/nodejs-bouncer';
-import { ORIGIN_CLEAN, REMEDIATION_BYPASS, BOUNCER_KEYS, REMEDIATION_CAPTCHA } from '../../src/lib/constants';
 
-declare module 'express-session' {
-    interface SessionData {
-        captchaText?: string;
-        captchaSolved?: boolean;
-    }
-}
 const CAPTCHA_VERIFICATION_URI = '/verify-captcha';
 // Load and validate environment variables from .env file
 dotenvSafe.config({
@@ -49,16 +38,7 @@ const PORT = 3000;
 
 // Middleware to parse URL-encoded form data (we are posting data to solve the captcha)
 app.use(express.urlencoded({ extended: true }));
-// Initialize session middleware at the top
-// We use session to store the captcha text and if the captcha has been solved
-app.use(
-    session({
-        secret: 'your-secret-key',
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: false }, // Server is launched with HTTP
-    }),
-);
+
 // Set up the logger
 const logger = pino({
     level: process.env.TEST_LOG_LEVEL ?? 'debug',
@@ -74,6 +54,13 @@ const config: CrowdSecBouncerConfiguration = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
     bouncerApiToken: process.env.BOUNCER_KEY,
     cleanIpCacheDuration: process.env.CLEAN_IP_CACHE_DURATION ?? 120,
+    wallsOptions: {
+        ban: {
+            texts: {
+                title: 'PAS BIEN',
+            },
+        },
+    },
 };
 const bouncer = new CrowdSecBouncer(config);
 
@@ -88,7 +75,7 @@ app.use(async (req, res, next) => {
             const origin = remediationData[BOUNCER_KEYS.ORIGIN];
             // In case of a ban, render the ban wall
             if (remediation === 'ban') {
-                const banWall = await renderBanWall();
+                const banWall = await bouncer.renderWall('ban');
                 await bouncer.updateRemediationOriginCount(origin, remediation);
                 return res.status(403).send(banWall);
             }
@@ -137,22 +124,13 @@ app.use(async (req, res, next) => {
                             resolutionFailed: true,
                         });
                         await bouncer.updateRemediationOriginCount(origin, remediation);
-                        if (refresh === '1') {
-                            logger.debug(`Captcha has been refreshed`);
-                        } else {
-                            logger.debug(`Captcha is incorrect: ${phrase} != ${req.session.captchaText}`);
-                        }
                     }
 
                     return res.redirect(redirectUri);
                 }
-
-                // TODO: create captcha if not already created
-
                 const captcha = await bouncer.saveCaptchaFlow(ip);
-                req.session.captchaText = captcha.phraseToGuess; // Store captcha text in session
 
-                const captchaWall = await renderCaptchaWall({
+                const captchaWall = await bouncer.renderWall('captcha', {
                     captchaImageTag: captcha.inlineImage,
                     redirectUrl: CAPTCHA_VERIFICATION_URI,
                 });

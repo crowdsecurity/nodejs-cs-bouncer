@@ -1,8 +1,8 @@
-import LapiClient from 'src/lib/lapi-client';
-import { LapiClientConfigurations } from 'src/lib/lapi-client/types';
+import CrowdSecBouncer from 'src/lib/bouncer';
+import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 
 /**
- * Example usage of the LAPI client.
+ * Example usage of fetching decisions stream.
  *
  * This example demonstrates how to fetch the decision stream from the LAPI.
  * Get your LAPI running and its URL and API key from the CrowdSec dashboard.
@@ -11,16 +11,15 @@ import { LapiClientConfigurations } from 'src/lib/lapi-client/types';
  **/
 
 const main = async () => {
-    const options: LapiClientConfigurations = {
+    const options: CrowdSecBouncerConfigurations = {
         url: 'http://localhost:8080', // Ex: with a local docker -> $ docker run -d -p 8080:8080 --name "crowdsecurity/crowdsec" "crowdsec"
         bouncerApiToken: 'your-api-key', // Ex: $ cscli bouncer add nodejs-cs-bouncer -> API key for: nodejs-cs-bouncer
     };
 
-    const client = new LapiClient(options);
+    const bouncer = new CrowdSecBouncer(options);
 
     try {
-        const decisionStream = await client.getDecisionStream({
-            isFirstFetch: true,
+        const decisionStream = await bouncer.refreshDecisions({
             origins: ['crowdsec', 'cscli'],
             scopes: ['ip'],
         });

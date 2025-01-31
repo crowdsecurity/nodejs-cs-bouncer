@@ -1,6 +1,6 @@
-import { CaptchaObj } from 'src/lib/bouncer/captcha';
 import { CacheConfigurations } from 'src/lib/cache/types';
 import { LapiClientConfigurations } from 'src/lib/lapi-client/types';
+import { WallsOptions } from 'src/lib/rendered/types';
 import { Remediation } from 'src/lib/types';
 
 export type CrowdSecBouncerConfigurations = {
@@ -9,6 +9,7 @@ export type CrowdSecBouncerConfigurations = {
     cleanIpCacheDuration?: number; // duration in seconds to cache clean IPs
     captchaFlowCacheDuration?: number; // duration in seconds to cache captcha flow
     streamMode?: boolean; // stream mode
+    wallsOptions?: WallsOptions; // Ban and Captcha walls options
 } & LapiClientConfigurations &
     CacheConfigurations;
 

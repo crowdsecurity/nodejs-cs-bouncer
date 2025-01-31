@@ -79,10 +79,8 @@ class CacheStorage {
     public async getAllCachableDecisionContents(ip: string): Promise<CachableDecisionContent[]> {
         // Ask cache for Ip scoped decision
         const ipContents = await this.retrieveDecisionContentsForIp(SCOPE_IP, ip);
-        logger.debug(`Cached decisions for IP: ${JSON.stringify(ipContents)}`);
         // Ask cache for Range scoped decision (Only for IPV4)
         const rangeContents = getIpOrRangeType(ip) === IP_TYPE_V4 ? await this.retrieveDecisionContentsForIp(SCOPE_RANGE, ip) : [];
-        logger.debug(`Cached decisions for RANGE: ${JSON.stringify(rangeContents)}`);
         return [...ipContents, ...rangeContents];
     }
 
