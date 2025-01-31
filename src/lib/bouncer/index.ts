@@ -33,7 +33,7 @@ import { CachableDecision, CachableOrigin, Remediation } from 'src/lib/types';
 type CaptchaCreation = {
     cacheKey: string;
     ttl: number;
-    submitUrl: CaptchaFlow['resolutionRedirect'];
+    submitUrl: CaptchaFlow['submitUrl'];
 };
 
 class CrowdSecBouncer {
@@ -115,7 +115,7 @@ class CrowdSecBouncer {
             ...captcha,
             mustBeResolved: true,
             resolutionFailed: false,
-            resolutionRedirect: params.submitUrl,
+            submitUrl: params.submitUrl,
         };
 
         const itemToCache = {
@@ -218,7 +218,7 @@ class CrowdSecBouncer {
             (await this.createCaptcha({
                 cacheKey,
                 ttl: duration,
-                submitUrl: content?.resolutionRedirect ?? '/',
+                submitUrl: content?.submitUrl ?? '/',
             }));
 
         const updatedContent: CaptchaFlow = content
@@ -284,7 +284,7 @@ class CrowdSecBouncer {
         };
     };
 
-    public handleCaptchaResolution = async ({
+    public handleCaptchaSubmission = async ({
         ip,
         userPhrase,
         refresh,

@@ -23,7 +23,7 @@ export type CachableItem<T = unknown> = {
 export type CaptchaFlow = CaptchaObj & {
     mustBeResolved: boolean;
     resolutionFailed: boolean;
-    resolutionRedirect: string;
+    submitUrl: string;
 };
 
 export type CachableDecisionItem = CachableItem<CachableDecisionContent[]>;

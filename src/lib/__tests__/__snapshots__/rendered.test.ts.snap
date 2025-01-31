@@ -258,8 +258,8 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
         margin: 2rem 0 2rem;
         padding: 0.75rem;
         font-size: 1.1em;
-        background-color: <!- colors.background.button !>;
-        color: <!- colors.text.button !>;
+        background-color: #888BCE;
+        color: #F9FAFA;
         border: none;
         width: 150px;
         transition-duration: 300ms;
@@ -279,8 +279,9 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
         background: white;
     }
     .error {
-        color: <!- colors.text.error_message !>;
+        color: #F55B60;
         padding: 5px;
+        display: block;
     }
 </style>
 
@@ -305,11 +306,11 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
+
+
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
-    
-
     <button type="submit">Continue</button>
 </form>
  
@@ -578,8 +579,8 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
         margin: 2rem 0 2rem;
         padding: 0.75rem;
         font-size: 1.1em;
-        background-color: <!- colors.background.button !>;
-        color: <!- colors.text.button !>;
+        background-color: #888BCE;
+        color: #F9FAFA;
         border: none;
         width: 150px;
         transition-duration: 300ms;
@@ -599,8 +600,9 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
         background: white;
     }
     .error {
-        color: <!- colors.text.error_message !>;
+        color: #F55B60;
         padding: 5px;
+        display: block;
     }
 </style>
 
@@ -625,11 +627,11 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
+
+
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
-    
-
     <button type="submit">Continue</button>
 </form>
  
@@ -724,8 +726,8 @@ exports[`📄 Generate Template should be table to display error message on capt
         margin: 2rem 0 2rem;
         padding: 0.75rem;
         font-size: 1.1em;
-        background-color: <!- colors.background.button !>;
-        color: <!- colors.text.button !>;
+        background-color: #888BCE;
+        color: #F9FAFA;
         border: none;
         width: 150px;
         transition-duration: 300ms;
@@ -745,8 +747,9 @@ exports[`📄 Generate Template should be table to display error message on capt
         background: white;
     }
     .error {
-        color: <!- colors.text.error_message !>;
+        color: #F55B60;
         padding: 5px;
+        display: block;
     }
 </style>
 
@@ -771,13 +774,11 @@ exports[`📄 Generate Template should be table to display error message on capt
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
+
+<p class="error">Custom Error Message</p>
 <form method="POST" id="captcha" action="/redirect">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
-    
-    <p class="error">Custom Error Message</p>
-    
-
     <button type="submit">Continue</button>
 </form>
  
@@ -1131,8 +1132,8 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
         margin: 2rem 0 2rem;
         padding: 0.75rem;
         font-size: 1.1em;
-        background-color: <!- colors.background.button !>;
-        color: <!- colors.text.button !>;
+        background-color: #888BCE;
+        color: #F9FAFA;
         border: none;
         width: 150px;
         transition-duration: 300ms;
@@ -1152,8 +1153,9 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
         background: white;
     }
     .error {
-        color: <!- colors.text.error_message !>;
+        color: #F55B60;
         padding: 5px;
+        display: block;
     }
 </style>
 
@@ -1178,11 +1180,11 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
+
+
 <form method="POST" id="captcha" action="">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
-    
-
     <button type="submit">Continue</button>
 </form>
  
@@ -1708,8 +1710,8 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
         margin: 2rem 0 2rem;
         padding: 0.75rem;
         font-size: 1.1em;
-        background-color: <!- colors.background.button !>;
-        color: <!- colors.text.button !>;
+        background-color: #888BCE;
+        color: #F9FAFA;
         border: none;
         width: 150px;
         transition-duration: 300ms;
@@ -1729,8 +1731,9 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
         background: white;
     }
     .error {
-        color: <!- colors.text.error_message !>;
+        color: #F55B60;
         padding: 5px;
+        display: block;
     }
 </style>
 
@@ -1755,11 +1758,11 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
     <small><button id="refresh_link" onclick="newImage()">Reload the image</button></small>
 </p>
 
+
+
 <form method="POST" id="captcha" action="">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
-    
-
     <button type="submit">Continue</button>
 </form>
  

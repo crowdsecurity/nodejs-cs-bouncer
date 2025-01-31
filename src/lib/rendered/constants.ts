@@ -4,7 +4,7 @@ export const DEFAULT_COLORS = {
     text: {
         primary: '#F9FAFA',
         secondary: '#B0B5BF',
-        button: 'F9FAFA',
+        button: '#F9FAFA',
         error_message: '#F55B60',
     },
     background: {
