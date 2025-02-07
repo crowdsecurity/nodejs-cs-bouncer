@@ -21,5 +21,5 @@ export interface CaptchaGenerator {
      * Method to create a captcha
      * @returns A CaptchaObj containing the text and the image
      */
-    create(): CaptchaObj;
+    create(): CaptchaObj | Promise<CaptchaObj>;
 }

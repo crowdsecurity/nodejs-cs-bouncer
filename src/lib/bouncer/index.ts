@@ -5,7 +5,7 @@ import { getConfig } from 'src/helpers/config';
 import { buildCachableDecision, convertRawDecisionsToDecisions } from 'src/helpers/decision';
 import { getFirstIpFromRange, getIpOrRangeType, getIpToRemediate } from 'src/helpers/ip';
 import { CaptchaGenerator } from 'src/lib/bouncer/captcha';
-import { ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
+import { BOUNCING_LEVEL_DISABLED, BOUNCING_LEVEL_FLEX, BOUNCING_LEVEL_NORMAL, ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
 import { CaptchaSubmission, CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
 import { CAPTCHA_FLOW } from 'src/lib/cache/constants';
@@ -18,6 +18,7 @@ import {
     IP_TYPE_V6,
     ORIGIN_CLEAN,
     REFRESH_KEYS,
+    REMEDIATION_BAN,
     REMEDIATION_BYPASS,
     REMEDIATION_CAPTCHA,
     SCOPE_IP,
@@ -47,7 +48,6 @@ class CrowdSecBouncer {
         private configs: CrowdSecBouncerConfigurations,
         captcha?: CaptchaGenerator,
     ) {
-        logger.debug('Bouncer initialized.');
         this.fallbackRemediation = getConfig('fallbackRemediation', configs) ?? REMEDIATION_BYPASS;
         this.cacheStorage = new CacheStorage(configs);
         this.lapiClient = new LapiClient(configs);
@@ -60,6 +60,7 @@ class CrowdSecBouncer {
                 };
             },
         };
+        logger.debug('Bouncer initialized.');
     }
 
     private getIpHighestRemediationWithOrigin = (
@@ -128,6 +129,20 @@ class CrowdSecBouncer {
         return captchaFlowItem.content;
     };
 
+    private capRemediation = (remediation: Remediation): Remediation => {
+        const bouncingLevel = getConfig('bouncingLevel', this.configs) ?? BOUNCING_LEVEL_NORMAL;
+        if (bouncingLevel === BOUNCING_LEVEL_DISABLED) {
+            logger.debug('Bouncing level is disabled');
+            return REMEDIATION_BYPASS;
+        }
+        if (remediation === REMEDIATION_BAN && bouncingLevel === BOUNCING_LEVEL_FLEX) {
+            logger.debug('Bouncing level is flex');
+            return REMEDIATION_CAPTCHA;
+        }
+
+        return remediation;
+    };
+
     /**
      * Get the remediation for an IP address.
      * Depending on cache results and streamMode config, ask the LAPI for the decisions matching the IP address.
@@ -186,10 +201,12 @@ class CrowdSecBouncer {
         if (remediation !== REMEDIATION_BYPASS) {
             logger.debug(`LAPI remediation for IP ${ip} is ${remediation} with origin ${origin}`);
         }
-
+        // Initial remediation can be modified depending on the captcha flow
         if (remediation === REMEDIATION_CAPTCHA && !(await this.mustSolveCaptcha(ip, remediation))) {
             remediation = REMEDIATION_BYPASS;
         }
+        // Initial remediation can be modified depending on the bouncingLevel config
+        remediation = this.capRemediation(remediation);
         logger.info(`Final remediation for IP ${ip} is ${remediation}`);
 
         return {
@@ -292,7 +309,7 @@ class CrowdSecBouncer {
     }: CaptchaSubmission): Promise<{
         [BOUNCER_KEYS.REMEDIATION]: Remediation;
         [BOUNCER_KEYS.CAPTCHA_PHRASE]: string;
-        [BOUNCER_KEYS.CAPTCHA_FAILED]?: boolean;
+        [BOUNCER_KEYS.CAPTCHA_FAILED]: boolean;
     }> => {
         if (refresh === '1') {
             const newCaptcha = await this.refreshCaptchaFlow(ip);
@@ -309,7 +326,7 @@ class CrowdSecBouncer {
         const captchaFlow = cachedCaptchaFlow?.content;
 
         const remediation =
-            (captchaFlow && !captchaFlow.mustBeResolved) || captchaFlow.phraseToGuess === userPhrase
+            (captchaFlow && !captchaFlow.mustBeResolved) || (userPhrase && captchaFlow?.phraseToGuess === userPhrase)
                 ? REMEDIATION_BYPASS
                 : REMEDIATION_CAPTCHA;
 
