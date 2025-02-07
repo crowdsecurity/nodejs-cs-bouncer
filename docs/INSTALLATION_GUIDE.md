@@ -9,14 +9,14 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Requirements](#requirements)
-- [Installation](#installation)
+-   [Requirements](#requirements)
+-   [Installation](#installation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Requirements
 
-- Node.js >= 20
+-   Node.js >= 20
 
 ## Installation
 
