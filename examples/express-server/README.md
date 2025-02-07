@@ -39,22 +39,23 @@ const remediation = remediationData[BOUNCER_KEYS.REMEDIATION];
 
     - block the user with a ban wall for a ban remediation:
 
-      ```js
-      const banWall = await bouncer.renderWall('ban');
-      return res.status(403).send(banWall);
-      ```
+    ```js
+    const banWall = await bouncer.renderWall('ban');
+    return res.status(403).send(banWall);
+    ```
 
     - block the user with captcha wall for a captcha remediation:
 
-      ```js
-      const captchaWall = await bouncer.renderWall('captcha', {
-          captchaImageTag: captcha.data,
-          redirectUrl: CAPTCHA_VERIFICATION_URI,
-      });
-      return res.status(401).send(captchaWall);
-      ```
+    ```js
+    const captchaWall = await bouncer.renderWall('captcha', {
+        captchaImageTag: captcha.inlineImage,
+        submitUrl,
+        ...texts,
+    });
+    return res.status(401).send(captchaWall);
+    ```
 
-      User will be blocked until the captcha is solved.
+  User will be blocked until the captcha is solved.
 
 ## Pre-requisites
 
@@ -66,7 +67,7 @@ const remediation = remediationData[BOUNCER_KEYS.REMEDIATION];
 
 - Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
 
-- Install bouncer dependencies and test dependencies:
+- Install bouncer dependencies and test dependencies (run the following commands from the `express-server` folder):
 
   ```shell
   npm --prefix ../.. install && npm install

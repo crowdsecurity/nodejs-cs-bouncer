@@ -4,7 +4,6 @@ export type LapiClientConfigurations = {
     url: string;
     bouncerApiToken: string;
     userAgent?: string;
-    timeout?: number;
 };
 
 export type GetDecisionsOptions = {

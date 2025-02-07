@@ -50,16 +50,6 @@ const logger = pino({
 const config: CrowdSecBouncerConfiguration = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
     bouncerApiToken: process.env.BOUNCER_KEY,
-    captchaSuccessUrl: process.env.CAPTCHA_SUCCESS_URL ?? '/',
-    wallsOptions: {
-        captcha: {
-            texts: {
-                title: 'Access Denied',
-            },
-            submitUrl: process.env.CAPTCHA_SUBMIT_URL ?? '/',
-            error: 'Please try again.',
-        },
-    },
 };
 // Create an instance of the CrowdSec Bouncer
 const bouncer = new CrowdSecBouncer(config);
@@ -82,10 +72,11 @@ app.use(async (req, res, next) => {
             }
             // In case of a captcha (unsolved), render the captcha wall
             if (remediation === 'captcha') {
-                const wallsOptions = await bouncer.getConfig('wallsOptions');
-                const submitUrl = wallsOptions?.captcha?.submitUrl;
-                const errorMessage = wallsOptions?.captcha?.error;
-                const captchaSuccessUrl = await bouncer.getConfig('captchaSuccessUrl');
+                // URL to submit the captcha
+                const submitUrl = '/';
+                // URL to redirect the user to after solving the captcha
+                // If possible, you would redirect the user to the page they were trying to access
+                const captchaSuccessUrl = '/';
                 // User is trying to submit the captcha
                 if (req.method === 'POST' && req.path === submitUrl) {
                     const { phrase, crowdsec_captcha_refresh: refresh } = req.body;
@@ -115,11 +106,13 @@ app.use(async (req, res, next) => {
                 }
                 // We display the captcha wall
                 const captcha = await bouncer.saveCaptchaFlow(ip);
+                // If not failed, we remove the error message
+                const texts = captcha.resolutionFailed ? {} : { texts: { error: undefined } };
 
                 const captchaWall = await bouncer.renderWall('captcha', {
                     captchaImageTag: captcha.inlineImage,
                     submitUrl,
-                    error: captcha.resolutionFailed ? errorMessage : undefined,
+                    ...texts,
                 });
                 await bouncer.updateRemediationOriginCount(origin, remediation);
                 return res.status(401).send(captchaWall);

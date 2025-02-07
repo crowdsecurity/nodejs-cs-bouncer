@@ -24,7 +24,6 @@ export type BanWallOptions = BaseWallOptions &
 export type CaptchaWallOptions = BaseWallOptions &
     Partial<{
         texts: Partial<(typeof DEFAULT_TEXTS)['captcha']>;
-        error: string;
     }> & {
         captchaImageTag: string;
         submitUrl: string; // Captcha form action

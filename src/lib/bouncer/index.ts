@@ -38,17 +38,16 @@ type CaptchaCreation = {
 };
 
 class CrowdSecBouncer {
+    private readonly configs: CrowdSecBouncerConfigurations;
     private cacheStorage: CacheStorage;
     private lapiClient: LapiClient;
     private captcha: CaptchaGenerator;
 
     public fallbackRemediation: Remediation = REMEDIATION_BYPASS;
 
-    constructor(
-        private configs: CrowdSecBouncerConfigurations,
-        captcha?: CaptchaGenerator,
-    ) {
-        this.fallbackRemediation = getConfig('fallbackRemediation', configs) ?? REMEDIATION_BYPASS;
+    constructor(configs: CrowdSecBouncerConfigurations, captcha?: CaptchaGenerator) {
+        this.configs = configs;
+        this.fallbackRemediation = getConfig('fallbackRemediation', configs) ?? REMEDIATION_CAPTCHA;
         this.cacheStorage = new CacheStorage(configs);
         this.lapiClient = new LapiClient(configs);
         this.captcha = captcha ?? {

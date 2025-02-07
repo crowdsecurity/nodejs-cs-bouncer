@@ -22,10 +22,6 @@ See [User Guide](https://github.com/crowdsecurity/nodejs-cs-bouncer/blob/main/do
 
 See [Installation Guide](https://github.com/crowdsecurity/nodejs-cs-bouncer/blob/main/docs/INSTALLATION_GUIDE.md)
 
-## Developer guide
-
-See [Developer guide](https://github.com/crowdsecurity/nodejs-cs-bouncer/blob/main/docs/DEVELOPER.md)
-
 ## License
 
 [MIT](https://github.com/crowdsecurity/nodejs-cs-bouncer/blob/main/LICENSE)
