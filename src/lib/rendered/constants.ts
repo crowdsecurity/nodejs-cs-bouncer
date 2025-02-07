@@ -28,7 +28,7 @@ export const DEFAULT_TEXTS = {
         refresh_image_link: 'Reload the image',
         captcha_placeholder: 'Type here...',
         send_button: 'Continue',
-        error: 'Please try again.',
+        error: '',
         footer: '',
     },
 };

@@ -106,9 +106,8 @@ app.use(async (req, res, next) => {
                 }
                 // We display the captcha wall
                 const captcha = await bouncer.saveCaptchaFlow(ip);
-                // If not failed, we remove the error message
-                const texts = captcha.resolutionFailed ? {} : { texts: { error: undefined } };
-
+                // If failed, we add an error message
+                const texts = captcha.resolutionFailed ? { texts: { error: 'Please try again' } } : {};
                 const captchaWall = await bouncer.renderWall('captcha', {
                     captchaImageTag: captcha.inlineImage,
                     submitUrl,

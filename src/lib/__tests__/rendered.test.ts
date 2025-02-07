@@ -181,14 +181,16 @@ describe('📄 Generate Template', () => {
         expect(captchaWall).toMatchSnapshot();
     });
 
-    it('should be table to display error message on captcha template', async () => {
+    it('should be able to display error message on captcha template', async () => {
         const error = 'Custom Error Message';
 
         // Call the generateTemplate function
         const wall = await renderCaptchaWall({
-            error: error,
             captchaImageTag: '<img src="captcha.png" />',
             submitUrl: '/redirect',
+            texts: {
+                error: error,
+            },
         });
 
         expect(wall).toBeTruthy();
