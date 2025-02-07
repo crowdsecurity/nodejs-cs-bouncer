@@ -874,7 +874,7 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
 "
 `;
 
-exports[`📄 Generate Template should be table to display error message on captcha template 1`] = `
+exports[`📄 Generate Template should be able to display error message on captcha template 1`] = `
 "<!doctype html>
 <html lang="en">
     <head>
