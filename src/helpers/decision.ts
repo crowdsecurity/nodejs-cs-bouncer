@@ -1,7 +1,7 @@
 import { getConfig } from 'src/helpers/config';
 import { convertDurationToMilliseconds } from 'src/helpers/duration';
 import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
-import { ID_SEPARATOR, REMEDIATION_BYPASS, CACHE_EXPIRATION_FOR_BAD_IP, ORIGIN_LISTS } from 'src/lib/constants';
+import { ID_SEPARATOR, REMEDIATION_BYPASS, CACHE_EXPIRATION_FOR_BAD_IP, ORIGIN_LISTS, ORIGIN_LISTS_SEPARATOR } from 'src/lib/constants';
 import logger from 'src/lib/logger';
 import {
     CachableDecision,
@@ -53,16 +53,19 @@ const buildDecisionExpiresAt = ({
     duration: Duration;
     configs: CrowdSecBouncerConfigurations;
 }): CachableExpiresAt => {
-    let durationInSeconds = convertDurationToMilliseconds(duration);
+    let durationInMilliseconds = convertDurationToMilliseconds(duration);
     if (REMEDIATION_BYPASS !== type && getConfig('streamMode', configs)) {
-        durationInSeconds = Math.min(durationInSeconds, getConfig('badIpCacheDuration', configs) ?? CACHE_EXPIRATION_FOR_BAD_IP);
+        durationInMilliseconds = Math.min(
+            durationInMilliseconds,
+            (getConfig('badIpCacheDuration', configs) ?? CACHE_EXPIRATION_FOR_BAD_IP) * 1000,
+        );
     }
 
-    return Date.now() + durationInSeconds;
+    return Date.now() + durationInMilliseconds;
 };
 
 const buildDecisionOrigin = (origin: Origin, scenario: Scenario): CachableOrigin => {
-    const result = origin === ORIGIN_LISTS ? `${origin}:${scenario}` : origin;
+    const result = origin === ORIGIN_LISTS ? `${origin}${ORIGIN_LISTS_SEPARATOR}${scenario}` : origin;
     return result.toLowerCase();
 };
 

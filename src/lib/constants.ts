@@ -10,6 +10,8 @@ export const REMEDIATION_BYPASS = 'bypass';
 
 export const ORIGIN_LISTS = 'lists';
 
+export const ORIGIN_LISTS_SEPARATOR = ':';
+
 export const ORIGIN_CLEAN = 'clean';
 
 export const ID_SEPARATOR = '-';
