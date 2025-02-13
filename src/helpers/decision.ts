@@ -21,7 +21,7 @@ const validateRawDecision = (rawDecision: Decision): boolean => {
     if (rawDecision.origin === ORIGIN_LISTS && !rawDecision.scenario) {
         return false;
     }
-    return !!rawDecision.scope && !!rawDecision.value && !!rawDecision.duration && !!rawDecision.type && !!rawDecision.origin;
+    return Boolean(rawDecision.scope) && Boolean(rawDecision.value) && Boolean(rawDecision.duration) && Boolean(rawDecision.type) && Boolean(rawDecision.origin);
 };
 
 const buildCachableIdentifier = ({

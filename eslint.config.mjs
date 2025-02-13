@@ -99,6 +99,7 @@ export default [
 
             'prefer-template': 'error',
             'no-nested-ternary': 'error',
+            'no-implicit-coercion': ['error', { boolean: true }],
         },
     },
     {
