@@ -74,7 +74,7 @@ export const isIpV4InRange = (ip: string, range: string): boolean => {
 
 export const getIpV4RangeIntForIp = (ip: string): number => {
     const validated = parseIpOrRange(ip);
-    const type = getType(validated);
+    const type = getIpType(validated);
     if (type !== IP_TYPE_V4) {
         throw new Error(`Only Ip V4 format is supported.`);
     }
@@ -86,7 +86,7 @@ export const getIpV4Range = (range: string): IpV4Range => {
         throw new Error(`Input Range format (${range}).`);
     }
     const validated = parseIpOrRange(range);
-    const type = getType(validated);
+    const type = getIpType(validated);
     if (type !== IP_TYPE_V4) {
         throw new Error(`Only Ip V4 Range format is supported.`);
     }
@@ -99,11 +99,11 @@ export const getIpV4Range = (range: string): IpV4Range => {
     };
 };
 
-const getType = (ip: Address4 | Address6): IpType => {
+const getIpType = (ip: Address4 | Address6): IpType => {
     return ip instanceof Address6 ? IP_TYPE_V6 : IP_TYPE_V4;
 };
 
 export const getIpOrRangeType = (ipOrRange: string): IpType => {
     const validated = parseIpOrRange(ipOrRange);
-    return getType(validated);
+    return getIpType(validated);
 };
