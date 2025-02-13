@@ -1,6 +1,8 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 
 import { convertRawDecisionsToDecisions } from 'src/helpers/decision';
+import * as decisionModule from 'src/helpers/decision';
+import logger from 'src/lib/logger';
 
 const configs = {
     url: 'http://example.com/api',
@@ -112,5 +114,71 @@ describe('convertRawDecisionsToDecisions', () => {
         expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + 120 * 1000, -2); // Allows some flexibility;
 
         expect(decisions).toEqual(expected);
+    });
+    describe('convertRawDecisionsToDecisions - Error Handling', () => {
+        it('should log an error when convertRawDecisionToCachableDecision throws an error', () => {
+            const error = new Error('Test error');
+            const mockFn = jest.spyOn(decisionModule, 'buildCachableDecision').mockImplementation(() => {
+                throw error; // Force an error inside convertRawDecisionToCachableDecision
+            });
+
+            const loggerErrorSpy = jest.spyOn(logger, 'error');
+
+            const rawDecisions = [
+                {
+                    origin: 'cscli',
+                    type: 'ban',
+                    scope: 'ip',
+                    value: '1.2.3.4',
+                    duration: '1h',
+                    scenario: '',
+                },
+            ];
+
+            const decisions = convertRawDecisionsToDecisions(rawDecisions, configs);
+
+            expect(decisions).toEqual([]);
+
+            expect(loggerErrorSpy).toHaveBeenCalledWith(`Error converting raw decision to cachable decision: ${error.message}`);
+
+            // Cleanup: Restore original implementation
+            mockFn.mockRestore();
+            loggerErrorSpy.mockRestore();
+        });
+    });
+    describe('convertRawDecisionsToDecisions - Non-Error Exception Handling', () => {
+        it('should log a generic error message when the thrown error is not an instance of Error', () => {
+            // Arrange: Mock buildCachableDecision to throw a string instead of an Error object
+            const errorString = 'Unexpected failure';
+            const mockFn = jest.spyOn(decisionModule, 'buildCachableDecision').mockImplementation(() => {
+                throw errorString; // Throwing a string instead of an Error object
+            });
+
+            const loggerErrorSpy = jest.spyOn(logger, 'error');
+
+            const rawDecisions = [
+                {
+                    origin: 'cscli',
+                    type: 'ban',
+                    scope: 'ip',
+                    value: '1.2.3.4',
+                    duration: '1h',
+                    scenario: '',
+                },
+            ];
+
+            // Act: Call the function that should catch the error
+            const decisions = convertRawDecisionsToDecisions(rawDecisions, configs);
+
+            // Assert: Ensure decisions is empty due to the caught error
+            expect(decisions).toEqual([]);
+
+            // Assert: Ensure logger.error was called with the generic message
+            expect(loggerErrorSpy).toHaveBeenCalledWith('An unexpected error occurred');
+
+            // Cleanup: Restore original implementation
+            mockFn.mockRestore();
+            loggerErrorSpy.mockRestore();
+        });
     });
 });

@@ -1,6 +1,6 @@
 import { max } from 'lodash';
 
-import { getIpV4Range, IpV4Range, getIpOrRangeType, getIpV4RangeIntForIp, isIpV4InRange } from 'src/helpers/ip';
+import { getIpV4BucketRange, IpV4Range, getIpOrRangeType, getIpV4BucketIndexForIp, isIpV4InRange } from 'src/helpers/ip';
 import { CONFIG, WARMUP, IPV4_BUCKET_KEY, ORIGINS_COUNT_KEY } from 'src/lib/cache/constants';
 import { updateDecisionItem } from 'src/lib/cache/decisions';
 import { getCacheKey } from 'src/lib/cache/helpers';
@@ -41,7 +41,7 @@ class CacheStorage {
             }
             case SCOPE_RANGE: {
                 const cachedContents = [];
-                const bucketInt = getIpV4RangeIntForIp(ip);
+                const bucketInt = getIpV4BucketIndexForIp(ip);
                 const bucketCacheKey = getCacheKey(IPV4_BUCKET_KEY, bucketInt.toString());
                 const bucketItem = (await this.adapter.getItem(bucketCacheKey)) as CachableDecisionItem;
                 const bucketContents = bucketItem && bucketItem.content && bucketItem.content.length > 0 ? bucketItem.content : [];
@@ -190,7 +190,7 @@ class CacheStorage {
     private manageRange(decision: CachableDecision): IpV4Range | null {
         const rangeString = decision.value;
         try {
-            return getIpV4Range(rangeString);
+            return getIpV4BucketRange(rangeString);
         } catch (error) {
             if (error instanceof Error) {
                 logger.error(`Error getting range: ${error.message}`);

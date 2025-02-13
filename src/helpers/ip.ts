@@ -45,13 +45,17 @@ export const getFirstIpFromRange = (range: string): string => {
 };
 
 /**
- * Convert an IP address to an integer.
- * @param ip
+ * Converts an IPv4 address to its corresponding bucket index for efficient storage.
+ * Instead of storing individual IP addresses, this method groups IPs into buckets
+ * based on `IPV4_BUCKET_SIZE`, allowing a single decision to cover multiple addresses.
+ *
+ * @param ip - The IPv4 address to convert.
+ * @returns The bucket index representing the IP.
  */
-const getIpV4RangeIntForIpAddress = (ip: Address4): number => {
-    // Convert the parsed address (array of octets) to an integer
-    const ipInt = ip.parsedAddress.reduce((acc, part) => (acc << 8) + parseInt(part, 10), 0);
-    return Math.floor(ipInt / IPV4_BUCKET_SIZE);
+const getIpV4BucketIndex = (ip: Address4): number => {
+    // Convert the parsed address (array of octets) to an unsigned integer
+    const ipInt = ip.parsedAddress.reduce((acc, part) => (acc << 8) + parseInt(part, 10), 0) >>> 0;
+    return Math.trunc(ipInt / IPV4_BUCKET_SIZE);
 };
 
 export const isIpV4InRange = (ip: string, range: string): boolean => {
@@ -72,16 +76,24 @@ export const isIpV4InRange = (ip: string, range: string): boolean => {
     }
 };
 
-export const getIpV4RangeIntForIp = (ip: string): number => {
+/**
+ * Validates an IPv4 address and converts it to its corresponding bucket index.
+ * @param ip
+ */
+export const getIpV4BucketIndexForIp = (ip: string): number => {
     const validated = parseIpOrRange(ip);
     const type = getIpType(validated);
     if (type !== IP_TYPE_V4) {
         throw new Error(`Only Ip V4 format is supported.`);
     }
-    return getIpV4RangeIntForIpAddress(validated as Address4);
+    return getIpV4BucketIndex(validated as Address4);
 };
 
-export const getIpV4Range = (range: string): IpV4Range => {
+/**
+ * Converts an IPv4 range into its corresponding bucket indices.
+ * @param range
+ */
+export const getIpV4BucketRange = (range: string): IpV4Range => {
     if (!isRange(range)) {
         throw new Error(`Input Range format (${range}).`);
     }
@@ -94,8 +106,8 @@ export const getIpV4Range = (range: string): IpV4Range => {
     const endAddress = validated.endAddress();
 
     return {
-        start: getIpV4RangeIntForIpAddress(startAddress as Address4),
-        end: getIpV4RangeIntForIpAddress(endAddress as Address4),
+        start: getIpV4BucketIndex(startAddress as Address4),
+        end: getIpV4BucketIndex(endAddress as Address4),
     };
 };
 
