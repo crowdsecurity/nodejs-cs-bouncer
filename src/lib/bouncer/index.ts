@@ -34,7 +34,17 @@ import { CachableDecision, CachableOrigin, Remediation } from 'src/lib/types';
 type CaptchaCreation = {
     cacheKey: string;
     ttl: number;
-    submitUrl: CaptchaFlow['submitUrl'];
+};
+
+type RemediationResult = {
+    status: number;
+    html: string;
+};
+
+type getResponseParams = {
+    ip: string;
+    remediation: Remediation;
+    origin: CachableOrigin;
 };
 
 class CrowdSecBouncer {
@@ -115,7 +125,6 @@ class CrowdSecBouncer {
             ...captcha,
             mustBeResolved: true,
             resolutionFailed: false,
-            submitUrl: params.submitUrl,
         };
 
         const itemToCache = {
@@ -214,7 +223,7 @@ class CrowdSecBouncer {
         };
     };
 
-    public updateRemediationOriginCount = async (origin: CachableOrigin, remediation: Remediation): Promise<CachableOriginsCount> => {
+    private updateRemediationOriginCount = async (origin: CachableOrigin, remediation: Remediation): Promise<CachableOriginsCount> => {
         return this.cacheStorage.upsertMetricsOriginsCount({ origin, remediation });
     };
 
@@ -222,7 +231,7 @@ class CrowdSecBouncer {
         return getConfig(key, this.configs);
     };
 
-    public saveCaptchaFlow = async (ip: string, content?: Partial<CaptchaFlow>): Promise<CaptchaFlow> => {
+    private saveCaptchaFlow = async (ip: string, content?: Partial<CaptchaFlow>): Promise<CaptchaFlow> => {
         const cacheKey = getCacheKey(CAPTCHA_FLOW, ip);
 
         const duration = (getConfig('captchaFlowCacheDuration', this.configs) ?? CACHE_EXPIRATION_FOR_CAPTCHA_FLOW) * 1000;
@@ -231,11 +240,10 @@ class CrowdSecBouncer {
         const existingItem = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow;
 
         const existingContent: CaptchaFlow =
-            existingItem.content ||
+            existingItem?.content ||
             (await this.createCaptcha({
                 cacheKey,
                 ttl: duration,
-                submitUrl: content?.submitUrl || '/',
             }));
 
         const updatedContent: CaptchaFlow = content
@@ -303,19 +311,19 @@ class CrowdSecBouncer {
 
     public handleCaptchaSubmission = async ({
         ip,
+        origin,
         userPhrase,
         refresh,
     }: CaptchaSubmission): Promise<{
         [BOUNCER_KEYS.REMEDIATION]: Remediation;
         [BOUNCER_KEYS.CAPTCHA_PHRASE]: string;
-        [BOUNCER_KEYS.CAPTCHA_FAILED]: boolean;
     }> => {
         if (refresh === '1') {
             const newCaptcha = await this.refreshCaptchaFlow(ip);
+            await this.updateRemediationOriginCount(origin, REMEDIATION_CAPTCHA);
             return {
                 [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_CAPTCHA,
                 [BOUNCER_KEYS.CAPTCHA_PHRASE]: newCaptcha.phraseToGuess,
-                [BOUNCER_KEYS.CAPTCHA_FAILED]: false,
             };
         }
 
@@ -332,11 +340,17 @@ class CrowdSecBouncer {
         if (remediation === REMEDIATION_BYPASS) {
             logger.debug(`Captcha has been resolved by IP ${ip}`);
         }
+        const mustBeResolved = remediation === REMEDIATION_CAPTCHA;
+        await this.saveCaptchaFlow(ip, {
+            mustBeResolved,
+            resolutionFailed: mustBeResolved,
+        });
+
+        await this.updateRemediationOriginCount(origin, remediation);
 
         return {
             [BOUNCER_KEYS.REMEDIATION]: remediation,
             [BOUNCER_KEYS.CAPTCHA_PHRASE]: captchaFlow?.phraseToGuess,
-            [BOUNCER_KEYS.CAPTCHA_FAILED]: remediation === REMEDIATION_CAPTCHA,
         };
     };
 
@@ -360,7 +374,7 @@ class CrowdSecBouncer {
         return true;
     };
 
-    public renderWall = async <T extends 'ban' | 'captcha'>(
+    private renderWall = async <T extends 'ban' | 'captcha'>(
         type: T,
         options?: T extends 'ban' ? BanWallOptions : CaptchaWallOptions,
     ): Promise<string> => {
@@ -368,6 +382,42 @@ class CrowdSecBouncer {
         const finalOptions = { ...bouncerOptions[type], ...(options ?? {}) };
 
         return type === 'captcha' ? renderCaptchaWall(finalOptions as CaptchaWallOptions) : renderBanWall(finalOptions as BanWallOptions);
+    };
+
+    public getResponse = async (params: getResponseParams): Promise<RemediationResult> => {
+        const { ip, remediation, origin } = params;
+        switch (remediation) {
+            case REMEDIATION_BAN: {
+                const banWall = await this.renderWall('ban');
+                await this.updateRemediationOriginCount(origin, remediation);
+                return {
+                    status: 403,
+                    html: banWall,
+                };
+            }
+            case REMEDIATION_CAPTCHA: {
+                // We display the captcha wall
+                const captcha = await this.saveCaptchaFlow(ip);
+                // If failed, we add an error message
+                const texts = captcha.resolutionFailed ? { texts: { error: 'Please try again' } } : {};
+                const captchaWall = await this.renderWall('captcha', {
+                    captchaImageTag: captcha.inlineImage,
+                    ...texts,
+                });
+                await this.updateRemediationOriginCount(origin, remediation);
+                return {
+                    status: 401,
+                    html: captchaWall,
+                };
+            }
+            default: {
+                await this.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
+                return {
+                    status: 200,
+                    html: '',
+                };
+            }
+        }
     };
 }
 

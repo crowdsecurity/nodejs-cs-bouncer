@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { afterAll, afterEach, describe, expect, it, jest } from '@jest/globals';
 
 import { convertRawDecisionsToDecisions } from 'src/helpers/decision';
 import * as decisionModule from 'src/helpers/decision';
@@ -8,6 +8,14 @@ const configs = {
     url: 'http://example.com/api',
     bouncerApiToken: 'test-api-key',
 };
+
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
+afterAll(() => {
+    jest.restoreAllMocks();
+});
 
 describe('convertRawDecisionsToDecisions', () => {
     it('should convert raw decisions to cachable decisions', () => {

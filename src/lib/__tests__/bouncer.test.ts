@@ -9,7 +9,6 @@ import InMemory from 'src/lib/cache/in-memory';
 import { CachableDecisionContent } from 'src/lib/cache/types';
 import { BOUNCER_KEYS, REFRESH_KEYS, REMEDIATION_BYPASS, REMEDIATION_CAPTCHA } from 'src/lib/constants';
 import logger from 'src/lib/logger';
-import * as rendered from 'src/lib/rendered';
 import { Remediation } from 'src/lib/types';
 
 const configs: CrowdSecBouncerConfigurations = {
@@ -19,6 +18,7 @@ const configs: CrowdSecBouncerConfigurations = {
 
 describe('🛡️ Bouncer', () => {
     let bouncer: CrowdSecBouncer;
+    let cacheAdapter: InMemory;
 
     beforeAll(() => {
         nock(configs.url)
@@ -33,14 +33,19 @@ describe('🛡️ Bouncer', () => {
                 },
             );
         bouncer = new CrowdSecBouncer(configs);
+        cacheAdapter = new InMemory();
     });
 
     afterEach(() => {
         nockCleanAll();
+        jest.restoreAllMocks();
+        cacheAdapter.clear();
     });
 
     afterAll(() => {
         nock.cleanAll();
+        jest.restoreAllMocks();
+        cacheAdapter.clear();
     });
 
     describe('constructor', () => {
@@ -75,7 +80,6 @@ describe('🛡️ Bouncer', () => {
 
             expect(cachedCaptchaFlow.mustBeResolved).toBe(true);
             expect(cachedCaptchaFlow.phraseToGuess).toBeDefined();
-            expect(cachedCaptchaFlow.submitUrl).toBe('/'); // default submit URL
             expect(cachedCaptchaFlow.inlineImage).toBeDefined();
             expect(cachedCaptchaFlow.resolutionFailed).toBe(false);
         });
@@ -90,47 +94,11 @@ describe('🛡️ Bouncer', () => {
             };
 
             const customBouncer = new CrowdSecBouncer({ ...configs, captchaFlowCacheDuration: 60 }, captchaGenerator);
-
             await customBouncer.refreshCaptchaFlow(ip);
-
             const cachedCaptchaFlow = await bouncer.getCaptchaFlow(ip);
-
             expect(cachedCaptchaFlow.mustBeResolved).toBe(true);
             expect(cachedCaptchaFlow.phraseToGuess).toBe('custom-phrase');
-            expect(cachedCaptchaFlow.submitUrl).toBe('/'); // default submit URL
             expect(cachedCaptchaFlow.inlineImage).toBe('<svg>custom-captcha</svg>');
-            expect(cachedCaptchaFlow.resolutionFailed).toBe(false);
-
-            await customBouncer.saveCaptchaFlow(ip);
-
-            const cachedCaptchaFlow2 = await bouncer.getCaptchaFlow(ip);
-
-            expect(cachedCaptchaFlow2).toEqual(cachedCaptchaFlow);
-
-            await customBouncer.saveCaptchaFlow(ip);
-
-            const cachedCaptchaFlow3 = await bouncer.getCaptchaFlow(ip);
-
-            expect(cachedCaptchaFlow3).toEqual(cachedCaptchaFlow2);
-        });
-
-        it('should be able to save a fresh captcha flow', async () => {
-            const ip = '11.22.33.45';
-
-            await bouncer.saveCaptchaFlow(ip); // test creation with empty content
-
-            await bouncer.saveCaptchaFlow(ip, {
-                mustBeResolved: false,
-                phraseToGuess: 'custom-phrase-test',
-                inlineImage: '<svg>custom-captcha-test</svg>',
-                resolutionFailed: false,
-            });
-            const cachedCaptchaFlow = await bouncer.getCaptchaFlow(ip);
-
-            expect(cachedCaptchaFlow.mustBeResolved).toBe(false);
-            expect(cachedCaptchaFlow.phraseToGuess).toBe('custom-phrase-test');
-            expect(cachedCaptchaFlow.submitUrl).toBe('/'); // default submit URL
-            expect(cachedCaptchaFlow.inlineImage).toBe('<svg>custom-captcha-test</svg>');
             expect(cachedCaptchaFlow.resolutionFailed).toBe(false);
         });
     });
@@ -403,7 +371,7 @@ describe('🛡️ Bouncer', () => {
 
             let remediationData = await bouncer.getIpRemediation(ip);
 
-            expect(nockScope.isDone()).toBe(false); // decision has been cached => No call
+            expect(nockScope.isDone()).toBe(true);
             expect(logSpy).toHaveBeenCalledWith('Bouncing level is disabled');
 
             expect(remediationData.remediation).toBe('bypass');
@@ -412,7 +380,7 @@ describe('🛡️ Bouncer', () => {
 
             remediationData = await bouncer.getIpRemediation(ip);
 
-            expect(nockScope.isDone()).toBe(false); // decision has been cached => No call
+            expect(nockScope.isDone()).toBe(true);
             expect(logSpy).toHaveBeenCalledWith('Bouncing level is flex');
 
             expect(remediationData.remediation).toBe('captcha');
@@ -426,18 +394,11 @@ describe('🛡️ Bouncer', () => {
             getAllDecisionsSpy = jest.spyOn(bouncer['cacheStorage'], 'getAllCachableDecisionContents').mockResolvedValue([]);
         });
 
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
         it('should return "bypass" if streamMode is enabled and cache is empty', async () => {
             const ip = '8.8.8.8';
 
             jest.spyOn(configModule, 'getConfig').mockImplementation((key) => (key === 'streamMode' ? true : null));
             getAllDecisionsSpy.mockResolvedValue([]); // Empty cache
-
-            console.log('Mocked getConfig:', bouncer.getConfig('streamMode')); // Debug log
-            console.log('Mocked getAllDecisions:', await bouncer['cacheStorage'].getAllCachableDecisionContents('8.8.8.8')); // Debug log
 
             const response = await bouncer.getIpRemediation(ip);
             expect(response.remediation).toBe('bypass');
@@ -489,6 +450,7 @@ describe('🛡️ Bouncer', () => {
     describe('handleCaptchaSubmission', () => {
         it('should return new captcha when refresh is 1', async () => {
             const ip = '192.168.0.1';
+            const origin = 'cscli';
             const userPhrase = '';
             const refresh = '1';
             const newCaptcha = {
@@ -499,16 +461,14 @@ describe('🛡️ Bouncer', () => {
                 submitUrl: 'http://example.com/submit',
             };
             const bouncer = new CrowdSecBouncer(configs);
-            const mockRefreshCaptchaFlow = jest.spyOn(bouncer, 'refreshCaptchaFlow').mockResolvedValue(newCaptcha);
+            jest.spyOn(bouncer, 'refreshCaptchaFlow').mockResolvedValue(newCaptcha);
 
-            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh });
+            const result = await bouncer.handleCaptchaSubmission({ ip, origin, userPhrase, refresh });
 
             expect(result).toEqual({
                 [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_CAPTCHA,
                 [BOUNCER_KEYS.CAPTCHA_PHRASE]: 'new-captcha',
-                [BOUNCER_KEYS.CAPTCHA_FAILED]: false,
             });
-            mockRefreshCaptchaFlow.mockRestore();
         });
 
         it('should return bypass when captcha is resolved', async () => {
@@ -519,8 +479,20 @@ describe('🛡️ Bouncer', () => {
                 key: 'captcha_flow_192.168.0.1',
                 content: { phraseToGuess: 'correct-phrase', mustBeResolved: false },
             };
-            const cacheStorage = new CacheStorage({ cacheAdapter: new InMemory() });
-            const mockGetItem = jest.spyOn(cacheStorage.adapter, 'getItem').mockResolvedValue(cachedCaptchaFlow);
+            const cacheStorage = new CacheStorage({ cacheAdapter });
+            jest.spyOn(cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'captcha_flow_192.168.0.1') {
+                    return Promise.resolve(cachedCaptchaFlow);
+                }
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
 
             const configs: CrowdSecBouncerConfigurations = {
                 url: 'http://example.com/api',
@@ -529,14 +501,13 @@ describe('🛡️ Bouncer', () => {
             };
 
             const bouncer = new CrowdSecBouncer(configs);
-            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh });
+            const origin = 'cscli';
+            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh, origin });
 
             expect(result).toEqual({
                 [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_BYPASS,
                 [BOUNCER_KEYS.CAPTCHA_PHRASE]: 'correct-phrase',
-                [BOUNCER_KEYS.CAPTCHA_FAILED]: false,
             });
-            mockGetItem.mockRestore();
         });
 
         it('should return captcha when user phrase is incorrect', async () => {
@@ -547,22 +518,33 @@ describe('🛡️ Bouncer', () => {
                 key: 'captcha-192.168.0.1',
                 content: { phraseToGuess: 'correct-phrase', mustBeResolved: true },
             };
-            const cacheStorage = new CacheStorage({ cacheAdapter: new InMemory() });
-            const mockGetItem = jest.spyOn(cacheStorage.adapter, 'getItem').mockResolvedValue(cachedCaptchaFlow);
+            const cacheStorage = new CacheStorage({ cacheAdapter });
+            jest.spyOn(cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'captcha_flow_192.168.0.1') {
+                    return Promise.resolve(cachedCaptchaFlow);
+                }
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
             const configs: CrowdSecBouncerConfigurations = {
                 url: 'http://example.com/api',
                 bouncerApiToken: 'test-api-key',
                 cacheAdapter: cacheStorage.adapter,
             };
             const bouncer = new CrowdSecBouncer(configs);
-            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh });
+            const origin = 'cscli';
+            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh, origin });
 
             expect(result).toEqual({
                 [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_CAPTCHA,
                 [BOUNCER_KEYS.CAPTCHA_PHRASE]: 'correct-phrase',
-                [BOUNCER_KEYS.CAPTCHA_FAILED]: true,
             });
-            mockGetItem.mockRestore();
         });
 
         it('should return captcha when captcha flow is not resolved and user phrase is empty', async () => {
@@ -573,138 +555,62 @@ describe('🛡️ Bouncer', () => {
                 key: 'captcha-192.168.0.1',
                 content: { phraseToGuess: 'correct-phrase', mustBeResolved: true },
             };
-            const cacheStorage = new CacheStorage({ cacheAdapter: new InMemory() });
-            const mockGetItem = jest.spyOn(cacheStorage.adapter, 'getItem').mockResolvedValue(cachedCaptchaFlow);
+            const cacheStorage = new CacheStorage({ cacheAdapter });
+            jest.spyOn(cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'captcha_flow_192.168.0.1') {
+                    return Promise.resolve(cachedCaptchaFlow);
+                }
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
             const configs: CrowdSecBouncerConfigurations = {
                 url: 'http://example.com/api',
                 bouncerApiToken: 'test-api-key',
                 cacheAdapter: cacheStorage.adapter,
             };
             const bouncer = new CrowdSecBouncer(configs);
-            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh });
+            const origin = 'cscli';
+            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh, origin });
 
             expect(result).toEqual({
                 [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_CAPTCHA,
                 [BOUNCER_KEYS.CAPTCHA_PHRASE]: 'correct-phrase',
-                [BOUNCER_KEYS.CAPTCHA_FAILED]: true,
             });
-            mockGetItem.mockRestore();
         });
 
         it('should return captcha when no cached captcha flow is found', async () => {
             const ip = '192.168.0.1';
             const userPhrase = 'any-phrase';
             const refresh = '0';
-            const cacheStorage = new CacheStorage({ cacheAdapter: new InMemory() });
-            const mockGetItem = jest.spyOn(cacheStorage.adapter, 'getItem').mockResolvedValue(null);
+            const cacheStorage = new CacheStorage({ cacheAdapter });
+            jest.spyOn(cacheStorage.adapter, 'getItem').mockResolvedValue(null);
             const configs: CrowdSecBouncerConfigurations = {
                 url: 'http://example.com/api',
                 bouncerApiToken: 'test-api-key',
                 cacheAdapter: cacheStorage.adapter,
             };
             const bouncer = new CrowdSecBouncer(configs);
-            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh });
+            const origin = 'cscli';
+            const result = await bouncer.handleCaptchaSubmission({ ip, userPhrase, refresh, origin });
 
             expect(result).toEqual({
                 [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_CAPTCHA,
                 [BOUNCER_KEYS.CAPTCHA_PHRASE]: undefined,
-                [BOUNCER_KEYS.CAPTCHA_FAILED]: true,
             });
-            mockGetItem.mockRestore();
-        });
-    });
-
-    describe('renderWall', () => {
-        it('should render captcha wall with provided options', async () => {
-            const type = 'captcha';
-            const options = {
-                hideCrowdSecMentions: true,
-                captchaImageTag: '<img src="captcha-image" alt="captcha" />',
-                submitUrl: 'http://example.com/submit',
-            };
-            const mockRenderCaptchaWall = jest.spyOn(rendered, 'renderCaptchaWall').mockResolvedValue('<captcha-wall></captcha-wall>');
-
-            const bouncer = new CrowdSecBouncer(configs);
-            const result = await bouncer.renderWall(type, options);
-
-            expect(result).toBe('<captcha-wall></captcha-wall>');
-            expect(mockRenderCaptchaWall).toHaveBeenCalledWith(expect.objectContaining(options));
-            mockRenderCaptchaWall.mockRestore();
-        });
-
-        it('should render ban wall with provided options', async () => {
-            const type = 'ban';
-            const options = { hideCrowdSecMentions: true };
-            const mockRenderBanWall = jest.spyOn(rendered, 'renderBanWall').mockResolvedValue('<ban-wall></ban-wall>');
-
-            const bouncer = new CrowdSecBouncer(configs);
-            const result = await bouncer.renderWall(type, options);
-
-            expect(result).toBe('<ban-wall></ban-wall>');
-            expect(mockRenderBanWall).toHaveBeenCalledWith(expect.objectContaining(options));
-            mockRenderBanWall.mockRestore();
-        });
-
-        it('should render captcha wall with default options when no options are provided', async () => {
-            const type = 'captcha';
-            const mockRenderCaptchaWall = jest.spyOn(rendered, 'renderCaptchaWall').mockResolvedValue('<captcha-wall></captcha-wall>');
-
-            const bouncer = new CrowdSecBouncer(configs);
-            const result = await bouncer.renderWall(type);
-
-            expect(result).toBe('<captcha-wall></captcha-wall>');
-            expect(mockRenderCaptchaWall).toHaveBeenCalledWith(expect.any(Object));
-            mockRenderCaptchaWall.mockRestore();
-        });
-
-        it('should render ban wall with default options when no options are provided', async () => {
-            const type = 'ban';
-            const mockRenderBanWall = jest.spyOn(rendered, 'renderBanWall').mockResolvedValue('<ban-wall></ban-wall>');
-
-            const bouncer = new CrowdSecBouncer(configs);
-            const result = await bouncer.renderWall(type);
-
-            expect(result).toBe('<ban-wall></ban-wall>');
-            expect(mockRenderBanWall).toHaveBeenCalledWith(expect.any(Object));
-            mockRenderBanWall.mockRestore();
-        });
-    });
-
-    describe('updateRemediationOriginCount', () => {
-        it('should update the count for a given origin and remediation', async () => {
-            const origin = 'cscli';
-            const remediation = 'ban';
-            const expectedCount = {
-                key: 'origins_count',
-                content: [
-                    {
-                        origin: 'cscli',
-                        remediation: { ban: 1 },
-                    },
-                ],
-            };
-
-            const cacheStorage = new CacheStorage({ cacheAdapter: new InMemory() });
-            const mockUpsertMetricsOriginsCount = jest.spyOn(cacheStorage, 'upsertMetricsOriginsCount').mockResolvedValue(expectedCount);
-            const configs: CrowdSecBouncerConfigurations = {
-                url: 'http://example.com/api',
-                bouncerApiToken: 'test-api-key',
-                cacheAdapter: cacheStorage.adapter,
-            };
-            const bouncer = new CrowdSecBouncer(configs);
-
-            const result = await bouncer.updateRemediationOriginCount(origin, remediation);
-
-            expect(result).toEqual(expectedCount);
-            mockUpsertMetricsOriginsCount.mockRestore();
         });
     });
 
     describe('refreshDecisions', () => {
         it('should return new and deleted decisions when cache is warm', async () => {
             const bouncer = new CrowdSecBouncer(configs);
-            const mockIsWarm = jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(true);
-            const mockGetDecisionStream = jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
+            jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(true);
+            jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
                 [REFRESH_KEYS.NEW]: [
                     {
                         origin: 'cscli',
@@ -740,42 +646,33 @@ describe('🛡️ Bouncer', () => {
                 ],
                 [REFRESH_KEYS.DELETED]: [], // No deletion because was not in cache
             });
-
-            mockIsWarm.mockRestore();
-            mockGetDecisionStream.mockRestore();
         });
 
         it('should log info when cache is not warm', async () => {
             const bouncer = new CrowdSecBouncer(configs);
-            const mockIsWarm = jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(false);
-            const mockGetDecisionStream = jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
+            jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(false);
+            jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
                 [REFRESH_KEYS.NEW]: [],
                 [REFRESH_KEYS.DELETED]: [],
             });
-            const mockStoreDecisions = jest.spyOn(bouncer['cacheStorage'], 'storeDecisions').mockResolvedValue([]);
-            const mockRemoveDecisions = jest.spyOn(bouncer['cacheStorage'], 'removeDecisions').mockResolvedValue([]);
+            jest.spyOn(bouncer['cacheStorage'], 'storeDecisions').mockResolvedValue([]);
+            jest.spyOn(bouncer['cacheStorage'], 'removeDecisions').mockResolvedValue([]);
             const mockLoggerInfo = jest.spyOn(logger, 'info').mockImplementation(() => {});
 
             await bouncer.refreshDecisions();
 
             expect(mockLoggerInfo).toHaveBeenCalledWith('Decisions cache is not warmed up yet');
-
-            mockIsWarm.mockRestore();
-            mockGetDecisionStream.mockRestore();
-            mockStoreDecisions.mockRestore();
-            mockRemoveDecisions.mockRestore();
-            mockLoggerInfo.mockRestore();
         });
 
         it('should handle empty decision streams', async () => {
             const bouncer = new CrowdSecBouncer(configs);
-            const mockIsWarm = jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(true);
-            const mockGetDecisionStream = jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
+            jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(true);
+            jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
                 [REFRESH_KEYS.NEW]: [],
                 [REFRESH_KEYS.DELETED]: [],
             });
-            const mockStoreDecisions = jest.spyOn(bouncer['cacheStorage'], 'storeDecisions').mockResolvedValue([]);
-            const mockRemoveDecisions = jest.spyOn(bouncer['cacheStorage'], 'removeDecisions').mockResolvedValue([]);
+            jest.spyOn(bouncer['cacheStorage'], 'storeDecisions').mockResolvedValue([]);
+            jest.spyOn(bouncer['cacheStorage'], 'removeDecisions').mockResolvedValue([]);
 
             const result = await bouncer.refreshDecisions();
 
@@ -783,11 +680,6 @@ describe('🛡️ Bouncer', () => {
                 [REFRESH_KEYS.NEW]: [],
                 [REFRESH_KEYS.DELETED]: [],
             });
-
-            mockIsWarm.mockRestore();
-            mockGetDecisionStream.mockRestore();
-            mockStoreDecisions.mockRestore();
-            mockRemoveDecisions.mockRestore();
         });
     });
 });

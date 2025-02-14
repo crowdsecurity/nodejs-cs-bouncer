@@ -54,69 +54,46 @@ const config: CrowdSecBouncerConfiguration = {
 // Create an instance of the CrowdSec Bouncer
 const bouncer = new CrowdSecBouncer(config);
 
-// Middleware to retrieve IP and apply remediation
+// CrowdSec Middleware to apply remediation
 app.use(async (req, res, next) => {
-    const ip = process.env.BOUNCED_IP; // In a production scenario, the user's real IP should be found.
+    if (req.path === '/favicon.ico') {
+        return next();
+    }
+
+    const ip = process.env.BOUNCED_IP; // In a production scenario, the user's real IP should be retrieved.
 
     if (typeof ip === 'string') {
         try {
             // Retrieve known remediation for the user's IP
             const remediationData = await bouncer.getIpRemediation(ip);
-            const remediation = remediationData[BOUNCER_KEYS.REMEDIATION];
-            const origin = remediationData[BOUNCER_KEYS.ORIGIN]; // We only need origin for metrics purpose
-            // In case of a ban, render the ban wall
-            if (remediation === 'ban') {
-                const banWall = await bouncer.renderWall('ban');
-                await bouncer.updateRemediationOriginCount(origin, remediation);
-                return res.status(403).send(banWall);
-            }
+            const { origin, remediation } = remediationData;
             // In case of a captcha (unsolved), render the captcha wall
             if (remediation === 'captcha') {
-                // URL to submit the captcha
-                const submitUrl = '/';
                 // URL to redirect the user to after solving the captcha
                 // If possible, you would redirect the user to the page they were trying to access
                 const captchaSuccessUrl = '/';
                 // User is trying to submit the captcha
-                if (req.method === 'POST' && req.path === submitUrl) {
+                if (req.method === 'POST' && req?.body?.crowdsec_captcha_submit) {
                     const { phrase, crowdsec_captcha_refresh: refresh } = req.body;
                     // User can refresh captcha image or submit a phrase to solve the captcha
-                    const captchaSubmission = await bouncer.handleCaptchaSubmission({
+                    await bouncer.handleCaptchaSubmission({
                         ip,
+                        origin,
                         userPhrase: phrase ?? '',
                         refresh: refresh ?? '0',
                     });
-                    if (captchaSubmission[BOUNCER_KEYS.REMEDIATION] === REMEDIATION_BYPASS) {
-                        // User has solved captcha
-                        await bouncer.saveCaptchaFlow(ip, {
-                            mustBeResolved: false,
-                            resolutionFailed: false,
-                        });
-                        await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
-                        return res.redirect(captchaSuccessUrl);
-                    } else {
-                        // User has failed to solve captcha
-                        await bouncer.saveCaptchaFlow(ip, {
-                            mustBeResolved: true,
-                            resolutionFailed: captchaSubmission[BOUNCER_KEYS.CAPTCHA_FAILED] === true,
-                        });
-                        await bouncer.updateRemediationOriginCount(origin, remediation);
-                        return res.redirect(submitUrl);
-                    }
+                    return res.redirect(captchaSuccessUrl);
                 }
-                // We display the captcha wall
-                const captcha = await bouncer.saveCaptchaFlow(ip);
-                // If failed, we add an error message
-                const texts = captcha.resolutionFailed ? { texts: { error: 'Please try again' } } : {};
-                const captchaWall = await bouncer.renderWall('captcha', {
-                    captchaImageTag: captcha.inlineImage,
-                    submitUrl,
-                    ...texts,
-                });
-                await bouncer.updateRemediationOriginCount(origin, remediation);
-                return res.status(401).send(captchaWall);
             }
-            await bouncer.updateRemediationOriginCount(ORIGIN_CLEAN, REMEDIATION_BYPASS);
+            const bouncerResponse = await bouncer.getResponse({
+                ip,
+                origin,
+                remediation,
+            });
+            // Display Ban or Captcha wall
+            if (bouncerResponse.status !== 200) {
+                return res.status(bouncerResponse.status).send(bouncerResponse.html);
+            }
         } catch (error: unknown) {
             if (error instanceof Error) {
                 logger.error(`Error while getting remediation for IP ${ip}: ${error.message}`);

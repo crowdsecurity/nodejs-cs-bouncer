@@ -16,8 +16,9 @@
 
 
 <% if (texts.error) { %><p class="error"><%- texts.error %></p><% } %>
-<form method="POST" id="captcha" action="<%- submitUrl %>">
+<form method="POST" id="captcha">
     <input type="text" name="phrase" placeholder="<%- texts.captcha_placeholder %>" autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
+    <input type="hidden" name="crowdsec_captcha_submit" value="1" />
     <button type="submit"><%- texts.send_button %></button>
 </form>

@@ -308,9 +308,10 @@ exports[`📄 Generate Template should be able to customize captcha template 1`]
 
 
 
-<form method="POST" id="captcha" action="/redirect">
+<form method="POST" id="captcha">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
+    <input type="hidden" name="crowdsec_captcha_submit" value="1" />
     <button type="submit">Continue</button>
 </form>
  
@@ -540,9 +541,10 @@ exports[`📄 Generate Template should be able to display error message on captc
 
 
 <p class="error">Custom Error Message</p>
-<form method="POST" id="captcha" action="/redirect">
+<form method="POST" id="captcha">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
+    <input type="hidden" name="crowdsec_captcha_submit" value="1" />
     <button type="submit">Continue</button>
 </form>
  
@@ -861,9 +863,10 @@ exports[`📄 Generate Template should be able to hide CrowdSec mention "Powered
 
 
 
-<form method="POST" id="captcha" action="/redirect">
+<form method="POST" id="captcha">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
+    <input type="hidden" name="crowdsec_captcha_submit" value="1" />
     <button type="submit">Continue</button>
 </form>
  
@@ -1008,9 +1011,10 @@ exports[`📄 Generate Template should be able to display error message on captc
 
 
 <p class="error">Custom Error Message</p>
-<form method="POST" id="captcha" action="/redirect">
+<form method="POST" id="captcha">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
+    <input type="hidden" name="crowdsec_captcha_submit" value="1" />
     <button type="submit">Continue</button>
 </form>
  
@@ -1414,9 +1418,10 @@ exports[`📄 Generate Template should display by default CrowdSec mention "Powe
 
 
 
-<form method="POST" id="captcha" action="/">
+<form method="POST" id="captcha">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
+    <input type="hidden" name="crowdsec_captcha_submit" value="1" />
     <button type="submit">Continue</button>
 </form>
  
@@ -1992,9 +1997,10 @@ exports[`📄 Generate Template should generate a captcha template 1`] = `
 
 
 
-<form method="POST" id="captcha" action="/">
+<form method="POST" id="captcha">
     <input type="text" name="phrase" placeholder="Type here..." autofocus autocomplete="off" />
     <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
+    <input type="hidden" name="crowdsec_captcha_submit" value="1" />
     <button type="submit">Continue</button>
 </form>
  

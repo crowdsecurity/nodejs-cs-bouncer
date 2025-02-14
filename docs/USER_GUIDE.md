@@ -146,7 +146,6 @@ Below is the list of available settings (see also `CrowdSecBouncerConfigurations
     },
     "captcha": {
         "captchaImageTag": "Generated with svg-captcha-fixed",
-        "submitUrl": "/",
         "texts": {
             "tabTitle": "CrowdSec | Captcha Wall",
             "title": "Access Denied",
@@ -208,15 +207,16 @@ To apply the remediation you can use render methods offered by the library. You 
 captcha wall.
 
 ```typescript
-// Retrieve ban wall HTML
-const banWall = await bouncer.renderWall('ban');
-```
-
-or
-
-```typescript
-// Retrieve captcha wall HTML
-const captchaWall = await bouncer.renderWall('captcha');
+const { origin, remediation } = remediationData;
+const bouncerResponse = await bouncer.getResponse({
+    ip,
+    origin,
+    remediation,
+});
+// Display Ban or Captcha wall
+if (bouncerResponse.status !== 200) {
+    return res.status(bouncerResponse.status).send(bouncerResponse.html);
+}
 ```
 
 ### Refresh decision cache

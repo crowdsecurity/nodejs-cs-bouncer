@@ -30,32 +30,42 @@ All the logic is done in the `server.ts` file:
 
 ```js
 const remediationData = await bouncer.getIpRemediation(ip);
-const remediation = remediationData[BOUNCER_KEYS.REMEDIATION];
+const { origin, remediation } = remediationData;
 ```
 
 -   Depending on the value of the remediation, we apply it:
 
     -   let the process continue with `next()`if there is no remediation (bypass)
 
-    -   block the user with a ban wall for a ban remediation:
+    -   block the user with a ban or captcha wall remediation:
 
     ```js
-    const banWall = await bouncer.renderWall('ban');
-    return res.status(403).send(banWall);
-    ```
-
-    -   block the user with captcha wall for a captcha remediation:
-
-    ```js
-    const captchaWall = await bouncer.renderWall('captcha', {
-        captchaImageTag: captcha.inlineImage,
-        submitUrl,
-        ...texts,
+    const bouncerResponse = await bouncer.getResponse({
+        ip,
+        origin,
+        remediation,
     });
-    return res.status(401).send(captchaWall);
+    // Display Ban or Captcha wall
+    if (bouncerResponse.status !== 200) {
+        return res.status(bouncerResponse.status).send(bouncerResponse.html);
+    }
     ```
 
-    User will be blocked until the captcha is solved.
+There is a specific case when we detect that user is trying to solve the captcha:
+
+```js
+if (req.method === 'POST' && req?.body?.crowdsec_captcha_submit) {
+    const { phrase, crowdsec_captcha_refresh: refresh } = req.body;
+    // User can refresh captcha image or submit a phrase to solve the captcha
+    await bouncer.handleCaptchaSubmission({
+        ip,
+        origin,
+        userPhrase: phrase ?? '',
+        refresh: refresh ?? '0',
+    });
+    return res.redirect(captchaSuccessUrl);
+}
+```
 
 ## Pre-requisites
 
@@ -166,7 +176,5 @@ Denied" captcha wall.
 ![](./docs/captcha-wall.png)
 
 You should see `Final remediation for IP <BOUNCED_IP> is captcha` in terminal.
-
-If you solve the captcha, you'll be redirected to the home page.
 
 For this basic implementation, we just redirect user to `/` after resolution.

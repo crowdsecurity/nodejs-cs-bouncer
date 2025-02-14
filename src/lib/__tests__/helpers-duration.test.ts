@@ -1,8 +1,20 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest, afterAll, beforeAll, afterEach } from '@jest/globals';
 
 import { convertDurationToMilliseconds } from 'src/helpers/duration';
 
-jest.useFakeTimers().setSystemTime(new Date('2020-01-01'));
+beforeAll(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2020-01-01'));
+});
+
+afterEach(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+});
+
+afterAll(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+});
 
 describe('⏳ Parse duration', () => {
     it('should parse a positive duration', () => {

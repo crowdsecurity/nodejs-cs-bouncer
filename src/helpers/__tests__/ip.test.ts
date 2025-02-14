@@ -1,4 +1,4 @@
-import { jest, describe, expect, it } from '@jest/globals';
+import { jest, describe, expect, it, afterEach, afterAll } from '@jest/globals';
 import { Address4 } from 'ip-address';
 
 import {
@@ -10,6 +10,14 @@ import {
     getIpV4BucketIndexForIp,
 } from 'src/helpers/ip';
 import { IP_TYPE_V4, IP_TYPE_V6 } from 'src/lib/constants';
+
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
+afterAll(() => {
+    jest.restoreAllMocks();
+});
 
 describe('getIpToRemediate', () => {
     it('should parse a valid IPv4 address', () => {
@@ -180,9 +188,6 @@ describe('isIpV4InRange', () => {
         });
 
         expect(() => isIpV4InRange(ip, range)).toThrowError('Error checking IP in range: Test error');
-
-        // Restore original implementation
-        jest.restoreAllMocks();
     });
     it('should return false when an unexpected error occurs', () => {
         const ip = '192.168.1.1';
@@ -195,9 +200,6 @@ describe('isIpV4InRange', () => {
 
         const result = isIpV4InRange(ip, range);
         expect(result).toBe(false);
-
-        // Restore original implementation
-        jest.restoreAllMocks();
     });
 });
 

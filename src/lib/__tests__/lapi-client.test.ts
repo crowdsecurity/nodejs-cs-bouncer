@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterAll, afterEach, describe, expect, it, jest } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
 import LapiClient from 'src/lib/lapi-client';
@@ -19,6 +19,11 @@ describe('👩🏻‍⚖️ LAPI Client', () => {
 
     afterEach(() => {
         nockCleanAll();
+        jest.restoreAllMocks();
+    });
+    afterAll(() => {
+        nockCleanAll();
+        jest.restoreAllMocks();
     });
 
     describe('constructor', () => {

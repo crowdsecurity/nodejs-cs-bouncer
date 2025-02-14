@@ -1,8 +1,17 @@
-import { describe, expect, it } from '@jest/globals';
+import { afterAll, afterEach, describe, expect, it } from '@jest/globals';
 
 import logger from 'src/lib/logger';
 
 describe('Logger', () => {
+    afterAll(async () => {
+        // Ensure Jest cleans up any open Pino worker threads
+        logger.flush();
+    });
+    afterEach(async () => {
+        // Ensure Jest cleans up any open Pino worker threads
+        logger.flush();
+    });
+
     it('should create a logger instance', () => {
         expect(logger).toBeDefined();
     });
