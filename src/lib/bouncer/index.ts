@@ -287,9 +287,14 @@ class CrowdSecBouncer {
             scenariosContaining,
             scenariosNotContaining,
         });
+        // Flag the cache as warm after the first fetch
+        if (!isWarm) {
+            await this.cacheStorage.setWarm();
+        }
 
-        const newDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.NEW], this.configs);
-        const deletedDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.DELETED], this.configs);
+        const newDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.NEW] || [], this.configs);
+        const deletedDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.DELETED] || [], this.configs);
+
         const storedDecisions = await this.cacheStorage.storeDecisions(newDecisions);
         const removedDecisions = await this.cacheStorage.removeDecisions(deletedDecisions);
 

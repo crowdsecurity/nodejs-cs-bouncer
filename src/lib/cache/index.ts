@@ -66,7 +66,13 @@ class CacheStorage {
 
     public async isWarm(): Promise<boolean> {
         const cacheKey = getCacheKey(CONFIG, WARMUP);
-        return (await this.adapter.getItem(cacheKey)) !== null;
+        const cacheValue = await this.adapter.getItem(cacheKey);
+        return Boolean(cacheValue?.content);
+    }
+
+    public async setWarm(): Promise<void> {
+        const cacheKey = getCacheKey(CONFIG, WARMUP);
+        await this.adapter.setItem({ key: cacheKey, content: true });
     }
 
     public async getAllCachableDecisionContents(ip: string): Promise<CachableDecisionContent[]> {

@@ -89,11 +89,12 @@ describe('convertRawDecisionsToDecisions', () => {
         expect(decisions).toEqual(expected);
     });
     it('should create decision with correct expires_at in stream mode', () => {
+        const badIpCacheDuration = 3600;
         const streamConfigs = {
             url: 'http://example.com/api',
             bouncerApiToken: 'test-api-key',
             streamMode: true,
-            badIpCacheDuration: 120,
+            badIpCacheDuration,
         };
         const rawDecisions = [
             {
@@ -119,6 +120,41 @@ describe('convertRawDecisionsToDecisions', () => {
         ];
         expect(decisions).toEqual(expected);
         // The expiration time should be the minimum between the decision duration and the badIpCacheDuration
+        expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + badIpCacheDuration * 1000, -2); // Allows some flexibility;
+
+        expect(decisions).toEqual(expected);
+    });
+    it('should create decision with correct default expires_at in stream mode', () => {
+        const streamConfigs = {
+            url: 'http://example.com/api',
+            bouncerApiToken: 'test-api-key',
+            streamMode: true,
+        };
+        const rawDecisions = [
+            {
+                origin: 'CAPI',
+                type: 'ban',
+                scope: 'ip',
+                value: '1.2.3.4',
+                duration: '1h',
+                scenario: '',
+            },
+        ];
+        const currentTimestamp = Date.now();
+        const decisions = convertRawDecisionsToDecisions(rawDecisions, streamConfigs);
+        const expected = [
+            {
+                identifier: 'capi-ban-ip-1.2.3.4',
+                origin: 'capi',
+                scope: 'ip',
+                value: '1.2.3.4',
+                type: 'ban',
+                expiresAt: expect.any(Number),
+            },
+        ];
+        expect(decisions).toEqual(expected);
+        // The expiration time should be the minimum between the decision duration and the badIpCacheDuration
+        // The default badIpCacheDuration is 120 seconds
         expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + 120 * 1000, -2); // Allows some flexibility;
 
         expect(decisions).toEqual(expected);
