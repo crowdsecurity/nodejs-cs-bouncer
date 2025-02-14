@@ -181,6 +181,39 @@ describe('🛡️ Bouncer', () => {
             expect(responseRemediation['remediation']).toEqual('bypass');
         });
 
+        it('should return bypass if no decision has been cached', async () => {
+            const ip = '1.2.3.4';
+
+            const nockScope = nock(configs.url)
+                .get('/v1/decisions')
+                .query(true)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(
+                    200,
+                    [
+                        {
+                            duration: '3h59m56.919518073s',
+                            id: 1,
+                            origin: 'cscli',
+                            scenario: "manual 'ban' from 'localhost'",
+                            scope: 'Ip',
+                            type: 'ban',
+                            value: ip,
+                        },
+                    ],
+                    {
+                        'Content-Type': 'application/json',
+                    },
+                );
+
+            jest.spyOn(bouncer['cacheStorage'], 'storeDecisions').mockResolvedValue([]);
+
+            const responseRemediation = await bouncer.getIpRemediation(ip);
+            expect(nockScope.isDone()).toBe(true);
+            expect(responseRemediation['remediation']).toEqual('bypass');
+        });
+
         it('should return fallback remediation if decisions remediation types are unknown', async () => {
             const ip = '1.2.3.8';
 
