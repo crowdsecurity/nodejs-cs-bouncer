@@ -1,14 +1,15 @@
 import { afterEach, beforeEach, beforeAll, describe, expect, it, jest, afterAll } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
-import * as configModule from 'src/helpers/config';
 import CrowdSecBouncer from 'src/lib/bouncer';
 import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
+import { getCacheKey } from 'src/lib/cache/helpers';
 import InMemory from 'src/lib/cache/in-memory';
-import { CachableDecisionContent } from 'src/lib/cache/types';
-import { BOUNCER_KEYS, REFRESH_KEYS, REMEDIATION_BYPASS, REMEDIATION_CAPTCHA } from 'src/lib/constants';
+import { CachableDecisionContent, CachableDecisionItem } from 'src/lib/cache/types';
+import { BOUNCER_KEYS, REFRESH_KEYS, REMEDIATION_BAN, REMEDIATION_BYPASS, REMEDIATION_CAPTCHA, SCOPE_IP } from 'src/lib/constants';
 import logger from 'src/lib/logger';
+import * as rendered from 'src/lib/rendered';
 import { Remediation } from 'src/lib/types';
 
 const configs: CrowdSecBouncerConfigurations = {
@@ -53,13 +54,9 @@ describe('🛡️ Bouncer', () => {
             expect(bouncer).toBeInstanceOf(CrowdSecBouncer);
         });
 
-        it('should have a fallback remediation of "captcha"', () => {
-            expect(bouncer.fallbackRemediation).toBe('captcha');
-        });
-
         it('should have fallback remediation customizable', () => {
             const customBouncer = new CrowdSecBouncer({ ...configs, fallbackRemediation: 'ban' });
-            expect(customBouncer.fallbackRemediation).toBe('ban');
+            expect(customBouncer.configs.fallbackRemediation).toBe('ban');
         });
 
         it('should have a method called "getIpRemediation"', () => {
@@ -167,7 +164,7 @@ describe('🛡️ Bouncer', () => {
             expect(responseRemediation['remediation']).toEqual(remediation);
         });
 
-        it('should return fallback remediation if there is no decision at all', async () => {
+        it('should return bypass if there is no decision at all', async () => {
             const ip = '1.2.3.4';
 
             const nockScope = nock(configs.url)
@@ -176,23 +173,6 @@ describe('🛡️ Bouncer', () => {
                 .matchHeader('X-Api-Key', configs.bouncerApiToken)
                 .matchHeader('Content-Type', 'application/json')
                 .reply(200, 'null', {
-                    'Content-Type': 'application/json',
-                });
-
-            const responseRemediation = await bouncer.getIpRemediation(ip);
-            expect(nockScope.isDone()).toBe(true);
-            expect(responseRemediation['remediation']).toEqual('bypass');
-        });
-
-        it('should return fallback remediation if the IP is unknown', async () => {
-            const ip = '1.2.3.7';
-
-            const nockScope = nock(configs.url)
-                .get('/v1/decisions')
-                .query(true)
-                .matchHeader('X-Api-Key', configs.bouncerApiToken)
-                .matchHeader('Content-Type', 'application/json')
-                .reply(200, [], {
                     'Content-Type': 'application/json',
                 });
 
@@ -231,6 +211,41 @@ describe('🛡️ Bouncer', () => {
             expect(nockScope.isDone()).toBe(true);
             // Fallback remediation is captcha by default
             expect(responseRemediation['remediation']).toEqual('captcha');
+        });
+
+        it('should return custom fallback remediation if decisions remediation types are unknown', async () => {
+            const ip = '1.2.3.8';
+
+            const nockScope = nock(configs.url)
+                .get('/v1/decisions')
+                .query(true)
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(
+                    200,
+                    [
+                        {
+                            duration: '3h59m56.919518073s',
+                            id: 1,
+                            origin: 'cscli',
+                            scenario: "manual 'ban' from 'localhost'",
+                            scope: 'Ip',
+                            type: 'unknown',
+                            value: ip,
+                        },
+                    ],
+                    {
+                        'Content-Type': 'application/json',
+                    },
+                );
+
+            const customConfigs = { ...configs, fallbackRemediation: 'ban' };
+            const bouncer = new CrowdSecBouncer(customConfigs);
+
+            const responseRemediation = await bouncer.getIpRemediation(ip);
+            expect(nockScope.isDone()).toBe(true);
+            // Fallback remediation is ban
+            expect(responseRemediation['remediation']).toEqual('ban');
         });
 
         it('should return highest remediation if there is multiple decisions about the IP', async () => {
@@ -396,12 +411,108 @@ describe('🛡️ Bouncer', () => {
 
         it('should return "bypass" if streamMode is enabled and cache is empty', async () => {
             const ip = '8.8.8.8';
+            const bouncer = new CrowdSecBouncer({ ...configs, streamMode: true });
 
-            jest.spyOn(configModule, 'getConfig').mockImplementation((key) => (key === 'streamMode' ? true : null));
             getAllDecisionsSpy.mockResolvedValue([]); // Empty cache
 
             const response = await bouncer.getIpRemediation(ip);
             expect(response.remediation).toBe('bypass');
+        });
+
+        it('should return "bypass" if captcha has been solved', async () => {
+            const ip = '8.8.8.8';
+
+            getAllDecisionsSpy.mockResolvedValue([
+                {
+                    id: 'csli-captcha-ip-8.8.8.8',
+                    origin: 'cscli',
+                    expiresAt: Date.now() + 10000000,
+                    value: 'captcha',
+                },
+            ]);
+            const cachedCaptchaFlow = {
+                key: 'captcha_flow_8.8.8.8',
+                content: { phraseToGuess: 'correct-phrase', mustBeResolved: false },
+            };
+            jest.spyOn(bouncer.cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'captcha_flow_8.8.8.8') {
+                    return Promise.resolve(cachedCaptchaFlow);
+                }
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
+
+            const response = await bouncer.getIpRemediation(ip);
+            expect(response.remediation).toBe('bypass');
+        });
+
+        it('should return "captcha" if captcha must be solved', async () => {
+            const ip = '8.8.8.8';
+
+            getAllDecisionsSpy.mockResolvedValue([
+                {
+                    id: 'csli-captcha-ip-8.8.8.8',
+                    origin: 'cscli',
+                    expiresAt: Date.now() + 10000000,
+                    value: 'captcha',
+                },
+            ]);
+            const cachedCaptchaFlow = {
+                key: 'captcha_flow_8.8.8.8',
+                content: { phraseToGuess: 'correct-phrase', mustBeResolved: true },
+            };
+            jest.spyOn(bouncer.cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'captcha_flow_8.8.8.8') {
+                    return Promise.resolve(cachedCaptchaFlow);
+                }
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
+
+            const response = await bouncer.getIpRemediation(ip);
+            expect(response.remediation).toBe('captcha');
+        });
+
+        it('should return "captcha" if captcha flow is not found in cache', async () => {
+            const ip = '8.8.8.8';
+
+            getAllDecisionsSpy.mockResolvedValue([
+                {
+                    id: 'csli-captcha-ip-8.8.8.8',
+                    origin: 'cscli',
+                    expiresAt: Date.now() + 10000000,
+                    value: 'captcha',
+                },
+            ]);
+            const cachedCaptchaFlow = null;
+            jest.spyOn(bouncer.cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'captcha_flow_8.8.8.8') {
+                    return Promise.resolve(cachedCaptchaFlow);
+                }
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
+
+            const response = await bouncer.getIpRemediation(ip);
+            expect(response.remediation).toBe('captcha');
         });
 
         it('should return the highest remediation when multiple exist', async () => {
@@ -427,6 +538,45 @@ describe('🛡️ Bouncer', () => {
 
             const response = await bouncer.getIpRemediation(ip);
             expect(response.remediation).toBe('ban'); // Highest remediation
+        });
+
+        it('should return a bypass if no decision ', async () => {
+            const ip = '192.168.1.1';
+            const customConfigs = { ...configs, cleanIpCacheDuration: 60 };
+            const bouncer = new CrowdSecBouncer(customConfigs);
+
+            const decisions: CachableDecisionContent[] = [];
+            getAllDecisionsSpy.mockResolvedValue(decisions);
+            jest.spyOn(bouncer.lapiClient, 'getDecisionsMatchingIp').mockResolvedValue([]);
+
+            const response = await bouncer.getIpRemediation(ip);
+            expect(response.remediation).toBe('bypass'); // Highest remediation
+        });
+
+        it('should return a ban for ipv6 range decision in live mode', async () => {
+            const ip = '2001:0db8:85a3:0000:0000:8a2e:0370:7334';
+            const range = '2001:0db8:85a3::/64';
+
+            const decisions: CachableDecisionContent[] = [];
+            getAllDecisionsSpy.mockResolvedValue(decisions);
+            jest.spyOn(bouncer.lapiClient, 'getDecisionsMatchingIp').mockResolvedValue([
+                {
+                    duration: '3h59m56.919518073s',
+                    origin: 'cscli',
+                    scenario: "manual 'ban' from 'localhost'",
+                    scope: 'range',
+                    type: 'ban',
+                    value: range,
+                },
+            ]);
+
+            const response = await bouncer.getIpRemediation(ip);
+            expect(response.remediation).toBe('ban'); // Highest remediation
+
+            const cacheKey = getCacheKey(SCOPE_IP, '2001:0db8:85a3:0000:0000:0000:0000:0000'); // First IP of the range
+            const cachedItem = (await bouncer.cacheStorage.adapter.getItem(cacheKey)) as unknown as CachableDecisionItem;
+
+            expect(cachedItem.content[0].id).toBe('cscli-ban-range-2001:0db8:85a3::/64');
         });
 
         it('should handle unknown remediation types by using fallback', async () => {
@@ -680,6 +830,103 @@ describe('🛡️ Bouncer', () => {
                 [REFRESH_KEYS.NEW]: [],
                 [REFRESH_KEYS.DELETED]: [],
             });
+        });
+    });
+
+    describe('getResponse', () => {
+        it('should return 403 and ban wall for REMEDIATION_BAN', async () => {
+            const bouncer = new CrowdSecBouncer(configs);
+            const params = { ip: '192.168.0.1', remediation: REMEDIATION_BAN, origin: 'test-origin' };
+            jest.spyOn(rendered, 'renderBanWall').mockResolvedValue('<ban-wall></ban-wall>');
+
+            const result = await bouncer.getResponse(params);
+
+            const origins_count = await bouncer.cacheStorage.adapter.getItem('origins_count');
+
+            expect(result).toEqual({ status: 403, html: '<ban-wall></ban-wall>' });
+
+            expect(origins_count?.content).toEqual([
+                {
+                    origin: 'test-origin',
+                    remediation: { ban: 1 },
+                },
+            ]);
+        });
+
+        it('should return 401 and captcha wall for REMEDIATION_CAPTCHA', async () => {
+            const bouncer = new CrowdSecBouncer(configs);
+            const params = { ip: '192.168.0.1', remediation: REMEDIATION_CAPTCHA, origin: 'test-origin' };
+            jest.spyOn(rendered, 'renderCaptchaWall').mockResolvedValue('<captcha-wall></captcha-wall>');
+
+            const result = await bouncer.getResponse(params);
+
+            expect(result).toEqual({ status: 401, html: '<captcha-wall></captcha-wall>' });
+
+            const origins_count = await bouncer.cacheStorage.adapter.getItem('origins_count');
+
+            expect(result).toEqual({ status: 401, html: '<captcha-wall></captcha-wall>' });
+
+            expect(origins_count?.content).toEqual([
+                {
+                    origin: 'test-origin',
+                    remediation: { captcha: 1 },
+                },
+            ]);
+        });
+
+        it('should return 401 and captcha wall with error message', async () => {
+            const bouncer = new CrowdSecBouncer(configs);
+            const params = { ip: '192.168.0.1', remediation: REMEDIATION_CAPTCHA, origin: 'test-origin' };
+            const mockRenderCaptcha = jest.spyOn(rendered, 'renderCaptchaWall').mockResolvedValue('<captcha-wall></captcha-wall>');
+            const cachedCaptchaFlow = {
+                key: 'captcha_flow_192.168.0.1',
+                content: {
+                    phraseToGuess: 'correct-phrase',
+                    inlineImage: '<svg>test</svg>',
+                    resolutionFailed: true,
+                    mustBeResolved: true,
+                },
+            };
+            jest.spyOn(bouncer.cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'captcha_flow_192.168.0.1') {
+                    return Promise.resolve(cachedCaptchaFlow);
+                }
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
+
+            const result = await bouncer.getResponse(params);
+
+            expect(mockRenderCaptcha).toHaveBeenCalledWith({
+                captchaImageTag: '<svg>test</svg>',
+                texts: { error: 'Please try again' },
+            });
+
+            expect(result).toEqual({ status: 401, html: '<captcha-wall></captcha-wall>' });
+        });
+
+        it('should return 200 and empty html for REMEDIATION_BYPASS', async () => {
+            const bouncer = new CrowdSecBouncer(configs);
+            const params = { ip: '192.168.0.1', remediation: REMEDIATION_BYPASS, origin: 'test-origin' };
+
+            const result = await bouncer.getResponse(params);
+
+            expect(result).toEqual({ status: 200, html: '' });
+
+            const origins_count = await bouncer.cacheStorage.adapter.getItem('origins_count');
+
+            expect(origins_count?.content).toEqual([
+                {
+                    origin: 'clean',
+                    remediation: { bypass: 1 },
+                },
+            ]);
         });
     });
 });

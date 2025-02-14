@@ -26,7 +26,7 @@ type GetUpdatedOriginsCountParams = {
 };
 
 class CacheStorage {
-    public adapter: CacheAdapter;
+    public readonly adapter: CacheAdapter;
 
     constructor(configs: CacheConfigurations) {
         this.adapter = configs.cacheAdapter || new InMemory();
@@ -141,7 +141,7 @@ class CacheStorage {
         decision: CachableDecision;
         cacheKey: string;
         mainValue: Remediation | Value; // Value when storing range scoped decisions using bucket, Remediation otherwise
-    }): Promise<CachableDecisionContent | null> {
+    }): Promise<CachableDecisionContent> {
         const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem;
         const cachedValues = item?.content || [];
         const indexToStore = this.getCachedIndex(decision.identifier, cachedValues);
@@ -149,7 +149,7 @@ class CacheStorage {
         // Early return if already in cache
         if (indexToStore !== null) {
             logger.debug(`Decision already in cache: ${decision.identifier}`);
-            return null;
+            return item.content[indexToStore];
         }
 
         // Remove expired decisions if any
@@ -177,7 +177,7 @@ class CacheStorage {
         return this.remove({ decision, cacheKey });
     }
 
-    private async storeIpDecision(decision: CachableDecision): Promise<CachableDecisionContent | null> {
+    private async storeIpDecision(decision: CachableDecision): Promise<CachableDecisionContent> {
         const cacheKey = getCacheKey(decision.scope, decision.value);
         return this.store({ decision, cacheKey, mainValue: decision.type });
     }

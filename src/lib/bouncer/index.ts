@@ -1,7 +1,6 @@
 import { last, sortBy } from 'lodash';
 import svgCaptcha from 'svg-captcha-fixed';
 
-import { getConfig } from 'src/helpers/config';
 import { buildCachableDecision, convertRawDecisionsToDecisions } from 'src/helpers/decision';
 import { getFirstIpFromRange, getIpOrRangeType, getIpToRemediate } from 'src/helpers/ip';
 import { CaptchaGenerator } from 'src/lib/bouncer/captcha';
@@ -48,16 +47,13 @@ type getResponseParams = {
 };
 
 class CrowdSecBouncer {
-    private readonly configs: CrowdSecBouncerConfigurations;
-    private cacheStorage: CacheStorage;
-    private lapiClient: LapiClient;
-    private captcha: CaptchaGenerator;
-
-    public fallbackRemediation: Remediation = REMEDIATION_BYPASS;
+    public readonly configs: CrowdSecBouncerConfigurations;
+    public readonly cacheStorage: CacheStorage;
+    public readonly lapiClient: LapiClient;
+    private readonly captcha: CaptchaGenerator;
 
     constructor(configs: CrowdSecBouncerConfigurations, captcha?: CaptchaGenerator) {
         this.configs = configs;
-        this.fallbackRemediation = getConfig('fallbackRemediation', configs) ?? REMEDIATION_CAPTCHA;
         this.cacheStorage = new CacheStorage(configs);
         this.lapiClient = new LapiClient(configs);
         this.captcha = captcha ?? {
@@ -83,7 +79,7 @@ class CrowdSecBouncer {
 
         // Map the remediation values with their associated origins
         const remediationWithOrigins = contents.map(({ value, origin }) => ({
-            remediation: ORDERED_REMEDIATIONS.includes(value) ? value : this.fallbackRemediation,
+            remediation: ORDERED_REMEDIATIONS.includes(value) ? value : (this.configs.fallbackRemediation ?? REMEDIATION_CAPTCHA),
             origin,
         }));
 
@@ -91,9 +87,9 @@ class CrowdSecBouncer {
         const orderedRemediationsWithOrigins = sortBy(remediationWithOrigins, (entry) => ORDERED_REMEDIATIONS.indexOf(entry.remediation));
 
         // The last element contains the highest-priority remediation and its origin
-        const { remediation, origin } = last(orderedRemediationsWithOrigins) ?? {
-            remediation: REMEDIATION_BYPASS,
-            origin: ORIGIN_CLEAN,
+        const { remediation, origin } = last(orderedRemediationsWithOrigins) as {
+            remediation: Remediation;
+            origin: CachableOrigin;
         };
 
         logger.debug(`Higher priority remediation for IP ${ip} is ${remediation} with origin ${origin}`);
@@ -138,7 +134,7 @@ class CrowdSecBouncer {
     };
 
     private capRemediation = (remediation: Remediation): Remediation => {
-        const bouncingLevel = getConfig('bouncingLevel', this.configs) ?? BOUNCING_LEVEL_NORMAL;
+        const bouncingLevel = this.configs.bouncingLevel ?? BOUNCING_LEVEL_NORMAL;
         if (bouncingLevel === BOUNCING_LEVEL_DISABLED) {
             logger.debug('Bouncing level is disabled');
             return REMEDIATION_BYPASS;
@@ -175,7 +171,7 @@ class CrowdSecBouncer {
 
         if (!cachedDecisionContents || cachedDecisionContents.length === 0) {
             // In stream_mode, we do not store this bypass, and we do not call LAPI directly
-            if (getConfig('streamMode', this.configs)) {
+            if (this.configs.streamMode) {
                 return {
                     [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_BYPASS,
                     [BOUNCER_KEYS.ORIGIN]: ORIGIN_CLEAN,
@@ -197,11 +193,9 @@ class CrowdSecBouncer {
                               scope: SCOPE_IP,
                               value: ip,
                               origin: ORIGIN_CLEAN,
-                              expiresAt:
-                                  Date.now() + (getConfig('cleanIpCacheDuration', this.configs) ?? CACHE_EXPIRATION_FOR_CLEAN_IP) * 1000,
+                              expiresAt: Date.now() + (this.configs.cleanIpCacheDuration ?? CACHE_EXPIRATION_FOR_CLEAN_IP) * 1000,
                           }),
                       ];
-
             cachedDecisionContents = await this.cacheStorage.storeDecisions(cachableDecisions);
         }
         const { remediation: initialRemediation, origin } = this.getIpHighestRemediationWithOrigin(ipToRemediate, cachedDecisionContents);
@@ -210,7 +204,7 @@ class CrowdSecBouncer {
             logger.debug(`LAPI remediation for IP ${ip} is ${remediation} with origin ${origin}`);
         }
         // Initial remediation can be modified depending on the captcha flow
-        if (remediation === REMEDIATION_CAPTCHA && !(await this.mustSolveCaptcha(ip, remediation))) {
+        if (remediation === REMEDIATION_CAPTCHA && !(await this.mustSolveCaptcha(ip))) {
             remediation = REMEDIATION_BYPASS;
         }
         // Initial remediation can be modified depending on the bouncingLevel config
@@ -227,14 +221,10 @@ class CrowdSecBouncer {
         return this.cacheStorage.upsertMetricsOriginsCount({ origin, remediation });
     };
 
-    public getConfig = <T extends keyof CrowdSecBouncerConfigurations>(key: T): CrowdSecBouncerConfigurations[T] | null => {
-        return getConfig(key, this.configs);
-    };
-
     private saveCaptchaFlow = async (ip: string, content?: Partial<CaptchaFlow>): Promise<CaptchaFlow> => {
         const cacheKey = getCacheKey(CAPTCHA_FLOW, ip);
 
-        const duration = (getConfig('captchaFlowCacheDuration', this.configs) ?? CACHE_EXPIRATION_FOR_CAPTCHA_FLOW) * 1000;
+        const duration = (this.configs.captchaFlowCacheDuration ?? CACHE_EXPIRATION_FOR_CAPTCHA_FLOW) * 1000;
 
         // Retrieve the existing captcha flow from the cache; if it doesn't exist, create a new one
         const existingItem = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow;
@@ -298,8 +288,8 @@ class CrowdSecBouncer {
             scenariosNotContaining,
         });
 
-        const newDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.NEW] ?? [], this.configs);
-        const deletedDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.DELETED] ?? [], this.configs);
+        const newDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.NEW], this.configs);
+        const deletedDecisions = convertRawDecisionsToDecisions(rawDecisions[REFRESH_KEYS.DELETED], this.configs);
         const storedDecisions = await this.cacheStorage.storeDecisions(newDecisions);
         const removedDecisions = await this.cacheStorage.removeDecisions(deletedDecisions);
 
@@ -354,11 +344,7 @@ class CrowdSecBouncer {
         };
     };
 
-    private mustSolveCaptcha = async (ip: string, remediation: Remediation): Promise<boolean> => {
-        if (remediation !== REMEDIATION_CAPTCHA) {
-            return false;
-        }
-
+    private mustSolveCaptcha = async (ip: string): Promise<boolean> => {
         const cacheKey = getCacheKey(CAPTCHA_FLOW, ip);
         const cachedCaptchaFlow = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow | null;
 
@@ -378,7 +364,7 @@ class CrowdSecBouncer {
         type: T,
         options?: T extends 'ban' ? BanWallOptions : CaptchaWallOptions,
     ): Promise<string> => {
-        const bouncerOptions = (getConfig('wallsOptions', this.configs) as WallsOptions) || { ban: {}, captcha: {} };
+        const bouncerOptions = (this.configs.wallsOptions as WallsOptions) || { ban: {}, captcha: {} };
         const finalOptions = { ...bouncerOptions[type], ...(options ?? {}) };
 
         return type === 'captcha' ? renderCaptchaWall(finalOptions as CaptchaWallOptions) : renderBanWall(finalOptions as BanWallOptions);

@@ -1,4 +1,3 @@
-import { getConfig } from 'src/helpers/config';
 import { convertDurationToMilliseconds } from 'src/helpers/duration';
 import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import { ID_SEPARATOR, REMEDIATION_BYPASS, CACHE_EXPIRATION_FOR_BAD_IP, ORIGIN_LISTS, ORIGIN_LISTS_SEPARATOR } from 'src/lib/constants';
@@ -54,11 +53,8 @@ const buildDecisionExpiresAt = ({
     configs: CrowdSecBouncerConfigurations;
 }): CachableExpiresAt => {
     let durationInMilliseconds = convertDurationToMilliseconds(duration);
-    if (REMEDIATION_BYPASS !== type && getConfig('streamMode', configs)) {
-        durationInMilliseconds = Math.min(
-            durationInMilliseconds,
-            (getConfig('badIpCacheDuration', configs) ?? CACHE_EXPIRATION_FOR_BAD_IP) * 1000,
-        );
+    if (REMEDIATION_BYPASS !== type && configs.streamMode) {
+        durationInMilliseconds = Math.min(durationInMilliseconds, (configs.badIpCacheDuration ?? CACHE_EXPIRATION_FOR_BAD_IP) * 1000);
     }
 
     return Date.now() + durationInMilliseconds;
