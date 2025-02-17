@@ -227,7 +227,7 @@ class CrowdSecBouncer {
         const duration = (this.configs.captchaFlowCacheDuration ?? CACHE_EXPIRATION_FOR_CAPTCHA_FLOW) * 1000;
 
         // Retrieve the existing captcha flow from the cache; if it doesn't exist, create a new one
-        const existingItem = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow;
+        const existingItem = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow | null;
 
         const existingContent: CaptchaFlow =
             existingItem?.content ||
@@ -263,13 +263,6 @@ class CrowdSecBouncer {
         };
 
         return await this.saveCaptchaFlow(ip, content);
-    };
-
-    public getCaptchaFlow = async (ip: string): Promise<CaptchaFlow> => {
-        const cacheKey = getCacheKey(CAPTCHA_FLOW, ip);
-        const cachedCaptchaFlow = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow;
-
-        return cachedCaptchaFlow.content;
     };
 
     public refreshDecisions = async ({ origins, scopes, scenariosContaining, scenariosNotContaining }: GetDecisionsOptions = {}): Promise<
@@ -323,7 +316,7 @@ class CrowdSecBouncer {
         }
 
         const cacheKey = getCacheKey(CAPTCHA_FLOW, ip);
-        const cachedCaptchaFlow = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow;
+        const cachedCaptchaFlow = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow | null;
 
         const captchaFlow = cachedCaptchaFlow?.content;
 
@@ -336,7 +329,7 @@ class CrowdSecBouncer {
             logger.debug(`Captcha has been resolved by IP ${ip}`);
         }
         const mustBeResolved = remediation === REMEDIATION_CAPTCHA;
-        await this.saveCaptchaFlow(ip, {
+        const updatedCaptchaFlow = await this.saveCaptchaFlow(ip, {
             mustBeResolved,
             resolutionFailed: mustBeResolved,
         });
@@ -345,7 +338,7 @@ class CrowdSecBouncer {
 
         return {
             [BOUNCER_KEYS.REMEDIATION]: remediation,
-            [BOUNCER_KEYS.CAPTCHA_PHRASE]: captchaFlow?.phraseToGuess,
+            [BOUNCER_KEYS.CAPTCHA_PHRASE]: updatedCaptchaFlow.phraseToGuess,
         };
     };
 

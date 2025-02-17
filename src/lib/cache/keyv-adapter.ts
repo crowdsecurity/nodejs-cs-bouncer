@@ -17,7 +17,8 @@ class KeyvAdapter implements CacheAdapter {
     }
 
     async getItem(key: string): Promise<CachableItem | null> {
-        return { key, content: await this.adapter.get(key) };
+        const content = await this.adapter.get(key);
+        return content ? { key, content } : null;
     }
 
     async setItem(item: CachableItem, ttl?: number): Promise<CachableItem> {

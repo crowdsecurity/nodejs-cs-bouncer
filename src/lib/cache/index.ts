@@ -36,20 +36,20 @@ class CacheStorage {
         switch (scope) {
             case SCOPE_IP: {
                 const cacheKey = getCacheKey(SCOPE_IP, ip);
-                const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem;
+                const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem | null;
                 return item && item.content && item.content.length > 0 ? item.content : [];
             }
             case SCOPE_RANGE: {
                 const cachedContents = [];
                 const bucketInt = getIpV4BucketIndexForIp(ip);
                 const bucketCacheKey = getCacheKey(IPV4_BUCKET_KEY, bucketInt.toString());
-                const bucketItem = (await this.adapter.getItem(bucketCacheKey)) as CachableDecisionItem;
+                const bucketItem = (await this.adapter.getItem(bucketCacheKey)) as CachableDecisionItem | null;
                 const bucketContents = bucketItem && bucketItem.content && bucketItem.content.length > 0 ? bucketItem.content : [];
                 for (const content of bucketContents) {
                     const rangeString = content.value;
                     if (isIpV4InRange(ip, rangeString)) {
                         const cacheKey = getCacheKey(SCOPE_RANGE, rangeString);
-                        const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem;
+                        const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem | null;
                         if (item && item.content && item.content.length > 0) {
                             cachedContents.push(...item.content);
                         }
@@ -67,7 +67,7 @@ class CacheStorage {
     public async isWarm(): Promise<boolean> {
         const cacheKey = getCacheKey(CONFIG, WARMUP);
         const cacheValue = await this.adapter.getItem(cacheKey);
-        return Boolean(cacheValue?.content);
+        return Boolean(cacheValue);
     }
 
     public async setWarm(): Promise<void> {
@@ -116,7 +116,10 @@ class CacheStorage {
         decision: CachableDecision;
         cacheKey: string;
     }): Promise<CachableDecisionContent | null> {
-        const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem;
+        const item = ((await this.adapter.getItem(cacheKey)) || {
+            key: cacheKey,
+            content: null,
+        }) as CachableDecisionItem;
         const cachedValues = item?.content || [];
         const indexToRemove = this.getCachedIndex(decision.identifier, cachedValues);
 
@@ -148,7 +151,10 @@ class CacheStorage {
         cacheKey: string;
         mainValue: Remediation | Value; // Value when storing range scoped decisions using bucket, Remediation otherwise
     }): Promise<CachableDecisionContent> {
-        const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem;
+        const item = ((await this.adapter.getItem(cacheKey)) || {
+            key: cacheKey,
+            content: null,
+        }) as CachableDecisionItem;
         const cachedValues = item?.content || [];
         const indexToStore = this.getCachedIndex(decision.identifier, cachedValues);
 

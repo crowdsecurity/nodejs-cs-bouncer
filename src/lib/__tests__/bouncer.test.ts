@@ -71,14 +71,10 @@ describe('🛡️ Bouncer', () => {
 
             expect(captchaFlow).toBeDefined();
 
-            const cachedCaptchaFlow = await bouncer.getCaptchaFlow(ip);
-
-            expect(cachedCaptchaFlow).toEqual(captchaFlow);
-
-            expect(cachedCaptchaFlow.mustBeResolved).toBe(true);
-            expect(cachedCaptchaFlow.phraseToGuess).toBeDefined();
-            expect(cachedCaptchaFlow.inlineImage).toBeDefined();
-            expect(cachedCaptchaFlow.resolutionFailed).toBe(false);
+            expect(captchaFlow.mustBeResolved).toBe(true);
+            expect(captchaFlow.phraseToGuess).toBeDefined();
+            expect(captchaFlow.inlineImage).toBeDefined();
+            expect(captchaFlow.resolutionFailed).toBe(false);
         });
 
         it('should be able to pass a custom captcha', async () => {
@@ -91,12 +87,11 @@ describe('🛡️ Bouncer', () => {
             };
 
             const customBouncer = new CrowdSecBouncer({ ...configs, captchaFlowCacheDuration: 60 }, captchaGenerator);
-            await customBouncer.refreshCaptchaFlow(ip);
-            const cachedCaptchaFlow = await bouncer.getCaptchaFlow(ip);
-            expect(cachedCaptchaFlow.mustBeResolved).toBe(true);
-            expect(cachedCaptchaFlow.phraseToGuess).toBe('custom-phrase');
-            expect(cachedCaptchaFlow.inlineImage).toBe('<svg>custom-captcha</svg>');
-            expect(cachedCaptchaFlow.resolutionFailed).toBe(false);
+            const captchaFlow = await customBouncer.refreshCaptchaFlow(ip);
+            expect(captchaFlow.mustBeResolved).toBe(true);
+            expect(captchaFlow.phraseToGuess).toBe('custom-phrase');
+            expect(captchaFlow.inlineImage).toBe('<svg>custom-captcha</svg>');
+            expect(captchaFlow.resolutionFailed).toBe(false);
         });
     });
 
@@ -784,7 +779,7 @@ describe('🛡️ Bouncer', () => {
 
             expect(result).toEqual({
                 [BOUNCER_KEYS.REMEDIATION]: REMEDIATION_CAPTCHA,
-                [BOUNCER_KEYS.CAPTCHA_PHRASE]: undefined,
+                [BOUNCER_KEYS.CAPTCHA_PHRASE]: expect.any(String),
             });
         });
     });

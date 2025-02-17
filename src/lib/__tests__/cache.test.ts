@@ -43,8 +43,7 @@ describe('Cache', () => {
 
             result = await keyvAdapter.getItem('test');
 
-            expect(result?.content).toBeNull();
-            expect(result?.key).toBe('test');
+            expect(result).toBeNull();
             // clear test
             const item2 = await keyvAdapter.setItem({ key: 'test2', content: 'test2' });
 
@@ -58,7 +57,7 @@ describe('Cache', () => {
 
             result = await keyvAdapter.getItem('test2');
 
-            expect(result?.content).toBeNull();
+            expect(result).toBeNull();
         });
     });
 
