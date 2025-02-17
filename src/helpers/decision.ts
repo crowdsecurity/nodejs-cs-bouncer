@@ -111,11 +111,7 @@ export const convertRawDecisionsToDecisions = (rawDecisions: Decision[], configs
                 cachableDecisions.push(cachableDecision);
             }
         } catch (error) {
-            if (error instanceof Error) {
-                logger.error(`Error converting raw decision to cachable decision: ${error.message}`);
-            } else {
-                logger.error('An unexpected error occurred');
-            }
+            logger.error(`Error converting raw decision to cachable decision: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
 
         return cachableDecisions;

@@ -189,7 +189,7 @@ describe('isIpV4InRange', () => {
 
         expect(() => isIpV4InRange(ip, range)).toThrowError('Error checking IP in range: Test error');
     });
-    it('should return false when an unexpected error occurs', () => {
+    it('should throw error when an unexpected error occurs', () => {
         const ip = '192.168.1.1';
         const range = '192.168.0.0/24';
 
@@ -198,8 +198,7 @@ describe('isIpV4InRange', () => {
             throw 'Test error';
         });
 
-        const result = isIpV4InRange(ip, range);
-        expect(result).toBe(false);
+        expect(() => isIpV4InRange(ip, range)).toThrowError('Error checking IP in range: Unknown error');
     });
 });
 

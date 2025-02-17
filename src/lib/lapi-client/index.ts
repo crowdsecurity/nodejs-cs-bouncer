@@ -68,7 +68,7 @@ class LapiClient {
         scopes,
         scenariosContaining,
         scenariosNotContaining,
-    }: GetDecisionsOptions = {}): Promise<Record<REFRESH_KEYS, Decision[]>> => {
+    }: GetDecisionsOptions = {}): Promise<Record<REFRESH_KEYS, Decision[] | null>> => {
         const params = new URLSearchParams({
             startup: isFirstFetch.toString(),
             ...(scopes ? { scopes: scopes.join(',') } : {}),
@@ -80,8 +80,8 @@ class LapiClient {
         const fullUrl = `v1/decisions/stream?${params.toString()}`;
 
         return this.callLapiGetEndpoint<{
-            [REFRESH_KEYS.NEW]: Decision[];
-            [REFRESH_KEYS.DELETED]: Decision[];
+            [REFRESH_KEYS.NEW]: Decision[] | null;
+            [REFRESH_KEYS.DELETED]: Decision[] | null;
         }>(fullUrl);
     };
 

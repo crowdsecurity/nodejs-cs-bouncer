@@ -218,7 +218,7 @@ describe('convertRawDecisionsToDecisions', () => {
             expect(decisions).toEqual([]);
 
             // Assert: Ensure logger.error was called with the generic message
-            expect(loggerErrorSpy).toHaveBeenCalledWith('An unexpected error occurred');
+            expect(loggerErrorSpy).toHaveBeenCalledWith('Error converting raw decision to cachable decision: Unknown error');
 
             // Cleanup: Restore original implementation
             mockFn.mockRestore();

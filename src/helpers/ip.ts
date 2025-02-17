@@ -69,10 +69,7 @@ export const isIpV4InRange = (ip: string, range: string): boolean => {
         // Check if the IP is in the subnet
         return new Address4(ip).isInSubnet(new Address4(`${rangeBase}/${prefixLength}`));
     } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`Error checking IP in range: ${error.message}`);
-        }
-        return false;
+        throw new Error(`Error checking IP in range: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
 

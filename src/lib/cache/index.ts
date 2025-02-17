@@ -32,36 +32,33 @@ class CacheStorage {
         this.adapter = configs.cacheAdapter || new InMemory();
     }
 
-    private async retrieveDecisionContentsForIp(scope: string, ip: string): Promise<CachableDecisionContent[]> {
-        switch (scope) {
-            case SCOPE_IP: {
-                const cacheKey = getCacheKey(SCOPE_IP, ip);
-                const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem | null;
-                return item && item.content && item.content.length > 0 ? item.content : [];
-            }
-            case SCOPE_RANGE: {
-                const cachedContents = [];
-                const bucketInt = getIpV4BucketIndexForIp(ip);
-                const bucketCacheKey = getCacheKey(IPV4_BUCKET_KEY, bucketInt.toString());
-                const bucketItem = (await this.adapter.getItem(bucketCacheKey)) as CachableDecisionItem | null;
-                const bucketContents = bucketItem && bucketItem.content && bucketItem.content.length > 0 ? bucketItem.content : [];
-                for (const content of bucketContents) {
-                    const rangeString = content.value;
-                    if (isIpV4InRange(ip, rangeString)) {
-                        const cacheKey = getCacheKey(SCOPE_RANGE, rangeString);
-                        const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem | null;
-                        if (item && item.content && item.content.length > 0) {
-                            cachedContents.push(...item.content);
-                        }
-                    }
-                }
-
-                return cachedContents;
-            }
-            default:
-                logger.warn(`Unsupported scope: ${scope}`);
-                return [];
+    private async retrieveDecisionContentsForIp(
+        scope: typeof SCOPE_IP | typeof SCOPE_RANGE,
+        ip: string,
+    ): Promise<CachableDecisionContent[]> {
+        if (scope === SCOPE_IP) {
+            const cacheKey = getCacheKey(SCOPE_IP, ip);
+            const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem | null;
+            return item && item.content && item.content.length > 0 ? item.content : [];
         }
+        // Range scope
+        const cachedContents = [];
+        const bucketInt = getIpV4BucketIndexForIp(ip);
+        const bucketCacheKey = getCacheKey(IPV4_BUCKET_KEY, bucketInt.toString());
+        const bucketItem = (await this.adapter.getItem(bucketCacheKey)) as CachableDecisionItem | null;
+        const bucketContents = bucketItem && bucketItem.content && bucketItem.content.length > 0 ? bucketItem.content : [];
+        for (const content of bucketContents) {
+            const rangeString = content.value;
+            if (isIpV4InRange(ip, rangeString)) {
+                const cacheKey = getCacheKey(SCOPE_RANGE, rangeString);
+                const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem | null;
+                if (item && item.content && item.content.length > 0) {
+                    cachedContents.push(...item.content);
+                }
+            }
+        }
+
+        return cachedContents;
     }
 
     public async isWarm(): Promise<boolean> {
@@ -109,24 +106,23 @@ class CacheStorage {
         };
     }
 
-    private async remove({
-        decision,
-        cacheKey,
-    }: {
-        decision: CachableDecision;
-        cacheKey: string;
-    }): Promise<CachableDecisionContent | null> {
-        const item = ((await this.adapter.getItem(cacheKey)) || {
+    private async remove({ decision, cacheKey }: { decision: CachableDecision; cacheKey: string }): Promise<CachableDecisionContent> {
+        const item = ((await this.adapter.getItem(cacheKey)) ?? {
             key: cacheKey,
             content: null,
         }) as CachableDecisionItem;
-        const cachedValues = item?.content || [];
+        const cachedValues = item.content ?? [];
         const indexToRemove = this.getCachedIndex(decision.identifier, cachedValues);
 
         // Early return if not in cache
         if (indexToRemove === null) {
             logger.debug(`Decision to remove is not in cache: ${decision.identifier}`);
-            return null;
+            return {
+                id: decision.identifier,
+                origin: decision.origin,
+                expiresAt: decision.expiresAt,
+                value: decision.type,
+            };
         }
 
         const removed = cachedValues.splice(indexToRemove, 1)[0] as CachableDecisionContent;
@@ -155,7 +151,7 @@ class CacheStorage {
             key: cacheKey,
             content: null,
         }) as CachableDecisionItem;
-        const cachedValues = item?.content || [];
+        const cachedValues = item.content || [];
         const indexToStore = this.getCachedIndex(decision.identifier, cachedValues);
 
         // Early return if already in cache
@@ -194,7 +190,7 @@ class CacheStorage {
         return this.store({ decision, cacheKey, mainValue: decision.type });
     }
 
-    private async removeIpDecision(decision: CachableDecision): Promise<CachableDecisionContent | null> {
+    private async removeIpDecision(decision: CachableDecision): Promise<CachableDecisionContent> {
         const cacheKey = getCacheKey(decision.scope, decision.value);
         return this.remove({ decision, cacheKey });
     }
@@ -204,11 +200,7 @@ class CacheStorage {
         try {
             return getIpV4BucketRange(rangeString);
         } catch (error) {
-            if (error instanceof Error) {
-                logger.error(`Error getting range: ${error.message}`);
-            } else {
-                logger.error(`An unexpected error occurred while getting range of: ${rangeString}`);
-            }
+            logger.error(`Error getting range of ${rangeString}: ${error instanceof Error ? error.message : 'Unexpected error'}`);
             return null;
         }
     }

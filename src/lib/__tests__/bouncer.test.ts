@@ -822,7 +822,14 @@ describe('🛡️ Bouncer', () => {
                         value: 'ban',
                     },
                 ],
-                [REFRESH_KEYS.DELETED]: [], // No deletion because was not in cache
+                [REFRESH_KEYS.DELETED]: [
+                    {
+                        id: 'capi-ban-ip-1.2.3.5',
+                        origin: 'capi',
+                        expiresAt: expect.any(Number),
+                        value: 'ban',
+                    },
+                ],
             });
         });
 
@@ -842,12 +849,46 @@ describe('🛡️ Bouncer', () => {
             expect(mockLoggerInfo).toHaveBeenCalledWith('Decisions cache is not warmed up yet');
         });
 
+        it('should not log info when cache is not warm', async () => {
+            const bouncer = new CrowdSecBouncer(configs);
+            jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(true);
+            jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
+                [REFRESH_KEYS.NEW]: [],
+                [REFRESH_KEYS.DELETED]: [],
+            });
+            jest.spyOn(bouncer['cacheStorage'], 'storeDecisions').mockResolvedValue([]);
+            jest.spyOn(bouncer['cacheStorage'], 'removeDecisions').mockResolvedValue([]);
+            const mockLoggerInfo = jest.spyOn(logger, 'info').mockImplementation(() => {});
+
+            await bouncer.refreshDecisions();
+
+            expect(mockLoggerInfo).not.toHaveBeenCalledWith('Decisions cache is not warmed up yet');
+        });
+
         it('should handle empty decision streams', async () => {
             const bouncer = new CrowdSecBouncer(configs);
             jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(true);
             jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
                 [REFRESH_KEYS.NEW]: [],
                 [REFRESH_KEYS.DELETED]: [],
+            });
+            jest.spyOn(bouncer['cacheStorage'], 'storeDecisions').mockResolvedValue([]);
+            jest.spyOn(bouncer['cacheStorage'], 'removeDecisions').mockResolvedValue([]);
+
+            const result = await bouncer.refreshDecisions();
+
+            expect(result).toEqual({
+                [REFRESH_KEYS.NEW]: [],
+                [REFRESH_KEYS.DELETED]: [],
+            });
+        });
+
+        it('should handle empty decision streams', async () => {
+            const bouncer = new CrowdSecBouncer(configs);
+            jest.spyOn(bouncer['cacheStorage'], 'isWarm').mockResolvedValue(true);
+            jest.spyOn(bouncer['lapiClient'], 'getDecisionStream').mockResolvedValue({
+                [REFRESH_KEYS.NEW]: null,
+                [REFRESH_KEYS.DELETED]: null,
             });
             jest.spyOn(bouncer['cacheStorage'], 'storeDecisions').mockResolvedValue([]);
             jest.spyOn(bouncer['cacheStorage'], 'removeDecisions').mockResolvedValue([]);

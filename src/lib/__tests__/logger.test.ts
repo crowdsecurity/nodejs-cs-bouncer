@@ -17,6 +17,7 @@ describe('Logger', () => {
     });
 
     it('should have the correct log level', () => {
-        expect(logger.level).toBe('debug');
+        const logLevel = process?.env?.LOG_LEVEL || 'debug';
+        expect(logger.level).toBe(logLevel);
     });
 });
