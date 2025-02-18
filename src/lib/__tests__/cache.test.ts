@@ -1,6 +1,7 @@
 import { describe, expect, it, jest, afterAll, beforeAll, afterEach, beforeEach } from '@jest/globals';
 import Keyv from 'keyv';
 
+import * as ipModule from 'src/helpers/ip';
 import CacheStorage from 'src/lib/cache';
 import InMemory from 'src/lib/cache/in-memory';
 import KeyvAdapter from 'src/lib/cache/keyv-adapter';
@@ -176,6 +177,33 @@ describe('Cache', () => {
 
             expect(mockLoggerInfo).toHaveBeenCalledWith(
                 'Error getting range of 2001:0db8:85a3:0000:0000:8a2e:0370:7334/64: Only Ip V4 Range format is supported.',
+            );
+        });
+        it('should return an empty array if unknown error during range storage', async () => {
+            const mockLoggerInfo = jest.spyOn(logger, 'error').mockImplementation(() => {});
+            jest.spyOn(ipModule, 'getIpV4BucketRange').mockImplementation(() => {
+                throw 'Mocked error';
+            });
+
+            const decisions: CachableDecision[] = [
+                {
+                    identifier: 'dec1-dec1-dec1-dec1',
+                    scope: SCOPE_RANGE,
+                    value: '2001:0db8:85a3:0000:0000:8a2e:0370:7334/64',
+                    type: 'ban',
+                    origin: 'test-origin',
+                    expiresAt: Date.now() + 60000, // Expires in 1 minute
+                },
+            ];
+            // Act: Call storeDecisions with an empty array
+            const result = await cacheStorage.storeDecisions(decisions);
+
+            // Assert: It should return an empty array
+            expect(result).toEqual([]);
+            expect(mockSetItem).not.toHaveBeenCalled();
+
+            expect(mockLoggerInfo).toHaveBeenCalledWith(
+                'Error getting range of 2001:0db8:85a3:0000:0000:8a2e:0370:7334/64: Unknown error.',
             );
         });
     });
@@ -430,6 +458,102 @@ describe('Cache', () => {
                 { origin: 'test-origin', remediation: { ban: 2, captcha: 1 } },
                 { origin: 'test-origin-2', remediation: { captcha: 1, custom: 1 } },
             ]);
+        });
+    });
+    describe('CacheStorage - getAllCachableDecisionContents', () => {
+        let cacheStorage: CacheStorage;
+
+        beforeEach(() => {
+            // ✅ Create an instance of CacheStorage with InMemory as the adapter
+            const cacheAdapter = new InMemory();
+            cacheStorage = new CacheStorage({ cacheAdapter });
+        });
+
+        afterEach(async () => {
+            jest.restoreAllMocks();
+        });
+
+        afterAll(async () => {
+            jest.restoreAllMocks();
+        });
+
+        it('should work for range scoped decisions', async () => {
+            const ip = '1.2.3.4';
+
+            const rangeItem = {
+                id: 'range_ban_cscli_1.2.3.4/24',
+                origin: 'cscli',
+                expiresAt: Date.now() + 60000,
+                value: 'ban',
+            };
+
+            jest.spyOn(cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'ip_1.2.3.4') {
+                    return Promise.resolve(null);
+                }
+                // bucket int for 1.2.3.4 is 66051
+                if (key === 'range_bucket_ipv4_66051') {
+                    return Promise.resolve({
+                        key: 'range_bucket_ipv4_66051',
+                        content: [
+                            {
+                                id: 'range_bucket_ipv4_66051',
+                                origin: 'cscli',
+                                expiresAt: Date.now() + 60000,
+                                value: '1.2.3.4/24',
+                            },
+                        ],
+                    });
+                }
+                if (key === 'range_1.2.3.4_24') {
+                    return Promise.resolve({
+                        key: 'range_ban_cscli_1.2.3.4_24',
+                        content: [rangeItem],
+                    });
+                }
+
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
+
+            const result = await cacheStorage.getAllCachableDecisionContents(ip);
+
+            expect(result).toEqual([rangeItem]);
+        });
+    });
+    describe('CacheStorage - setWarm', () => {
+        let cacheStorage: CacheStorage;
+
+        beforeEach(() => {
+            // ✅ Create an instance of CacheStorage with InMemory as the adapter
+            const cacheAdapter = new InMemory();
+            cacheStorage = new CacheStorage({ cacheAdapter });
+        });
+
+        afterEach(async () => {
+            jest.restoreAllMocks();
+        });
+
+        afterAll(async () => {
+            jest.restoreAllMocks();
+        });
+
+        it('should be abel to flag warm up', async () => {
+            const isWarm = await cacheStorage.isWarm();
+
+            expect(isWarm).toEqual(false);
+
+            await cacheStorage.setWarm();
+
+            const isWarmAfter = await cacheStorage.isWarm();
+
+            expect(isWarmAfter).toEqual(true);
         });
     });
 });

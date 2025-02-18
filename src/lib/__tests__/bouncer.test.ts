@@ -568,6 +568,31 @@ describe('🛡️ Bouncer', () => {
             expect(response.remediation).toBe('ban'); // Highest remediation
         });
 
+        it('should prune expired decision', async () => {
+            const ip = '192.168.1.1';
+            const now = Date.now();
+
+            const decisions: CachableDecisionContent[] = [
+                {
+                    id: 'csli-bypass-ip-192.168.1.1',
+                    origin: 'cscli',
+                    expiresAt: now + 10000000,
+                    value: 'bypass',
+                },
+                {
+                    id: 'csli-captcha-ip-192.168.1.1',
+                    origin: 'lapi',
+                    expiresAt: now + 10000000,
+                    value: 'captcha',
+                },
+                { id: 'csli-ban-ip-192.168.1.1', origin: 'stream', expiresAt: now - 10000000, value: 'ban' },
+            ];
+            getAllDecisionsSpy.mockResolvedValue(decisions);
+
+            const response = await bouncer.getIpRemediation(ip);
+            expect(response.remediation).toBe('captcha'); // Highest remediation as ban is expired
+        });
+
         it('should return a bypass if no decision ', async () => {
             const ip = '192.168.1.1';
             const customConfigs = { ...configs, cleanIpCacheDuration: 60 };

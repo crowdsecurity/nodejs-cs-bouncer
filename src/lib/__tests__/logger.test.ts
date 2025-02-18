@@ -4,11 +4,10 @@ import logger from 'src/lib/logger';
 
 describe('Logger', () => {
     afterAll(async () => {
-        // Ensure Jest cleans up any open Pino worker threads
         logger.flush();
     });
+
     afterEach(async () => {
-        // Ensure Jest cleans up any open Pino worker threads
         logger.flush();
     });
 

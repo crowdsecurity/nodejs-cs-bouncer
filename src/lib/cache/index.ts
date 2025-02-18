@@ -44,6 +44,7 @@ class CacheStorage {
         // Range scope
         const cachedContents = [];
         const bucketInt = getIpV4BucketIndexForIp(ip);
+
         const bucketCacheKey = getCacheKey(IPV4_BUCKET_KEY, bucketInt.toString());
         const bucketItem = (await this.adapter.getItem(bucketCacheKey)) as CachableDecisionItem | null;
         const bucketContents = bucketItem && bucketItem.content && bucketItem.content.length > 0 ? bucketItem.content : [];
@@ -200,7 +201,7 @@ class CacheStorage {
         try {
             return getIpV4BucketRange(rangeString);
         } catch (error) {
-            logger.error(`Error getting range of ${rangeString}: ${error instanceof Error ? error.message : 'Unexpected error'}`);
+            logger.error(`Error getting range of ${rangeString}: ${error instanceof Error ? error.message : 'Unknown error.'}`);
             return null;
         }
     }
