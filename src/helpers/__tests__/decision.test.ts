@@ -19,6 +19,12 @@ afterAll(() => {
 
 describe('convertRawDecisionsToDecisions', () => {
     it('should convert raw decisions to cachable decisions', () => {
+        const liveConfigs = {
+            url: 'http://example.com/api',
+            bouncerApiToken: 'test-api-key',
+            streamMode: false,
+            badIpCacheDuration: 240,
+        };
         const rawDecisions = [
             {
                 origin: 'cscli',
@@ -30,7 +36,7 @@ describe('convertRawDecisionsToDecisions', () => {
             },
         ];
         const currentTimestamp = Date.now();
-        const decisions = convertRawDecisionsToDecisions(rawDecisions, configs);
+        const decisions = convertRawDecisionsToDecisions(rawDecisions, liveConfigs);
 
         const expected = [
             {
@@ -43,7 +49,8 @@ describe('convertRawDecisionsToDecisions', () => {
             },
         ];
         expect(decisions).toEqual(expected);
-        expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + 3600000, -2); // Allows some flexibility;
+        // In live mode, the expiration time should be the minimum between the decision duration and the badIpCacheDuration (here 240 seconds vs 1h)
+        expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + 240000, -2); // Allows some flexibility;
     });
     it('should convert raw lists decisions to cachable decisions', () => {
         const rawDecisions = [
@@ -70,7 +77,8 @@ describe('convertRawDecisionsToDecisions', () => {
             },
         ];
         expect(decisions).toEqual(expected);
-        expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + 3600 * 1000, -2); // Allows some flexibility;
+        // In live mode, the expiration time should be the minimum between the decision duration and the badIpCacheDuration (here 120 seconds vs 1h)
+        expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + 120 * 1000, -2); // Allows some flexibility;
     });
     it('should return empty for invalid decision', () => {
         const rawDecisions = [
@@ -89,7 +97,7 @@ describe('convertRawDecisionsToDecisions', () => {
         expect(decisions).toEqual(expected);
     });
     it('should create decision with correct expires_at in stream mode', () => {
-        const badIpCacheDuration = 3600;
+        const badIpCacheDuration = 120;
         const streamConfigs = {
             url: 'http://example.com/api',
             bouncerApiToken: 'test-api-key',
@@ -119,16 +127,16 @@ describe('convertRawDecisionsToDecisions', () => {
             },
         ];
         expect(decisions).toEqual(expected);
-        // The expiration time should be the minimum between the decision duration and the badIpCacheDuration
-        expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + badIpCacheDuration * 1000, -2); // Allows some flexibility;
+        // In stream mode, the expiration time should be the decision duration (3600 seconds)
+        expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + 3600 * 1000, -2); // Allows some flexibility;
 
         expect(decisions).toEqual(expected);
     });
-    it('should create decision with correct default expires_at in stream mode', () => {
-        const streamConfigs = {
+    it('should create decision with correct default expires_at in live mode', () => {
+        const liveConfigs = {
             url: 'http://example.com/api',
             bouncerApiToken: 'test-api-key',
-            streamMode: true,
+            streamMode: false,
         };
         const rawDecisions = [
             {
@@ -141,7 +149,7 @@ describe('convertRawDecisionsToDecisions', () => {
             },
         ];
         const currentTimestamp = Date.now();
-        const decisions = convertRawDecisionsToDecisions(rawDecisions, streamConfigs);
+        const decisions = convertRawDecisionsToDecisions(rawDecisions, liveConfigs);
         const expected = [
             {
                 identifier: 'capi-ban-ip-1.2.3.4',
@@ -153,7 +161,7 @@ describe('convertRawDecisionsToDecisions', () => {
             },
         ];
         expect(decisions).toEqual(expected);
-        // The expiration time should be the minimum between the decision duration and the badIpCacheDuration
+        // In live mode, the expiration time should be the minimum between the decision duration and the badIpCacheDuration (here 120 seconds vs 1h)
         // The default badIpCacheDuration is 120 seconds
         expect(decisions[0].expiresAt).toBeCloseTo(currentTimestamp + 120 * 1000, -2); // Allows some flexibility;
 

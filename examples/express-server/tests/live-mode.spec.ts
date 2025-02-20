@@ -21,7 +21,7 @@ test('Should be banned', async ({ page }) => {
     const result = await addIpDecision({ ip: bouncedIp, type: 'ban', duration: 5 });
     expect(result.stderr).toContain('Decision successfully added');
     // clean ip is cached for 1 second (see configs/live-mode.json) and we wait a bit for LAPI to be up to date
-    await wait(1000);
+    await wait(1500);
     await page.goto('/');
     // Remediation should be a ban
     await expect(page).toHaveTitle(banTitle);

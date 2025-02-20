@@ -52,7 +52,7 @@ let config: CrowdSecBouncerConfiguration = {
     bouncerApiToken: process.env.BOUNCER_KEY,
 };
 // For End-to-End tests, load a different configuration depending on the test name
-if (process.env.E2E_TEST_NAME !== 'undefined') {
+if (process.env.E2E_TEST_NAME) {
     const testName = process.env.E2E_TEST_NAME;
     console.log('Running End to End test:', testName);
     try {
