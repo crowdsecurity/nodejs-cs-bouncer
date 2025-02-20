@@ -30,6 +30,8 @@ export default defineConfig({
             'html',
             {
                 open: 'never',
+                // In CI, we run test one by one (current time is unique for each test)
+                // We keep one report per test to be able to see the results of each test in artifacts upload
                 outputFolder: process.env.CI ? `playwright-report/${currentDateTime}` : 'playwright-report',
             },
         ],

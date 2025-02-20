@@ -4,7 +4,6 @@ import express from 'express';
 import nodeCron from 'node-cron';
 import pino from 'pino';
 import path from 'path';
-import fs from 'fs';
 import 'examples/express-server/crowdsec-alias';
 // In a real project, you would have to install the package from npm: "npm install @crowdsec/nodejs-bouncer"
 // Here, for development and test purpose, we use the alias to load the package from the dist folder (@see ./crowdsec-alias.ts)
@@ -15,6 +14,8 @@ import {
     // @ts-expect-error We load the CrowdSecBouncer from the dist folder
     // eslint-disable-next-line import/no-unresolved
 } from '@crowdsec/nodejs-bouncer';
+
+import { getEndToEndTestConfig } from './tests/helpers/base';
 
 // Load and validate environment variables from .env file
 dotenvSafe.config({
@@ -51,23 +52,12 @@ let config: CrowdSecBouncerConfiguration = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
     bouncerApiToken: process.env.BOUNCER_KEY,
 };
-// For End-to-End tests, load a different configuration depending on the test name
+// For End-to-End tests only
 if (process.env.E2E_TEST_NAME) {
-    const testName = process.env.E2E_TEST_NAME;
-    console.log('Running End to End test:', testName);
-    try {
-        const configFilePath = path.resolve(__dirname, `tests/configs/${testName}.json`); // Adjust the path as needed
-        const fileContents = fs.readFileSync(configFilePath, 'utf-8');
-        const fileConfig = JSON.parse(fileContents);
-
-        // Merge fileConfig into config, overriding existing values
-        config = { ...config, ...fileConfig };
-
-        logger.info(`Final configuration is ${JSON.stringify(config)}`);
-    } catch (error) {
-        logger.error('Failed to load config from file');
-        process.exit(1); // Exit if config file is required and cannot be loaded
-    }
+    // Load a different configuration depending on the test name
+    const fileConfig = getEndToEndTestConfig(process.env.E2E_TEST_NAME);
+    config = { ...config, ...fileConfig };
+    logger.info(`Final configuration is ${JSON.stringify(config)}`);
 }
 
 // Create an instance of the CrowdSec Bouncer
@@ -77,7 +67,13 @@ const bouncer = new CrowdSecBouncer(config);
 app.use(async (req, res, next) => {
     // Skip favicon requests as each access to the page will trigger a request to /favicon.ico
     // and there is no need to apply remediation twice
-    if (req.path === '/favicon.ico') {
+    const excludedPaths = ['/favicon.ico'];
+    if (process.env.E2E_TEST_NAME) {
+        // We need to exclude this endpoint only for end-to-end tests purposes
+        excludedPaths.push('/end-to-end-tools');
+    }
+
+    if (excludedPaths.includes(req.path)) {
         return next();
     }
 
@@ -154,6 +150,24 @@ nodeCron.schedule('* * * * * *', async () => {
     }
     counter++;
 });
+
+// For End-to-End tests only
+if (process.env.E2E_TEST_NAME) {
+    app.get('/end-to-end-tools', async (req, res) => {
+        // Retrieve "action" get param
+        const action = req.query.action;
+        if (action === 'get-captcha-phrase') {
+            // Get the captcha phrase
+            const item = await bouncer.cacheStorage.adapter.getItem(`captcha_flow_${process.env.BOUNCED_IP}`);
+            res.json({ phrase: item?.content?.phraseToGuess || null });
+        }
+        if (action === 'clear-cache') {
+            // Get the captcha phrase
+            await bouncer.cacheStorage.adapter.clear();
+            res.send('Cache cleared');
+        }
+    });
+}
 
 // Start the server
 app.listen(PORT, () => {

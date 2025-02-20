@@ -11,6 +11,7 @@ const bouncedIp = getBouncedIp();
 setupBeforeAll(TEST_NAME);
 
 test('Should access Home Page', async ({ page }) => {
+    await page.goto('/end-to-end-tools?action=clear-cache');
     await page.goto('/');
     // Remediation should be a bypass
     await expect(page).toHaveTitle(homeTitle);
@@ -44,11 +45,28 @@ test('Should be banned the time of cached decision', async ({ page }) => {
 
 test('Should show a captcha', async ({ page }) => {
     // Add captcha decision
-    const result = await addIpDecision({ ip: bouncedIp, type: 'captcha', duration: 5 });
+    const result = await addIpDecision({ ip: bouncedIp, type: 'captcha', duration: 600 });
     expect(result.stderr).toContain('Decision successfully added');
-    // captcha ip is cached for 5 seconds (because this is the decision duration we set above) but we wait a bit for LAPI to be up to date
+    // captcha ip is cached for 600 seconds (because this is the decision duration we set above) but we wait a bit for LAPI to be up to date
     await wait(1000);
     await page.goto('/');
     // Remediation should be a captcha
     await expect(page).toHaveTitle(captchaTitle);
+});
+
+test('Should solve a captcha', async ({ page }) => {
+    await page.goto('/end-to-end-tools?action=get-captcha-phrase');
+
+    const phrase = await page.evaluate(() => {
+        return JSON.parse(document.body.innerText).phrase;
+    });
+
+    console.log('Captcha phrase:', phrase);
+    expect(phrase).toHaveLength(4);
+    await page.goto('/');
+    await page.fill('input[name="phrase"]', phrase);
+    await page.click('button[type="submit"]');
+
+    // Remediation should be a bypass as we have solved the captcha
+    await expect(page).toHaveTitle(homeTitle);
 });
