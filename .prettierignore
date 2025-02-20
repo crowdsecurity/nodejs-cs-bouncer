@@ -1,1 +1,4 @@
 **/*.ejs
+**/*.json
+**/*.md
+examples/express-server/playwright-report/*

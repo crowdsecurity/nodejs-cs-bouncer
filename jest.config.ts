@@ -5,7 +5,7 @@ const config: Config = {
     coverageReporters: ['text', 'cobertura'],
     preset: 'ts-jest',
     testEnvironment: 'node',
-    testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+    testPathIgnorePatterns: ['/node_modules/', '/dist/', '/examples/'],
     transform: {
         '^.+\\.(ts|tsx)$': 'ts-jest',
     },

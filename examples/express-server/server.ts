@@ -3,8 +3,8 @@ import dotenvSafe from 'dotenv-safe';
 import express from 'express';
 import nodeCron from 'node-cron';
 import pino from 'pino';
-import { ORIGIN_CLEAN, REMEDIATION_BYPASS, BOUNCER_KEYS } from 'src/lib/constants';
 import path from 'path';
+import fs from 'fs';
 import 'examples/express-server/crowdsec-alias';
 // In a real project, you would have to install the package from npm: "npm install @crowdsec/nodejs-bouncer"
 // Here, for development and test purpose, we use the alias to load the package from the dist folder (@see ./crowdsec-alias.ts)
@@ -47,15 +47,36 @@ const logger = pino({
  * Configuration for the CrowdSec Bouncer.
  * For more details, see src/lib/bouncer/types.ts
  */
-const config: CrowdSecBouncerConfiguration = {
+let config: CrowdSecBouncerConfiguration = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
     bouncerApiToken: process.env.BOUNCER_KEY,
 };
+// For End-to-End tests, load a different configuration depending on the test name
+if (process.env.E2E_TEST_NAME !== 'undefined') {
+    const testName = process.env.E2E_TEST_NAME;
+    console.log('Running End to End test:', testName);
+    try {
+        const configFilePath = path.resolve(__dirname, `tests/configs/${testName}.json`); // Adjust the path as needed
+        const fileContents = fs.readFileSync(configFilePath, 'utf-8');
+        const fileConfig = JSON.parse(fileContents);
+
+        // Merge fileConfig into config, overriding existing values
+        config = { ...config, ...fileConfig };
+
+        logger.info(`Final configuration is ${JSON.stringify(config)}`);
+    } catch (error) {
+        logger.error('Failed to load config from file');
+        process.exit(1); // Exit if config file is required and cannot be loaded
+    }
+}
+
 // Create an instance of the CrowdSec Bouncer
 const bouncer = new CrowdSecBouncer(config);
 
 // CrowdSec Middleware to apply remediation
 app.use(async (req, res, next) => {
+    // Skip favicon requests as each access to the page will trigger a request to /favicon.ico
+    // and there is no need to apply remediation twice
     if (req.path === '/favicon.ico') {
         return next();
     }
@@ -122,11 +143,11 @@ nodeCron.schedule('* * * * * *', async () => {
         try {
             const decisionStream = await bouncer.refreshDecisions({
                 origins: ['cscli'], // CAPI, lists, cscli, etc
-                scopes: ['ip'],
+                scopes: ['ip', 'range'],
             });
 
-            logger.info(`New decisions: ${JSON.stringify(decisionStream.new ?? '[]')}`);
-            logger.info(`Deleted decisions: ${JSON.stringify(decisionStream.deleted ?? '[]')}`);
+            logger.info(`New decisions: ${decisionStream?.new?.length || 0}`);
+            logger.info(`Deleted decisions: ${decisionStream?.deleted?.length || 0}`);
         } catch (error) {
             logger.error(`Error fetching decision stream: ${(error as Error).message}`);
         }

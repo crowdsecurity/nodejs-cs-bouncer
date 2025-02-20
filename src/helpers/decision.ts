@@ -53,7 +53,9 @@ const buildDecisionExpiresAt = ({
     configs: CrowdSecBouncerConfigurations;
 }): CachableExpiresAt => {
     let durationInMilliseconds = convertDurationToMilliseconds(duration);
-    if (REMEDIATION_BYPASS !== type && configs.streamMode) {
+    // In Stream Mode, lifetime for a bad ip depends only on decision duration
+    // In Live Mode, we keep the minimum value between decision duration and badIpCacheDuration configuration
+    if (REMEDIATION_BYPASS !== type && !configs.streamMode) {
         durationInMilliseconds = Math.min(durationInMilliseconds, (configs.badIpCacheDuration ?? CACHE_EXPIRATION_FOR_BAD_IP) * 1000);
     }
 

@@ -9,23 +9,23 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
--   [Prerequisites](#prerequisites)
--   [Features](#features)
--   [Usage](#usage)
--   [Configurations](#configurations)
-    -   [Bouncer behavior](#bouncer-behavior)
-    -   [Local API Connection](#local-api-connection)
-    -   [Cache](#cache)
-    -   [Captcha and Ban walls settings](#captcha-and-ban-walls-settings)
--   [Implement your own bouncer](#implement-your-own-bouncer)
-    -   [Instantiation](#instantiation)
-    -   [Apply a remediation](#apply-a-remediation)
-    -   [Refresh decision cache](#refresh-decision-cache)
-    -   [Custom Captcha](#custom-captcha)
-    -   [Custom Cache Adapter](#custom-cache-adapter)
--   [Examples](#examples)
-    -   [Basics](#basics)
-    -   [Express server](#express-server)
+- [Prerequisites](#prerequisites)
+- [Features](#features)
+- [Usage](#usage)
+- [Configurations](#configurations)
+    - [Bouncer behavior](#bouncer-behavior)
+    - [Local API Connection](#local-api-connection)
+    - [Cache](#cache)
+    - [Captcha and Ban walls settings](#captcha-and-ban-walls-settings)
+- [Implement your own bouncer](#implement-your-own-bouncer)
+    - [Instantiation](#instantiation)
+    - [Apply a remediation](#apply-a-remediation)
+    - [Refresh decision cache](#refresh-decision-cache)
+    - [Custom Captcha](#custom-captcha)
+    - [Custom Cache Adapter](#custom-cache-adapter)
+- [Examples](#examples)
+    - [Basics](#basics)
+    - [Express server](#express-server)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -39,12 +39,12 @@ Please note that first and foremost a CrowdSec agent must be installed on a serv
 
 ## Features
 
--   CrowdSec Local API support
+- CrowdSec Local API support
 
-    -   Handle `ip` and `range` scoped decisions
-    -   `Live mode` or `Stream mode`
+    - Handle `ip` and `range` scoped decisions
+    - `Live mode` or `Stream mode`
 
--   Support IpV4 and Ipv6 (Ipv6 range decisions are yet only supported in `Live mode`)
+- Support IpV4 and Ipv6 (Ipv6 range decisions are yet only supported in `Live mode`)
 
 ## Usage
 
@@ -74,105 +74,118 @@ Below is the list of available settings (see also `CrowdSecBouncerConfigurations
 
 ### Bouncer behavior
 
--   `bouncingLevel`: Select from `disabled_bouncing`, `normal_bouncing` or `flex_bouncing`.
-    Choose if you want to apply CrowdSec directives (Normal bouncing) or be more permissive (Flex mode).
-    With the `Flex mode`, it is impossible to accidentally block access to your site to people who don’t deserve it.
-    This mode makes it possible to never ban an IP but only to offer a captcha, in the worst-case scenario.
+- `bouncingLevel`: Select from `disabled_bouncing`, `normal_bouncing` or `flex_bouncing`.
+  Choose if you want to apply CrowdSec directives (Normal bouncing) or be more permissive (Flex mode).
+  With the `Flex mode`, it is impossible to accidentally block access to your site to people who don’t deserve it.
+  This mode makes it possible to never ban an IP but only to offer a captcha, in the worst-case scenario.
 
--   `fallbackRemediation`: Select from `bypass` (minimum remediation), `captcha` or `ban` (maximum remediation).
-    Default to 'captcha'. Handle unknown remediation as.
 
--   `streamMode`: true to enable stream mode, false to enable the live mode.
-    Default to false.
-    By default, the `live mode` is enabled. The first time a visitor connects to your website, this mode means that the IP
-    will be
-    checked directly by the CrowdSec API. The rest of your user’s browsing will be even more transparent thanks to the
-    cache system.
-    But you can also activate the `stream mode`. This mode allows you to constantly feed
-    the bouncer with the malicious IP list via a background task (CRON), making it to be even faster when checking the IP
-    of your visitors. Besides, if your site has a lot of unique visitors at the same time, this will not influence the
-    traffic to the API of your CrowdSec instance.
+- `fallbackRemediation`: Select from `bypass` (minimum remediation), `captcha` or `ban` (maximum remediation).
+  Default to 'captcha'. Handle unknown remediation as.
+
+
+- `streamMode`: true to enable stream mode, false to enable the live mode.
+  Default to false.
+
+  By default, the `live mode` is enabled. The first time a visitor connects to your website, this mode means that the IP
+  will be
+  checked directly by the CrowdSec API. The rest of your user’s browsing will be even more transparent thanks to the
+  cache system.
+  But you can also activate the `stream mode`. This mode allows you to constantly feed
+  the bouncer with the malicious IP list via a background task (CRON), making it to be even faster when checking the IP
+  of your visitors. Besides, if your site has a lot of unique visitors at the same time, this will not influence the
+  traffic to the API of your CrowdSec instance.
 
 ### Local API Connection
 
--   `bouncerApiToken`: Key generated by the cscli (CrowdSec cli) command like `cscli bouncers add node-bouncer`.
+- `bouncerApiToken`: Key generated by the cscli (CrowdSec cli) command like `cscli bouncers add node-bouncer`.
 
--   `url`: Define the URL to your Local API server (Example: `http://localhost:8080`).
 
--   `userAgent`: Define the User-Agent to use when calling the Local API. Default to `nodejs-cs-bouncer/v<x.y.z>'`.
+- `url`: Define the URL to your Local API server (Example: `http://localhost:8080`).
+
+
+- `userAgent`: Define the User-Agent to use when calling the Local API. Default to `nodejs-cs-bouncer/v<x.y.z>'`.
 
 ### Cache
 
--   `cacheAdapter`: Define the cache adapter to use. Default to `InMemory`.
-    Cache system aims to reduce the number of calls to the CrowdSec API. The main purpose is to store the decisions.
-    It's also used to store the captcha flow data for a given IP and other data corresponding to the bouncer's state.
+- `cacheAdapter`: Define the cache adapter to use. Default to `InMemory`.
+  Cache system aims to reduce the number of calls to the CrowdSec API. The main purpose is to store the decisions.
+  It's also used to store the captcha flow data for a given IP and other data corresponding to the bouncer's state.
 
--   `cleanIpCacheDuration`: Set the duration we keep in cache the fact that an IP is clean. In seconds. Defaults to 60.
 
--   `badIpCacheDuration`: Set the duration we keep in cache the fact that an IP is bad. In seconds. Defaults to 120.
+- `cleanIpCacheDuration`: Set the duration we keep in cache the fact that an IP is clean. In seconds. Defaults to 60.
 
--   `captchaFlowCacheDuration`: Set the duration we keep in cache the captcha flow variables for an IP. In seconds.
-    Defaults to 86400. This means that once a captcha is solved, it won’t need to be solved again for 24 hours.
+
+- `badIpCacheDuration`: Set the duration we keep in cache the fact that an IP is bad (for `captcha` and `ban`
+  remediation). In seconds. Defaults to 120.
+
+  In Live Mode, the lifetime of the cached decision will be the minimum between this setting and the decision duration.
+
+  In Stream Mode, the cache duration depends only on the decision duration.
+
+
+- `captchaFlowCacheDuration`: Set the duration we keep in cache the captcha flow variables for an IP. In seconds.
+  Defaults to 86400. This means that once a captcha is solved, it won’t need to be solved again for 24 hours.
 
 ### Captcha and Ban walls settings
 
--   `wallOptions`: Define the options for the wall rendering. Default to:
+- `wallOptions`: Define the options for the wall rendering. Default to:
 
 ```json lines
 {
-    "ban": {
-        "texts": {
-            "tabTitle": "CrowdSec | Ban Wall",
-            "title": "Access Denied",
-            "subtitle": "This page is secured against cyber attacks, and your IP has been blocked by our system",
-            "footer": ""
-        },
-        "content": "HTML generated with /src/lib/rendered/templates/base.ejs+ban.ejs",
-        "colors": {
-            "text": {
-                "primary": "#F9FAFA",
-                "secondary": "#B0B5BF",
-                "button": "#F9FAFA",
-                "error_message": "#F55B60"
-            },
-            "background": {
-                "page": "#04041F",
-                "container": "#162131",
-                "button": "#888BCE"
-            }
-        },
-        "hideCrowdSecMentions": false,
-        "style": ""
+  "ban": {
+    "texts": {
+      "tabTitle": "CrowdSec | Ban Wall",
+      "title": "Access Denied",
+      "subtitle": "This page is secured against cyber attacks, and your IP has been blocked by our system",
+      "footer": ""
     },
-    "captcha": {
-        "captchaImageTag": "Generated with svg-captcha-fixed",
-        "texts": {
-            "tabTitle": "CrowdSec | Captcha Wall",
-            "title": "Access Denied",
-            "subtitle": "Please complete the security check.",
-            "refresh_image_link": "Reload the image",
-            "captcha_placeholder": "Type here...",
-            "send_button": "Continue",
-            "error": "",
-            "footer": ""
-        },
-        "content": "HTML generated with /src/lib/rendered/templates/base.ejs+captcha.ejs",
-        "colors": {
-            "text": {
-                "primary": "#F9FAFA",
-                "secondary": "#B0B5BF",
-                "button": "#F9FAFA",
-                "error_message": "#F55B60"
-            },
-            "background": {
-                "page": "#04041F",
-                "container": "#162131",
-                "button": "#888BCE"
-            }
-        },
-        "hideCrowdSecMentions": false,
-        "style": "CSS generated with /src/lib/rendered/templates/captcha-css.ejs"
-    }
+    "content": "HTML generated with /src/lib/rendered/templates/base.ejs+ban.ejs",
+    "colors": {
+      "text": {
+        "primary": "#F9FAFA",
+        "secondary": "#B0B5BF",
+        "button": "#F9FAFA",
+        "error_message": "#F55B60"
+      },
+      "background": {
+        "page": "#04041F",
+        "container": "#162131",
+        "button": "#888BCE"
+      }
+    },
+    "hideCrowdSecMentions": false,
+    "style": ""
+  },
+  "captcha": {
+    "captchaImageTag": "Generated with svg-captcha-fixed",
+    "texts": {
+      "tabTitle": "CrowdSec | Captcha Wall",
+      "title": "Access Denied",
+      "subtitle": "Please complete the security check.",
+      "refresh_image_link": "Reload the image",
+      "captcha_placeholder": "Type here...",
+      "send_button": "Continue",
+      "error": "",
+      "footer": ""
+    },
+    "content": "HTML generated with /src/lib/rendered/templates/base.ejs+captcha.ejs",
+    "colors": {
+      "text": {
+        "primary": "#F9FAFA",
+        "secondary": "#B0B5BF",
+        "button": "#F9FAFA",
+        "error_message": "#F55B60"
+      },
+      "background": {
+        "page": "#04041F",
+        "container": "#162131",
+        "button": "#888BCE"
+      }
+    },
+    "hideCrowdSecMentions": false,
+    "style": "CSS generated with /src/lib/rendered/templates/captcha-css.ejs"
+  }
 }
 ```
 
@@ -317,8 +330,8 @@ const bouncer = new CrowdSecBouncer(config);
 
 The `examples/basics` directory contains a simple scripts that demonstrates the basic usage of the bouncer:
 
--   getting a remediation for an IP
--   refreshing the decision cache
+- getting a remediation for an IP
+- refreshing the decision cache
 
 ### Express server
 
