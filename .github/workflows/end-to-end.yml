@@ -3,10 +3,6 @@ on:
     push:
         paths-ignore:
             - '**.md'
-    pull_request:
-        branches: [main]
-        paths-ignore:
-            - '**.md'
     workflow_dispatch:
 jobs:
     test:
@@ -47,7 +43,6 @@ jobs:
                     cd examples/express-server
                     E2E_TEST_NAME=live-mode npx playwright test live-mode
                     E2E_TEST_NAME=stream-mode npx playwright test stream-mode
-
 
             -   uses: actions/upload-artifact@v4
                 if: ${{ !cancelled() }}
