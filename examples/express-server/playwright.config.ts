@@ -21,6 +21,8 @@ export default defineConfig({
     forbidOnly: !!process.env.CI,
     /* Retry on CI only */
     retries: process.env.CI ? 2 : 0,
+    /* Stop immediately when a test fails */
+    maxFailures: 1,
     /* Opt out of parallel tests on CI. */
     workers: process.env.CI ? 1 : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -85,7 +87,7 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer: {
-        command: `E2E_TEST_NAME=${process.env.E2E_TEST_NAME} npm run start`,
+        command: `E2E_TEST_NAME=${process.env.E2E_TEST_NAME} npm run start-e2e`,
         url: 'http://127.0.0.1:3000',
         reuseExistingServer: !process.env.CI,
         stdout: process.env.CI ? 'ignore' : 'pipe',

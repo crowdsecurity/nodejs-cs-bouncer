@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { setupBeforeAll } from './setup/before-all';
+import { setupCommon } from './setup/common';
 
 const TEST_NAME = 'stream-mode';
 
-setupBeforeAll(TEST_NAME);
+setupCommon(TEST_NAME);
 
 test('has title', async ({ page }) => {
     await page.goto('/');

@@ -1,8 +1,5 @@
-import dotenv from 'dotenv';
-import dotenvSafe from 'dotenv-safe';
 import express from 'express';
 import nodeCron from 'node-cron';
-import pino from 'pino';
 import path from 'path';
 import 'examples/express-server/crowdsec-alias';
 // In a real project, you would have to install the package from npm: "npm install @crowdsec/nodejs-bouncer"
@@ -15,35 +12,18 @@ import {
     // eslint-disable-next-line import/no-unresolved
 } from '@crowdsec/nodejs-bouncer';
 
-import { getEndToEndTestConfig } from './tests/helpers/base';
+import { getE2ETestConfig, getE2EExcludedPaths, addE2ERoutes } from './tests/helpers/base';
+import { getExcludedPaths, getLogger, loadEnv } from './helpers';
+import { add } from 'lodash';
 
-// Load and validate environment variables from .env file
-dotenvSafe.config({
-    path: path.resolve(__dirname, '.env'),
-    example: path.resolve(__dirname, '.env.example'),
-});
-dotenv.config();
-// Load and validate the .env file in the crowdsec folder (will override any duplicate values from the main .env)
-dotenvSafe.config({
-    path: path.resolve(__dirname, 'crowdsec/.env'),
-    example: path.resolve(__dirname, 'crowdsec/.env.example'),
-});
-dotenv.config({ path: path.resolve(__dirname, 'crowdsec/.env') });
+// Load and validate environment variables
+loadEnv();
 // Create an Express app
 const app = express();
-const PORT = 3000;
 // Middleware to parse URL-encoded form data (we are posting data to solve the captcha)
 app.use(express.urlencoded({ extended: true }));
 // Set up the logger for this example
-const logger = pino({
-    level: process.env.TEST_LOG_LEVEL ?? 'debug',
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: false,
-        },
-    },
-});
+const logger = getLogger();
 /**
  * Configuration for the CrowdSec Bouncer.
  * For more details, see src/lib/bouncer/types.ts
@@ -51,29 +31,16 @@ const logger = pino({
 let config: CrowdSecBouncerConfiguration = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
     bouncerApiToken: process.env.BOUNCER_KEY,
+    ...getE2ETestConfig(), // Only for End-to-End tests
 };
-// For End-to-End tests only
-if (process.env.E2E_TEST_NAME) {
-    // Load a different configuration depending on the test name
-    const fileConfig = getEndToEndTestConfig(process.env.E2E_TEST_NAME);
-    config = { ...config, ...fileConfig };
-    logger.info(`Final configuration is ${JSON.stringify(config)}`);
-}
 
 // Create an instance of the CrowdSec Bouncer
 const bouncer = new CrowdSecBouncer(config);
 
 // CrowdSec Middleware to apply remediation
 app.use(async (req, res, next) => {
-    // Skip favicon requests as each access to the page will trigger a request to /favicon.ico
-    // and there is no need to apply remediation twice
-    const excludedPaths = ['/favicon.ico'];
-    if (process.env.E2E_TEST_NAME) {
-        // We need to exclude this endpoint only for end-to-end tests purposes
-        excludedPaths.push('/end-to-end-tools');
-    }
-
-    if (excludedPaths.includes(req.path)) {
+    // Exclude some paths from the bouncing middleware
+    if ([...getExcludedPaths(), ...getE2EExcludedPaths()].includes(req.path)) {
         return next();
     }
 
@@ -125,7 +92,7 @@ app.use(async (req, res, next) => {
 });
 
 // Serve a simple webpage ("home" page)
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -152,24 +119,10 @@ nodeCron.schedule('* * * * * *', async () => {
 });
 
 // For End-to-End tests only
-if (process.env.E2E_TEST_NAME) {
-    app.get('/end-to-end-tools', async (req, res) => {
-        // Retrieve "action" get param
-        const action = req.query.action;
-        if (action === 'get-captcha-phrase') {
-            // Get the captcha phrase
-            const item = await bouncer.cacheStorage.adapter.getItem(`captcha_flow_${process.env.BOUNCED_IP}`);
-            res.json({ phrase: item?.content?.phraseToGuess || null });
-        }
-        if (action === 'clear-cache') {
-            // Get the captcha phrase
-            await bouncer.cacheStorage.adapter.clear();
-            res.send('Cache cleared');
-        }
-    });
-}
+addE2ERoutes(app, bouncer);
 
 // Start the server
+const PORT = 3000;
 app.listen(PORT, () => {
     logger.info(`Server running on http://localhost:${PORT}`);
 });

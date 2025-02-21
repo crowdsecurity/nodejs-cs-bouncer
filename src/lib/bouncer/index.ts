@@ -4,7 +4,13 @@ import svgCaptcha from 'svg-captcha-fixed';
 import { buildCachableDecision, convertRawDecisionsToDecisions } from 'src/helpers/decision';
 import { getFirstIpFromRange, getIpOrRangeType, getIpToRemediate } from 'src/helpers/ip';
 import { CaptchaGenerator } from 'src/lib/bouncer/captcha';
-import { BOUNCING_LEVEL_DISABLED, BOUNCING_LEVEL_FLEX, BOUNCING_LEVEL_NORMAL, ORDERED_REMEDIATIONS } from 'src/lib/bouncer/constants';
+import {
+    BOUNCING_LEVEL_DISABLED,
+    BOUNCING_LEVEL_FLEX,
+    BOUNCING_LEVEL_NORMAL,
+    ORDERED_REMEDIATIONS,
+    CAPTCHA_ERROR,
+} from 'src/lib/bouncer/constants';
 import { CaptchaSubmission, CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
 import { CAPTCHA_FLOW } from 'src/lib/cache/constants';
@@ -383,7 +389,13 @@ class CrowdSecBouncer {
                 // We display the captcha wall
                 const captcha = await this.saveCaptchaFlow(ip);
                 // If failed, we add an error message
-                const texts = captcha.resolutionFailed ? { texts: { error: 'Please try again' } } : {};
+                const texts = captcha.resolutionFailed
+                    ? {
+                          texts: {
+                              error: this.configs.wallsOptions?.captcha?.texts?.error ?? CAPTCHA_ERROR,
+                          },
+                      }
+                    : {};
                 const captchaWall = await this.renderWall('captcha', {
                     captchaImageTag: captcha.inlineImage,
                     ...texts,

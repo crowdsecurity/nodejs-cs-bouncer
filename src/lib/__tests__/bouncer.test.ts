@@ -968,7 +968,47 @@ describe('🛡️ Bouncer', () => {
             ]);
         });
 
-        it('should return 401 and captcha wall with error message', async () => {
+        it('should return 401 and captcha wall with custom error message', async () => {
+            const bouncer = new CrowdSecBouncer({
+                ...configs,
+                wallsOptions: { captcha: { texts: { error: 'Wrong phrase' } } },
+            });
+            const params = { ip: '192.168.0.1', remediation: REMEDIATION_CAPTCHA, origin: 'test-origin' };
+            const mockRenderCaptcha = jest.spyOn(rendered, 'renderCaptchaWall').mockResolvedValue('<captcha-wall></captcha-wall>');
+            const cachedCaptchaFlow = {
+                key: 'captcha_flow_192.168.0.1',
+                content: {
+                    phraseToGuess: 'correct-phrase',
+                    inlineImage: '<svg>test</svg>',
+                    resolutionFailed: true,
+                    mustBeResolved: true,
+                },
+            };
+            jest.spyOn(bouncer.cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'captcha_flow_192.168.0.1') {
+                    return Promise.resolve(cachedCaptchaFlow);
+                }
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
+
+            const result = await bouncer.getResponse(params);
+
+            expect(mockRenderCaptcha).toHaveBeenCalledWith({
+                captchaImageTag: '<svg>test</svg>',
+                texts: { error: 'Wrong phrase' },
+            });
+
+            expect(result).toEqual({ status: 401, html: '<captcha-wall></captcha-wall>' });
+        });
+
+        it('should return 401 and captcha wall with default error message', async () => {
             const bouncer = new CrowdSecBouncer(configs);
             const params = { ip: '192.168.0.1', remediation: REMEDIATION_CAPTCHA, origin: 'test-origin' };
             const mockRenderCaptcha = jest.spyOn(rendered, 'renderCaptchaWall').mockResolvedValue('<captcha-wall></captcha-wall>');

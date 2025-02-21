@@ -7,3 +7,4 @@ export const ORDERED_REMEDIATIONS: Remediation[] = [REMEDIATION_BYPASS, REMEDIAT
 export const BOUNCING_LEVEL_DISABLED = 'disabled_bouncing';
 export const BOUNCING_LEVEL_FLEX = 'flex_bouncing';
 export const BOUNCING_LEVEL_NORMAL = 'normal_bouncing';
+export const CAPTCHA_ERROR = 'Please try again';

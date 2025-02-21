@@ -25,10 +25,10 @@ export type CaptchaWallOptions = BaseWallOptions &
     Partial<{
         texts: Partial<(typeof DEFAULT_TEXTS)['captcha']>;
     }> & {
-        captchaImageTag: string;
+        captchaImageTag?: string;
     };
 
 export type WallsOptions = {
-    ban: BanWallOptions;
-    captcha: CaptchaWallOptions;
+    ban?: BanWallOptions;
+    captcha?: CaptchaWallOptions;
 };
