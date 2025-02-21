@@ -4,7 +4,7 @@ import { spawnSync } from 'child_process';
 import { e2eEndpoint, logPath } from '../constants';
 import { getFileContent, deleteFileContent } from '../helpers/log';
 
-const removeCscliDecisions = () => {
+export const removeCscliDecisions = () => {
     const command = ['exec', '-i', 'nodejs-cs-crowdsec', 'sh', '-c', `cscli decisions delete --origin cscli`];
     const result = spawnSync('docker', command, { encoding: 'utf-8' });
     expect(result.stderr).toContain('decision(s) deleted');

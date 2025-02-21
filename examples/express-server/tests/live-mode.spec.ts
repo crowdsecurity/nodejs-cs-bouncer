@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupCommon } from './setup/common';
+import { setupCommon, removeCscliDecisions } from './setup/common';
 import { homeTitle, banTitle, captchaTitle, e2eEndpoint, logPath } from './constants';
 import { wait } from './helpers/time';
 import { addIpDecision, removeIpDecision } from './helpers/cscli';
@@ -117,6 +117,7 @@ test('Should refresh captcha', async ({ page }) => {
 
 test('Should show captcha error', async ({ page }) => {
     await page.goto('/');
+    await wait(500, 'Wait for DOM to be loaded');
     const input = page.locator('input[name="phrase"]');
     await input.waitFor({ state: 'visible' });
     await input.fill('wrong-phrase');
@@ -129,10 +130,33 @@ test('Should solve a captcha', async ({ page }) => {
     const phrase = await getCaptchaPhrase(page);
     expect(phrase).toHaveLength(4);
     await page.goto('/');
+    await wait(500, 'Wait for DOM to be loaded');
     const input = page.locator('input[name="phrase"]');
     await input.waitFor({ state: 'visible' });
     await input.fill(phrase);
     await page.click('button[type="submit"]');
     // Remediation should be a bypass as we have solved the captcha
     await expect(page).toHaveTitle(homeTitle);
+});
+
+test('Should fallback to default fallback in case of unknown ', async ({ page }) => {
+    // Remove all cscli decisions
+    removeCscliDecisions();
+    // Clear cache
+    await page.goto(`${e2eEndpoint}?action=clear-cache`);
+    const locator = page.locator('body');
+    await expect(locator).toHaveText('Cache cleared');
+    // Add unknown decision IP
+    const result = await addIpDecision({ ip: bouncedIp, type: 'mfa', duration: 5 });
+    expect(result.stderr).toContain('Decision successfully added');
+    await wait(500, 'Wait for LAPI to be up to date');
+    await page.goto('/');
+    // Remediation should be a captcha (default)
+    await expect(page).toHaveTitle(captchaTitle);
+    await wait(1000, 'Wait for logs to be written');
+    const logContent = await getFileContent(logPath);
+    expect(logContent).toMatch(
+        new RegExp(`Stored decisions: \\[{"id":"cscli-mfa-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"mfa"}\\]`),
+    );
+    expect(logContent).toContain(`Final remediation for IP ${bouncedIp} is captcha`);
 });
