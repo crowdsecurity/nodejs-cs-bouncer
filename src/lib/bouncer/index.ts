@@ -121,7 +121,7 @@ class CrowdSecBouncer {
     }
 
     private createCaptcha = async (params: CaptchaCreation): Promise<CaptchaFlow> => {
-        const captcha = this.captcha.create();
+        const captcha = await this.captcha.create();
 
         const content = {
             ...captcha,
@@ -260,7 +260,7 @@ class CrowdSecBouncer {
     };
 
     public refreshCaptchaFlow = async (ip: string): Promise<CaptchaFlow> => {
-        const newCaptcha = this.captcha.create();
+        const newCaptcha = await this.captcha.create();
 
         const content = {
             ...newCaptcha,

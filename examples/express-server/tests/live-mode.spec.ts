@@ -4,7 +4,7 @@ import { homeTitle, banTitle, captchaTitle, e2eEndpoint, logPath } from './const
 import { wait } from './helpers/time';
 import { addIpDecision, removeIpDecision } from './helpers/cscli';
 import { getBouncedIp, getCaptchaPhrase } from './helpers/base';
-import { getFileContent } from './helpers/log';
+import { getFileContent, deleteFileContent } from './helpers/log';
 
 const TEST_NAME = 'live-mode';
 const bouncedIp = getBouncedIp();
@@ -71,12 +71,34 @@ test('Should be banned the time of cached decision', async ({ page }) => {
     await expect(page).toHaveTitle(homeTitle);
 });
 
+test('Should retrieve the highest remediation', async ({ page }) => {
+    // Clean logs
+    await deleteFileContent(logPath);
+    // Ban IP
+    const ban = await addIpDecision({ ip: bouncedIp, type: 'ban', duration: 5 });
+    expect(ban.stderr).toContain('Decision successfully added');
+    // Captcha IP
+    const captcha = await addIpDecision({ ip: bouncedIp, type: 'captcha', duration: 5 });
+    expect(captcha.stderr).toContain('Decision successfully added');
+    await wait(1000, 'Wait for LAPI to be up to date');
+    await page.goto('/');
+    // Remediation should be a ban because ban > captcha
+    await expect(page).toHaveTitle(banTitle);
+    await wait(1000, 'Wait for logs to be written');
+    const logContent = await getFileContent(logPath);
+    expect(logContent).toMatch(
+        new RegExp(
+            `Stored decisions: \\[{"id":"cscli-ban-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"ban"},{"id":"cscli-captcha-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"captcha"}\\]`,
+        ),
+    );
+});
+
 test('Should show a captcha', async ({ page }) => {
     // Add captcha decision
     const result = await addIpDecision({ ip: bouncedIp, type: 'captcha', duration: 600 });
     expect(result.stderr).toContain('Decision successfully added');
     // captcha ip is cached for 600 seconds (because this is the decision duration we set above) but we wait a bit for LAPI to be up to date
-    await wait(1000);
+    await wait(1000, 'Wait for LAPI to be up to date');
     await page.goto('/');
     // Remediation should be a captcha
     await expect(page).toHaveTitle(captchaTitle);

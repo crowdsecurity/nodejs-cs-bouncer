@@ -11,7 +11,7 @@ const removeCscliDecisions = () => {
 };
 
 const setupBeforeAll = (testName: string) => {
-    test.beforeAll(({}) => {
+    test.beforeAll(() => {
         // testName is required as we use it to load the related bouncer configs
         const currentTestName = process.env.E2E_TEST_NAME;
         expect(currentTestName).toBe(testName);
@@ -21,7 +21,7 @@ const setupBeforeAll = (testName: string) => {
 };
 
 const setupAfterAll = () => {
-    test.afterAll(({}) => {
+    test.afterAll(() => {
         // Remove all cscli decisions
         removeCscliDecisions();
     });
