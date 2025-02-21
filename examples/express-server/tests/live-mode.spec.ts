@@ -117,7 +117,9 @@ test('Should refresh captcha', async ({ page }) => {
 
 test('Should show captcha error', async ({ page }) => {
     await page.goto('/');
-    await page.fill('input[name="phrase"]', 'wrong-phrase');
+    const input = page.locator('input[name="phrase"]');
+    await input.waitFor({ state: 'visible' });
+    await input.fill('wrong-phrase');
     await page.click('button[type="submit"]');
     const locator = page.locator('.error');
     await expect(locator).toHaveText('Please try again');
@@ -127,7 +129,9 @@ test('Should solve a captcha', async ({ page }) => {
     const phrase = await getCaptchaPhrase(page);
     expect(phrase).toHaveLength(4);
     await page.goto('/');
-    await page.fill('input[name="phrase"]', phrase);
+    const input = page.locator('input[name="phrase"]');
+    await input.waitFor({ state: 'visible' });
+    await input.fill(phrase);
     await page.click('button[type="submit"]');
     // Remediation should be a bypass as we have solved the captcha
     await expect(page).toHaveTitle(homeTitle);
