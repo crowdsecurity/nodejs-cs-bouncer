@@ -458,6 +458,29 @@ describe('Cache', () => {
                 { origin: 'test-origin', remediation: { ban: 2, captcha: 1 } },
                 { origin: 'test-origin-2', remediation: { captcha: 1, custom: 1 } },
             ]);
+
+            result = await cacheStorage.upsertMetricsOriginsCount({
+                origin: 'test-origin',
+                remediation: 'ban',
+                delta: -1,
+            });
+
+            expect(result.content).toEqual([
+                { origin: 'test-origin', remediation: { ban: 1, captcha: 1 } },
+                { origin: 'test-origin-2', remediation: { captcha: 1, custom: 1 } },
+            ]);
+
+            result = await cacheStorage.upsertMetricsOriginsCount({
+                origin: 'test-origin-3',
+                remediation: 'ban',
+                delta: 777,
+            });
+
+            expect(result.content).toEqual([
+                { origin: 'test-origin', remediation: { ban: 1, captcha: 1 } },
+                { origin: 'test-origin-2', remediation: { captcha: 1, custom: 1 } },
+                { origin: 'test-origin-3', remediation: { ban: 777 } },
+            ]);
         });
     });
     describe('CacheStorage - getAllCachableDecisionContents', () => {
@@ -525,6 +548,48 @@ describe('Cache', () => {
             const result = await cacheStorage.getAllCachableDecisionContents(ip);
 
             expect(result).toEqual([rangeItem]);
+        });
+
+        it('should work for range scoped decisions for empty result', async () => {
+            const ip = '1.2.3.4';
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const expected: any = [];
+
+            jest.spyOn(cacheStorage.adapter, 'getItem').mockImplementation((key) => {
+                if (key === 'ip_1.2.3.4') {
+                    return Promise.resolve(null);
+                }
+                // bucket int for 1.2.3.4 is 66051
+                if (key === 'range_bucket_ipv4_66051') {
+                    return Promise.resolve({
+                        key: 'range_bucket_ipv4_66051',
+                        content: [
+                            {
+                                id: 'range_bucket_ipv4_66051',
+                                origin: 'cscli',
+                                expiresAt: Date.now() + 60000,
+                                value: '1.2.3.4/24',
+                            },
+                        ],
+                    });
+                }
+                if (key === 'range_1.2.3.4_24') {
+                    return Promise.resolve(null);
+                }
+
+                if (key === 'origins_count') {
+                    return Promise.resolve({
+                        key: 'origins_count',
+                        content: null,
+                    });
+                }
+
+                return Promise.resolve(null); // Default case if needed
+            });
+
+            const result = await cacheStorage.getAllCachableDecisionContents(ip);
+
+            expect(result).toEqual(expected);
         });
     });
     describe('CacheStorage - setWarm', () => {
