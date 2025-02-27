@@ -236,7 +236,7 @@ class CrowdSecBouncer {
         const existingItem = (await this.cacheStorage.adapter.getItem(cacheKey)) as CachableCaptchaFlow | null;
 
         const existingContent: CaptchaFlow =
-            existingItem?.content ||
+            existingItem?.content ??
             (await this.createCaptcha({
                 cacheKey,
                 ttl: duration,

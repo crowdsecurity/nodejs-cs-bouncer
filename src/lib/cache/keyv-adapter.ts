@@ -8,7 +8,7 @@ import { CachableItem } from 'src/lib/cache/types';
 type CacheAdapterType = ReturnType<typeof createCache>;
 
 class KeyvAdapter implements CacheAdapter {
-    private adapter: CacheAdapterType;
+    private readonly adapter: CacheAdapterType;
 
     constructor(storage: Keyv) {
         this.adapter = createCache({

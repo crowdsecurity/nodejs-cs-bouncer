@@ -39,7 +39,7 @@ class CacheStorage {
         if (scope === SCOPE_IP) {
             const cacheKey = getCacheKey(SCOPE_IP, ip);
             const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem | null;
-            return item && item.content && item.content.length > 0 ? item.content : [];
+            return item?.content && item.content.length > 0 ? item.content : [];
         }
         // Range scope
         const cachedContents = [];
@@ -47,13 +47,13 @@ class CacheStorage {
 
         const bucketCacheKey = getCacheKey(IPV4_BUCKET_KEY, bucketInt.toString());
         const bucketItem = (await this.adapter.getItem(bucketCacheKey)) as CachableDecisionItem | null;
-        const bucketContents = bucketItem && bucketItem.content && bucketItem.content.length > 0 ? bucketItem.content : [];
+        const bucketContents = bucketItem?.content && bucketItem.content.length > 0 ? bucketItem.content : [];
         for (const content of bucketContents) {
             const rangeString = content.value;
             if (isIpV4InRange(ip, rangeString)) {
                 const cacheKey = getCacheKey(SCOPE_RANGE, rangeString);
                 const item = (await this.adapter.getItem(cacheKey)) as CachableDecisionItem | null;
-                if (item && item.content && item.content.length > 0) {
+                if (item?.content && item.content.length > 0) {
                     cachedContents.push(...item.content);
                 }
             }
@@ -126,7 +126,7 @@ class CacheStorage {
             };
         }
 
-        const removed = cachedValues.splice(indexToRemove, 1)[0] as CachableDecisionContent;
+        const removed = cachedValues.splice(indexToRemove, 1)[0];
 
         // Remove expired decisions if any
         const decisionsToCache = this.pruneCachedDecisionContents(cachedValues);
@@ -298,7 +298,7 @@ class CacheStorage {
             // By default, we increment the count by 1
             return content.map((item) => {
                 const currentCount = item.remediation[remediation] || 0;
-                const finalCount = max([0, currentCount + (delta || 1)]) as number;
+                const finalCount = max([0, currentCount + (delta ?? 1)]) as number;
 
                 return item.origin === origin
                     ? {
@@ -318,7 +318,7 @@ class CacheStorage {
             {
                 origin,
                 remediation: {
-                    [remediation]: max([0, delta || 1]) as number, // Set the initial count for the provided remediation type
+                    [remediation]: max([0, delta ?? 1]) as number, // Set the initial count for the provided remediation type
                 },
             },
         ];
