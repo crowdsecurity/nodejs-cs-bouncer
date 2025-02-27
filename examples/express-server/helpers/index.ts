@@ -1,6 +1,7 @@
-import pino from 'pino';
 import dotenv from 'dotenv';
 import dotenvSafe from 'dotenv-safe';
+import pino from 'pino';
+
 import path from 'path';
 
 export const getExcludedPaths = () => {

@@ -1,6 +1,10 @@
 import express from 'express';
 import nodeCron from 'node-cron';
+
+import { getExcludedPaths, getLogger, loadEnv } from 'examples/express-server/helpers';
+import { getE2ETestConfig, getE2EExcludedPaths, addE2ERoutes } from 'examples/express-server/tests/helpers/base';
 import path from 'path';
+
 import 'examples/express-server/crowdsec-alias';
 // In a real project, you would have to install the package from npm: "npm install @crowdsec/nodejs-bouncer"
 // Here, for development and test purpose, we use the alias to load the package from the dist folder (@see ./crowdsec-alias.ts)
@@ -11,10 +15,6 @@ import {
     // @ts-expect-error We load the CrowdSecBouncer from the dist folder
     // eslint-disable-next-line import/no-unresolved
 } from '@crowdsec/nodejs-bouncer';
-
-import { getE2ETestConfig, getE2EExcludedPaths, addE2ERoutes } from './tests/helpers/base';
-import { getExcludedPaths, getLogger, loadEnv } from './helpers';
-import { add } from 'lodash';
 
 // Load and validate environment variables
 loadEnv();
@@ -28,7 +28,7 @@ const logger = getLogger();
  * Configuration for the CrowdSec Bouncer.
  * For more details, see src/lib/bouncer/types.ts
  */
-let config: CrowdSecBouncerConfiguration = {
+const config: CrowdSecBouncerConfiguration = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
     bouncerApiToken: process.env.BOUNCER_KEY,
     ...getE2ETestConfig(), // Only for End-to-End tests
@@ -96,9 +96,9 @@ app.get('/', (_req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// This cron job will fetch the decisions from the CrowdSec API every 60 seconds
+// This cron job will fetch the decisions from the CrowdSec API every 120 seconds
 let counter = 0;
-const DECISIONS_REFRESH_INTERVAL = 60; // seconds
+const DECISIONS_REFRESH_INTERVAL = 120; // seconds
 // Retrieve decisions from the CrowdSec API
 nodeCron.schedule('* * * * * *', async () => {
     if (counter % DECISIONS_REFRESH_INTERVAL === 0) {

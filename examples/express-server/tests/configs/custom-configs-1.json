@@ -1,0 +1,17 @@
+{
+  "streamMode": false,
+  "cleanIpCacheDuration": 1,
+  "fallbackRemediation": "ban",
+  "wallsOptions": {
+    "ban": {
+      "texts": {
+        "tabTitle": "Custom Ban"
+      }
+    },
+    "captcha": {
+      "texts": {
+        "tabTitle": "Custom Captcha"
+      }
+    }
+  }
+}

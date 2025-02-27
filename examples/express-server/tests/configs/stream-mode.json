@@ -1,3 +1,4 @@
 {
-  "streamMode": true
+  "streamMode": true,
+  "cleanIpCacheDuration": 1
 }

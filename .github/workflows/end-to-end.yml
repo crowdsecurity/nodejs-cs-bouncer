@@ -5,7 +5,8 @@ on:
             - '**.md'
     workflow_dispatch:
 jobs:
-    test:
+    express-server-tests:
+        name: Express Server
         timeout-minutes: 60
 
         runs-on: ubuntu-latest
@@ -42,7 +43,8 @@ jobs:
                 run: |
                     cd examples/express-server
                     E2E_TEST_NAME=live-mode npx playwright test live-mode
-                    E2E_TEST_NAME=custom-configs npx playwright test custom-configs
+                    E2E_TEST_NAME=custom-configs-1 npx playwright test custom-configs-1
+                    E2E_TEST_NAME=custom-configs-2 npx playwright test custom-configs-2
                     E2E_TEST_NAME=stream-mode npx playwright test stream-mode
 
             -   uses: actions/upload-artifact@v4

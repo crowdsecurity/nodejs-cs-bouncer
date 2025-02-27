@@ -1,7 +1,7 @@
-import path from 'path';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { e2eEndpoint } from 'examples/express-server/tests/constants';
 import fs from 'fs';
-
-import { e2eEndpoint } from '../constants';
+import path from 'path';
 
 export const getBouncedIp = (): string => {
     const bouncedIp = process.env.BOUNCED_IP ?? '';
@@ -18,7 +18,7 @@ export const getCaptchaPhrase = async (page: any) => {
     });
 };
 
-export const getE2ETestConfig = (): JSON | {} => {
+export const getE2ETestConfig = (): JSON | object => {
     if (process.env.E2E_TEST_NAME) {
         const testName = process.env.E2E_TEST_NAME;
         console.log('Running End to End test:', testName);
@@ -26,6 +26,7 @@ export const getE2ETestConfig = (): JSON | {} => {
             const configFilePath = path.resolve(__dirname, `../configs/${testName}.json`); // Adjust the path as needed
             const fileContents = fs.readFileSync(configFilePath, 'utf-8');
             return JSON.parse(fileContents);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             console.error('Failed to load config from file');
             process.exit(1); // Exit if config file is required and cannot be loaded
@@ -56,6 +57,14 @@ export const addE2ERoutes = (app: any, bouncer: any) => {
                 // Get the captcha phrase
                 await bouncer.cacheStorage.adapter.clear();
                 return res.send('Cache cleared');
+            }
+            if (action === 'refresh') {
+                // Refresh decisions
+                await bouncer.refreshDecisions({
+                    origins: ['cscli'],
+                    scopes: ['ip', 'range'],
+                });
+                return res.send('Decisions refreshed');
             }
             return res.send('Unknown action');
         });

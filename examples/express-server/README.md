@@ -10,13 +10,14 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
--   [Technical overview](#technical-overview)
--   [Pre-requisites](#pre-requisites)
--   [Test the bouncer](#test-the-bouncer)
-    -   [Prepare the tests](#prepare-the-tests)
-    -   [Test a "bypass" remediation](#test-a-bypass-remediation)
-    -   [Test a "ban" remediation](#test-a-ban-remediation)
-    -   [Test a "captcha" remediation](#test-a-captcha-remediation)
+- [Technical overview](#technical-overview)
+- [Pre-requisites](#pre-requisites)
+- [Test the bouncer](#test-the-bouncer)
+  - [Pre-requisites](#pre-requisites-1)
+  - [Prepare the tests](#prepare-the-tests)
+  - [Test a "bypass" remediation](#test-a-bypass-remediation)
+  - [Test a "ban" remediation](#test-a-ban-remediation)
+  - [Test a "captcha" remediation](#test-a-captcha-remediation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -24,32 +25,32 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 
 All the logic is done in the `server.ts` file:
 
--   we use a middleware to act before rendering the page
+- we use a middleware to act before rendering the page
 
--   We retrieve the remediation for the current tested IP:
+- We retrieve the remediation for the current tested IP:
 
 ```js
 const remediationData = await bouncer.getIpRemediation(ip);
 const { origin, remediation } = remediationData;
 ```
 
--   Depending on the value of the remediation, we apply it:
+- Depending on the value of the remediation, we apply it:
 
-    -   let the process continue with `next()`if there is no remediation (bypass)
+    - let the process continue with `next()`if there is no remediation (bypass)
 
-    -   block the user with a ban or captcha wall remediation:
+    - block the user with a ban or captcha wall remediation:
 
-    ```js
-    const bouncerResponse = await bouncer.getResponse({
-        ip,
-        origin,
-        remediation,
-    });
-    // Display Ban or Captcha wall
-    if (bouncerResponse.status !== 200) {
-        return res.status(bouncerResponse.status).send(bouncerResponse.html);
-    }
-    ```
+  ```js
+  const bouncerResponse = await bouncer.getResponse({
+      ip,
+      origin,
+      remediation,
+  });
+  // Display Ban or Captcha wall
+  if (bouncerResponse.status !== 200) {
+      return res.status(bouncerResponse.status).send(bouncerResponse.html);
+  }
+  ```
 
 There is a specific case when we detect that user is trying to solve the captcha:
 
@@ -69,27 +70,49 @@ if (req.method === 'POST' && req?.body?.crowdsec_captcha_submit) {
 
 ## Pre-requisites
 
--   Node.js and Docker installed on your machine
+- Node.js and Docker installed on your machine
 
-    -   You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
+    - You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
 
--   Copy the `.env.example` file to `.env` and fill in the required values
+- Copy the `.env.example` file to `.env` and fill in the required values
 
--   Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
+- Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
 
--   Install bouncer dependencies and test dependencies (run the following commands from the `express-server` folder):
+- Install bouncer dependencies and test dependencies (run the following commands from the `express-server` folder):
 
-    ```shell
-    npm --prefix ../.. install && npm install
-    ```
+  ```shell
+  npm --prefix ../.. install && npm install
+  ```
 
--   Build the project sources
+- Build the project sources
 
-    ```shell
-    npm --prefix ../.. run build
-    ```
+  ```shell
+  npm --prefix ../.. run build
+  ```
 
 ## Test the bouncer
+
+### Pre-requisites
+
+- Node.js and Docker installed on your machine
+
+    - You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
+
+- Copy the `.env.example` file to `.env` and fill in the required values
+
+- Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
+
+- Install bouncer dependencies and test dependencies (run the following commands from the `express-server` folder):
+
+  ```shell
+  npm --prefix ../.. install && npm install
+  ```
+
+- Build the project sources
+
+  ```shell
+  npm --prefix ../.. run build
+  ```
 
 ### Prepare the tests
 

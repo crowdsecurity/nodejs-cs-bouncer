@@ -9,6 +9,7 @@ import preferArrowFunctions from 'eslint-plugin-prefer-arrow-functions';
 import globals from 'globals';
 
 import path from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,7 +22,7 @@ const compat = new FlatCompat({
 
 export default [
     {
-        ignores: ['**/*.ejs', '**/dist/', '**/examples/'],
+        ignores: process.env.CI ? ['**/*.ejs', '**/dist/', '**/examples'] : ['**/*.ejs', '**/dist/'],
     },
     ...fixupConfigRules(
         compat.extends(

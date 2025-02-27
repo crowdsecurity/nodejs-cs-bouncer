@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { setupCommon, removeCscliDecisions } from './setup/common';
-import { homeTitle, banTitle, captchaTitle, e2eEndpoint, logPath } from './constants';
-import { wait } from './helpers/time';
-import { addIpDecision, removeIpDecision } from './helpers/cscli';
-import { getBouncedIp, getCaptchaPhrase } from './helpers/base';
-import { getFileContent, deleteFileContent } from './helpers/log';
+
+import { homeTitle, banTitle, captchaTitle, e2eEndpoint, logPath } from 'examples/express-server/tests/constants';
+import { getBouncedIp, getCaptchaPhrase } from 'examples/express-server/tests/helpers/base';
+import { addIpDecision, removeIpDecision } from 'examples/express-server/tests/helpers/cscli';
+import { getFileContent, deleteFileContent } from 'examples/express-server/tests/helpers/log';
+import { wait } from 'examples/express-server/tests/helpers/time';
+import { setupCommon, removeCscliDecisions } from 'examples/express-server/tests/setup/common';
 
 const TEST_NAME = 'live-mode';
 const bouncedIp = getBouncedIp();
@@ -56,7 +57,7 @@ test('Should be banned the time of cached decision', async ({ page }) => {
     await expect(page).toHaveTitle(banTitle);
     // Verify expected log messages
     await wait(1000, 'Wait for logs to be written');
-    let logContent = await getFileContent(logPath);
+    const logContent = await getFileContent(logPath);
     expect(logContent).toMatch(
         new RegExp(
             `Cache found for IP ${bouncedIp}: \\[{"id":"cscli-ban-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"ban"}\\]`,
@@ -94,8 +95,11 @@ test('Should retrieve the highest remediation', async ({ page }) => {
 });
 
 test('Should show a captcha', async ({ page }) => {
+    // Unban IP
+    let result = await removeIpDecision(bouncedIp);
+    expect(result.stderr).toContain('decision(s) deleted'); // 1 or 2 decisions deleted
     // Add captcha decision
-    const result = await addIpDecision({ ip: bouncedIp, type: 'captcha', duration: 600 });
+    result = await addIpDecision({ ip: bouncedIp, type: 'captcha', duration: 600 });
     expect(result.stderr).toContain('Decision successfully added');
     // captcha ip is cached for 600 seconds (because this is the decision duration we set above) but we wait a bit for LAPI to be up to date
     await wait(1000, 'Wait for LAPI to be up to date');
@@ -117,9 +121,8 @@ test('Should refresh captcha', async ({ page }) => {
 
 test('Should show captcha error', async ({ page }) => {
     await page.goto('/');
-    await wait(500, 'Wait for DOM to be loaded');
+    await expect(page).toHaveTitle(captchaTitle);
     const input = page.locator('input[name="phrase"]');
-    await input.waitFor({ state: 'visible' });
     await input.fill('wrong-phrase');
     await page.click('button[type="submit"]');
     const locator = page.locator('.error');
@@ -130,9 +133,8 @@ test('Should solve a captcha', async ({ page }) => {
     const phrase = await getCaptchaPhrase(page);
     expect(phrase).toHaveLength(4);
     await page.goto('/');
-    await wait(500, 'Wait for DOM to be loaded');
+    await expect(page).toHaveTitle(captchaTitle);
     const input = page.locator('input[name="phrase"]');
-    await input.waitFor({ state: 'visible' });
     await input.fill(phrase);
     await page.click('button[type="submit"]');
     // Remediation should be a bypass as we have solved the captcha

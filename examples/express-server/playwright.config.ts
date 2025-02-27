@@ -1,10 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
-
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
 import dotenv from 'dotenv';
+
 import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, 'crowdsec/.env') });
@@ -18,7 +18,7 @@ export default defineConfig({
     /* Run tests in files sequentially */
     fullyParallel: false,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
-    forbidOnly: !!process.env.CI,
+    forbidOnly: Boolean(process.env.CI),
     /* Retry on CI only */
     retries: process.env.CI ? 2 : 0,
     /* Stop immediately when a test fails */

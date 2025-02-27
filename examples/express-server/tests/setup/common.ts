@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { spawnSync } from 'child_process';
 
-import { e2eEndpoint, logPath } from '../constants';
-import { getFileContent, deleteFileContent } from '../helpers/log';
+import { spawnSync } from 'child_process';
+import { e2eEndpoint, logPath } from 'examples/express-server/tests/constants';
+import { getFileContent, deleteFileContent } from 'examples/express-server/tests/helpers/log';
 
 export const removeCscliDecisions = () => {
     const command = ['exec', '-i', 'nodejs-cs-crowdsec', 'sh', '-c', `cscli decisions delete --origin cscli`];
