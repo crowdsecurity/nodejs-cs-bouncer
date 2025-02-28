@@ -1,20 +1,10 @@
+import { CrowdSecBouncer, CrowdSecBouncerConfigurations } from '@crowdsec/nodejs-bouncer';
 import express from 'express';
 import nodeCron from 'node-cron';
 
 import { getExcludedPaths, getLogger, loadEnv } from 'examples/express-server/helpers';
 import { getE2ETestConfig, getE2EExcludedPaths, addE2ERoutes } from 'examples/express-server/tests/helpers/base';
 import path from 'path';
-
-import 'examples/express-server/crowdsec-alias';
-// In a real project, you would have to install the package from npm: "npm install @crowdsec/nodejs-bouncer"
-// Here, for development and test purpose, we use the alias to load the package from the dist folder (@see ./crowdsec-alias.ts)
-// eslint-disable-next-line import/order
-import {
-    CrowdSecBouncer,
-    CrowdSecBouncerConfiguration,
-    // @ts-expect-error We load the CrowdSecBouncer from the dist folder
-    // eslint-disable-next-line import/no-unresolved
-} from '@crowdsec/nodejs-bouncer';
 
 // Load and validate environment variables
 loadEnv();
@@ -28,9 +18,9 @@ const logger = getLogger();
  * Configuration for the CrowdSec Bouncer.
  * For more details, see src/lib/bouncer/types.ts
  */
-const config: CrowdSecBouncerConfiguration = {
+const config: CrowdSecBouncerConfigurations = {
     url: process.env.LAPI_URL ?? 'http://localhost:8080',
-    bouncerApiToken: process.env.BOUNCER_KEY,
+    bouncerApiToken: process.env.BOUNCER_KEY ?? '',
     ...getE2ETestConfig(), // Only for End-to-End tests
 };
 

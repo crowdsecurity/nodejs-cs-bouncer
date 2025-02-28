@@ -12,11 +12,11 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 
 - [Technical overview](#technical-overview)
 - [Test the bouncer](#test-the-bouncer)
-  - [Pre-requisites](#pre-requisites)
-  - [Prepare the tests](#prepare-the-tests)
-  - [Test a "bypass" remediation](#test-a-bypass-remediation)
-  - [Test a "ban" remediation](#test-a-ban-remediation)
-  - [Test a "captcha" remediation](#test-a-captcha-remediation)
+    - [Pre-requisites](#pre-requisites)
+    - [Prepare the tests](#prepare-the-tests)
+    - [Test a "bypass" remediation](#test-a-bypass-remediation)
+    - [Test a "ban" remediation](#test-a-ban-remediation)
+    - [Test a "captcha" remediation](#test-a-captcha-remediation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -79,16 +79,12 @@ if (req.method === 'POST' && req?.body?.crowdsec_captcha_submit) {
 
 - Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
 
-- Install bouncer dependencies and test dependencies (run the following commands from the `express-server` folder):
+- Install all dependencies using a local archive.
+
+  Run the following commands from the `express-server` folder:
 
   ```shell
-  npm --prefix ../.. install && npm install
-  ```
-
-- Build the project sources
-
-  ```shell
-  npm --prefix ../.. run build
+  npm run pack-locally && npm install
   ```
 
 ### Prepare the tests

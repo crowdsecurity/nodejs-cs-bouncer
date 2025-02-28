@@ -27,10 +27,10 @@ jobs:
                     # Prepare the environment variables
                     cp .env.example .env
                     cp crowdsec/.env.example crowdsec/.env
+                    # Create a local archive of the Node.js Bouncer
+                    npm run pack-locally
                     # Install the dependencies
-                    npm --prefix ../.. ci
                     npm ci
-                    npm --prefix ../.. run build
                     # Install Playwright Browsers
                     npx playwright install --with-deps
                     # Start docker services

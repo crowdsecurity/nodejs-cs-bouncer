@@ -16,6 +16,7 @@
 - [End-to-end tests](#end-to-end-tests)
   - [Prepare the environment](#prepare-the-environment)
   - [Run tests](#run-tests)
+- [Update documentation table of contents](#update-documentation-table-of-contents)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -72,4 +73,21 @@ For example, to run the `live-mode.spec.ts` test file, you should run:
 
 ```bash
 E2E_TEST_NAME=live-mode npx playwright test live-mode
+```
+
+## Update documentation table of contents
+
+To update the table of contents in the documentation, you can use [the
+`doctoc` tool](https://github.com/thlorenz/doctoc).
+
+First, install it:
+
+```bash
+npm install -g doctoc
+```
+
+Then, run it in the relevant folders:
+
+```bash
+doctoc docs/* --maxlevel 4 && doctoc examples/express-server/README.md --maxlevel 4
 ```
