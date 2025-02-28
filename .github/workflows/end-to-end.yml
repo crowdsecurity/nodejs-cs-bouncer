@@ -20,8 +20,7 @@ jobs:
             -   name: Use Node.js 20
                 uses: actions/setup-node@v4
                 with:
-                    node-version: '20'
-                    cache: 'npm'
+                    node-version: '20.x'
 
             -   name: Prepare express-server
                 run: |
@@ -32,8 +31,9 @@ jobs:
                     cp crowdsec/.env.example crowdsec/.env
                     # Create a local archive of the Node.js Bouncer
                     npm run pack-locally
-                    # Install the dependencies
-                    npm ci
+                    # Install the dependencies (do not use npm ci as it will fail to validate the tarball)
+                    rm package-lock.json
+                    npm install
                     # Install Playwright Browsers
                     npx playwright install --with-deps
                     # Start docker services
