@@ -126,7 +126,7 @@ test('Should show captcha error', async ({ page }) => {
     await input.fill('wrong-phrase');
     await page.click('button[type="submit"]');
     const locator = page.locator('.error');
-    await expect(locator).toHaveText('Please try again');
+    await expect(locator).toHaveText('This is a custom error message'); // Custom error message defined in configs/live-mode.json
 });
 
 test('Should solve a captcha', async ({ page }) => {

@@ -1,4 +1,11 @@
 {
   "streamMode": false,
-  "cleanIpCacheDuration": 1
+  "cleanIpCacheDuration": 1,
+  "wallsOptions": {
+    "captcha": {
+      "texts": {
+        "error": "This is a custom error message"
+      }
+    }
+  }
 }
