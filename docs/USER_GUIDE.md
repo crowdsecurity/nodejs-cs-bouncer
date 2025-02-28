@@ -13,19 +13,19 @@
 - [Features](#features)
 - [Usage](#usage)
 - [Configurations](#configurations)
-  - [Bouncer behavior](#bouncer-behavior)
-  - [Local API Connection](#local-api-connection)
-  - [Cache](#cache)
-  - [Captcha and Ban walls settings](#captcha-and-ban-walls-settings)
+    - [Bouncer behavior](#bouncer-behavior)
+    - [Local API Connection](#local-api-connection)
+    - [Cache](#cache)
+    - [Captcha and Ban walls settings](#captcha-and-ban-walls-settings)
 - [Implement your own bouncer](#implement-your-own-bouncer)
-  - [Instantiation](#instantiation)
-  - [Apply a remediation](#apply-a-remediation)
-  - [Refresh decision cache](#refresh-decision-cache)
-  - [Custom Captcha](#custom-captcha)
-  - [Custom Cache Adapter](#custom-cache-adapter)
+    - [Instantiation](#instantiation)
+    - [Apply a remediation](#apply-a-remediation)
+    - [Refresh decision cache](#refresh-decision-cache)
+    - [Custom Captcha](#custom-captcha)
+    - [Custom Cache Adapter](#custom-cache-adapter)
 - [Examples](#examples)
-  - [Basics](#basics)
-  - [Express server](#express-server)
+    - [Basics](#basics)
+    - [Express server](#express-server)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -196,9 +196,9 @@ Below is the list of available settings (see also `CrowdSecBouncerConfigurations
 Invoking the bouncer is as simple as:
 
 ```typescript
-import { CrowdSecBouncer, CrowdSecBouncerConfiguration } from '@crowdsec/nodejs-cs-bouncer';
+import { CrowdSecBouncer, CrowdSecBouncerConfigurations } from '@crowdsec/nodejs-cs-bouncer';
 
-const config: CrowdSecBouncerConfiguration = {
+const config: CrowdSecBouncerConfigurations = {
     url: 'http://localhost:8080',
     bouncerApiToken: 'your-api-key',
 };
@@ -328,13 +328,15 @@ const bouncer = new CrowdSecBouncer(config);
 
 ### Basics
 
-The `examples/basics` directory contains a simple scripts that demonstrates the basic usage of the bouncer:
+The [`examples/basics`](../examples/basics) directory contains a simple scripts that demonstrates the basic usage of the
+bouncer:
 
 - getting a remediation for an IP
 - refreshing the decision cache
 
 ### Express server
 
-You can find an example of an Express server using this bouncer in the `examples/express-server` directory.
+You can find an example of an Express server using this bouncer in the [
+`examples/express-server`](../examples/express-server) directory.
 
 This example demonstrates how to use the bouncer to protect your Express server from malevolent IPs.
