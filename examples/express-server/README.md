@@ -11,9 +11,8 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Technical overview](#technical-overview)
-- [Pre-requisites](#pre-requisites)
 - [Test the bouncer](#test-the-bouncer)
-  - [Pre-requisites](#pre-requisites-1)
+  - [Pre-requisites](#pre-requisites)
   - [Prepare the tests](#prepare-the-tests)
   - [Test a "bypass" remediation](#test-a-bypass-remediation)
   - [Test a "ban" remediation](#test-a-ban-remediation)
@@ -67,28 +66,6 @@ if (req.method === 'POST' && req?.body?.crowdsec_captcha_submit) {
     return res.redirect(captchaSuccessUrl);
 }
 ```
-
-## Pre-requisites
-
-- Node.js and Docker installed on your machine
-
-    - You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
-
-- Copy the `.env.example` file to `.env` and fill in the required values
-
-- Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
-
-- Install bouncer dependencies and test dependencies (run the following commands from the `express-server` folder):
-
-  ```shell
-  npm --prefix ../.. install && npm install
-  ```
-
-- Build the project sources
-
-  ```shell
-  npm --prefix ../.. run build
-  ```
 
 ## Test the bouncer
 

@@ -1,12 +1,12 @@
 import { spawnSync, SpawnSyncReturns } from 'child_process';
 
-type addIPDecisionParams = {
+type AddIPDecisionParams = {
     ip: string;
     type: string;
     duration: number;
 };
 
-export const addIpDecision = async (params: addIPDecisionParams): Promise<SpawnSyncReturns<string>> => {
+export const addIpDecision = async (params: AddIPDecisionParams): Promise<SpawnSyncReturns<string>> => {
     const { ip, type, duration } = params;
     const command = [
         'exec',

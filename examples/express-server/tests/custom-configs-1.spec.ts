@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-import { e2eEndpoint, logPath } from 'examples/express-server/tests/constants';
+import { E2E_ENDPOINT, LOG_PATH } from 'examples/express-server/tests/constants';
 import { getBouncedIp } from 'examples/express-server/tests/helpers/base';
 import { addIpDecision } from 'examples/express-server/tests/helpers/cscli';
 import { getFileContent } from 'examples/express-server/tests/helpers/log';
@@ -21,7 +21,7 @@ test('Should fallback to configured fallback in case of unknown ', async ({ page
     // Remediation should be a ban because fallback is configured to ban
     await expect(page).toHaveTitle('Custom Ban'); // Custom ban title as defined in the config
     await wait(1000, 'Wait for logs to be written');
-    const logContent = await getFileContent(logPath);
+    const logContent = await getFileContent(LOG_PATH);
     expect(logContent).toContain(`Cache found for IP ${bouncedIp}: []`); // No cache for this IP as we just cleared it
     expect(logContent).toMatch(
         new RegExp(`Stored decisions: \\[{"id":"cscli-mfa-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"mfa"}\\]`),
@@ -33,7 +33,7 @@ test('Should display a custom captcha ', async ({ page }) => {
     // Remove all cscli decisions
     removeCscliDecisions();
     // Clear cache
-    await page.goto(`${e2eEndpoint}?action=clear-cache`);
+    await page.goto(`${E2E_ENDPOINT}?action=clear-cache`);
     const locator = page.locator('body');
     await expect(locator).toHaveText('Cache cleared');
     // Add captcha decision IP

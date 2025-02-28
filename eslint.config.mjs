@@ -70,9 +70,7 @@ export default [
                 'error',
                 {
                     groups: ['external', ['builtin', 'index', 'sibling', 'parent', 'internal'], 'object', 'type'],
-
                     'newlines-between': 'always',
-
                     alphabetize: {
                         order: 'asc',
                         caseInsensitive: true,
@@ -101,6 +99,18 @@ export default [
             'prefer-template': 'error',
             'no-nested-ternary': 'error',
             'no-implicit-coercion': ['error', { boolean: true }],
+
+            '@typescript-eslint/naming-convention': [
+                'error',
+                {
+                    selector: 'typeLike',
+                    format: ['PascalCase'],
+                },
+                {
+                    selector: 'enum',
+                    format: ['UPPER_CASE'],
+                },
+            ],
         },
     },
     {

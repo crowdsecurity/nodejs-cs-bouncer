@@ -46,7 +46,7 @@ type RemediationResult = {
     html: string;
 };
 
-type getResponseParams = {
+type GetResponseParams = {
     ip: string;
     remediation: Remediation;
     origin: CachableOrigin;
@@ -139,7 +139,7 @@ class CrowdSecBouncer {
         return captchaFlowItem.content;
     };
 
-    private capRemediation = (remediation: Remediation): Remediation => {
+    private enforceMaxRemediation = (remediation: Remediation): Remediation => {
         const bouncingLevel = this.configs.bouncingLevel ?? BOUNCING_LEVEL_NORMAL;
         if (bouncingLevel === BOUNCING_LEVEL_DISABLED) {
             logger.debug('Bouncing level is disabled');
@@ -214,7 +214,7 @@ class CrowdSecBouncer {
             remediation = REMEDIATION_BYPASS;
         }
         // Initial remediation can be modified depending on the bouncingLevel config
-        remediation = this.capRemediation(remediation);
+        remediation = this.enforceMaxRemediation(remediation);
         logger.info(`Final remediation for IP ${ip} is ${remediation}`);
 
         return {
@@ -374,7 +374,7 @@ class CrowdSecBouncer {
         return type === 'captcha' ? renderCaptchaWall(finalOptions as CaptchaWallOptions) : renderBanWall(finalOptions as BanWallOptions);
     };
 
-    public getResponse = async (params: getResponseParams): Promise<RemediationResult> => {
+    public getResponse = async (params: GetResponseParams): Promise<RemediationResult> => {
         const { ip, remediation, origin } = params;
         switch (remediation) {
             case REMEDIATION_BAN: {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { e2eEndpoint } from 'examples/express-server/tests/constants';
+import { E2E_ENDPOINT } from 'examples/express-server/tests/constants';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,7 +12,7 @@ export const getBouncedIp = (): string => {
 };
 
 export const getCaptchaPhrase = async (page: any) => {
-    await page.goto(`${e2eEndpoint}?action=get-captcha-phrase`);
+    await page.goto(`${E2E_ENDPOINT}?action=get-captcha-phrase`);
     return page.evaluate(() => {
         return JSON.parse(document.body.innerText).phrase;
     });
@@ -38,14 +38,14 @@ export const getE2ETestConfig = (): JSON | object => {
 export const getE2EExcludedPaths = () => {
     if (process.env.E2E_TEST_NAME) {
         // We need to exclude this endpoint only for end-to-end tests purposes
-        return [e2eEndpoint];
+        return [E2E_ENDPOINT];
     }
     return [];
 };
 
 export const addE2ERoutes = (app: any, bouncer: any) => {
     if (process.env.E2E_TEST_NAME) {
-        app.get(e2eEndpoint, async (req: any, res: any) => {
+        app.get(E2E_ENDPOINT, async (req: any, res: any) => {
             // Retrieve "action" get param
             const action = req.query.action;
             if (action === 'get-captcha-phrase') {

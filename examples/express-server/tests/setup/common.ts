@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { spawnSync } from 'child_process';
-import { e2eEndpoint, logPath } from 'examples/express-server/tests/constants';
+import { E2E_ENDPOINT, LOG_PATH } from 'examples/express-server/tests/constants';
 import { getFileContent, deleteFileContent } from 'examples/express-server/tests/helpers/log';
 
 export const removeCscliDecisions = () => {
@@ -32,13 +32,13 @@ export const setupCommon = (testName: string) => {
     setupAfterAll();
 
     test('Should clear the cache and logs', async ({ page }) => {
-        await page.goto(`${e2eEndpoint}?action=clear-cache`);
+        await page.goto(`${E2E_ENDPOINT}?action=clear-cache`);
         const locator = page.locator('body');
         await expect(locator).toHaveText('Cache cleared');
 
         // Clear logs
-        await deleteFileContent(logPath);
-        const logContent = await getFileContent(logPath);
+        await deleteFileContent(LOG_PATH);
+        const logContent = await getFileContent(LOG_PATH);
         expect(logContent).toBe('');
     });
 };
