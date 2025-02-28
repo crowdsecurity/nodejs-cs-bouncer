@@ -1,4 +1,7 @@
 name: End-to-End Tests
+
+permissions:
+    contents: read
 on:
     push:
         paths-ignore:
