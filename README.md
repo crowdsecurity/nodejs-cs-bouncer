@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/app-sec.webp" width="200px" align="center" alt="Crowdsec Bouncer logo" />
+  <img src="https://raw.githubusercontent.com/crowdsecurity/nodejs-cs-bouncer/main/docs/assets/app-sec.webp" width="200px" align="center" alt="Crowdsec Bouncer logo" />
   <h1 align="center">CrowdSec Node.js Bouncer</h1>
   <p align="center">
     ✨ <a href="https://www.crowdsec.net/">CrowdSec</a> ✨

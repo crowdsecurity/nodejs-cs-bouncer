@@ -35,7 +35,7 @@ jobs:
                 run: |
                     gem install awesome_bot
                     cd extension
-                    awesome_bot --files README.md --allow-dupe --allow 401,301 --skip-save-results --white-list http://localhost:8080 --base-url http://localhost:${{env.SERVER_PORT}}/
+                    awesome_bot --files README.md --allow-dupe --allow 401,301 --skip-save-results --white-list http://localhost:8080,https://www.npmjs.com/package/@crowdsec/nodejs-bouncer --base-url http://localhost:${{env.SERVER_PORT}}/
                     awesome_bot docs/*.md --skip-save-results --allow-dupe --allow 401,301 --white-list http://localhost:8080 --base-url http://localhost:${{env.SERVER_PORT}}/docs/
                     awesome_bot --files examples/express-server/README.md --skip-save-results --allow-dupe --allow 401,301 --white-list http://localhost:8080 --base-url http://localhost:${{env.SERVER_PORT}}/examples/express-server/
 
