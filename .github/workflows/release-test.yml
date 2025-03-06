@@ -38,6 +38,7 @@ jobs:
                     rm package-lock.json
                     sed -i 's|"file:cs-nodejs-bouncer.tgz"|"${{env.version}}"|g' package.json
                     npm install
+                    npm install tsconfig-paths
                     # Check version
                     npm list @crowdsec/nodejs-bouncer
                     # Install Playwright Browsers
