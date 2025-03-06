@@ -1,17 +1,18 @@
-name: End-to-End Tests
+name: Release Test
 
 permissions:
     contents: read
 on:
-    push:
-        paths-ignore:
-            - '**.md'
     workflow_dispatch:
-    schedule:
-        -   cron: '0 3 * * 4'
+        inputs:
+            release_version:
+                type: string
+                required: true
+                description: Release version (without the v prefix)
+
 jobs:
     express-server-tests:
-        name: Express Server
+        name: Express Server E2E
         timeout-minutes: 60
 
         runs-on: ubuntu-latest
@@ -25,17 +26,20 @@ jobs:
                     node-version: '20.x'
 
             -   name: Prepare express-server
+                env:
+                    version: ${{ github.event.inputs.tag_name }}
                 run: |
                     # Browse to the express-server example
                     cd examples/express-server
                     # Prepare the environment variables
                     cp .env.example .env
                     cp crowdsec/.env.example crowdsec/.env
-                    # Create a local archive of the Node.js Bouncer
-                    npm run pack-locally
-                    # Install the dependencies (do not use npm ci as it will fail to validate the tarball)
+                    # Install the dependencies (do not use npm ci to ensure we use the released version)
                     rm package-lock.json
+                    sed -i 's|"file:cs-nodejs-bouncer.tgz"|"${{env.version}}"|g' package.json
                     npm install
+                    # Check version
+                    npm list @crowdsec/nodejs-bouncer
                     # Install Playwright Browsers
                     npx playwright install --with-deps
                     # Start docker services
@@ -57,4 +61,4 @@ jobs:
                 with:
                     name: playwright-report
                     path: examples/express-server/playwright-report/
-                    retention-days: 10
+                    retention-days: 5
