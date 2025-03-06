@@ -6,11 +6,17 @@
   </p>
 </p>
 <p align="center">
-    <a href="https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer">
-      <img src="https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer/branch/main/graph/badge.svg?token=BQA733CC26" alt="Crowdsec JS Bouncer Codecov" />
+    <a href="https://github.com/crowdsecurity/nodejs-cs-bouncer/releases">
+      <img src="https://img.shields.io/github/v/release/crowdsecurity/nodejs-cs-bouncer" alt="Crowdsec JS Bouncer Version" />
     </a>
     <a href="https://opensource.org/licenses/MIT">
       <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="Crowdsec JS Bouncer License" />
+    </a>
+    <a href="https://github.com/crowdsecurity/nodejs-cs-bouncer/actions/workflows/end-to-end.yml">
+      <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/actions/workflows/end-to-end.yml/badge.svg" alt="Crowdsec JS Bouncer E2E" />
+    </a>
+    <a href="https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer">
+      <img src="https://codecov.io/github/crowdsecurity/nodejs-cs-bouncer/branch/main/graph/badge.svg?token=BQA733CC26" alt="Crowdsec JS Bouncer Codecov" />
     </a>
     <a href="https://discord.gg/wGN7ShmEE8">
       <img src="https://img.shields.io/discord/463752820026376202.svg?logo=discord&logoColor=fff&label=Discord&color=7389d8" alt="Discord conversation" />
