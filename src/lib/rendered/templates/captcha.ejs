@@ -4,17 +4,21 @@
 <p class="desc"><%- texts.subtitle %></p>
 
 <span class="captcha-img"> <% print(captchaImageTag) %> </span>
+<script>
+    function newImage() {
+        document.getElementById('crowdsec_captcha_refresh').value = '1';
+        document.getElementById('captcha').submit();
+    }
+</script>
 <p>
     <small><button id="refresh_link" onclick="newImage()"><%- texts.refresh_image_link %></button></small>
 </p>
 
-<form method="POST" id="captcha" action="<%- redirectUrl %>">
-    <input type="text" name="phrase" placeholder="<%- texts.captcha_placeholder %>" autofocus autocomplete="off" />
-    <!-- <input name="crowdsec_captcha" value="1" />
-    <input name="refresh" value="0" id="refresh" /> -->
-    <% if (error) { %>
-    <p class="error"><%- error %></p>
-    <% } %>
 
+<% if (texts.error) { %><p class="error"><%- texts.error %></p><% } %>
+<form method="POST" id="captcha">
+    <input type="text" name="phrase" placeholder="<%- texts.captcha_placeholder %>" autofocus autocomplete="off" />
+    <input type="hidden" name="crowdsec_captcha_refresh" value="0" id="crowdsec_captcha_refresh" />
+    <input type="hidden" name="crowdsec_captcha_submit" value="1" />
     <button type="submit"><%- texts.send_button %></button>
 </form>

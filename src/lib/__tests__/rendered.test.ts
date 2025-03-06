@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import fs from 'fs';
-import { generateTemplate, renderBanWall, renderCaptchaWall } from 'src/lib/rendered/index';
-import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/libs/constants';
-import { BaseWallOptions } from 'src/lib/rendered/libs/types';
+import { generateTemplate, renderBanWall, renderCaptchaWall } from 'src/lib/rendered';
+import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/constants';
+import { BaseWallOptions } from 'src/lib/rendered/types';
 
 jest.mock('fs/promises', () => ({
     readFile: jest.fn(),
@@ -107,7 +107,6 @@ describe('📄 Generate Template', () => {
         const subtitle = 'Custom Subtitle';
 
         const captchaImageTag = '<img src="captcha.png" />';
-        const redirectUrl = '/redirect';
 
         // Call the generateTemplate function
         const wall = await renderCaptchaWall({
@@ -126,7 +125,6 @@ describe('📄 Generate Template', () => {
                 subtitle: subtitle,
             },
             captchaImageTag: captchaImageTag,
-            redirectUrl: redirectUrl,
         });
 
         expect(wall).toBeTruthy();
@@ -135,7 +133,6 @@ describe('📄 Generate Template', () => {
         expect(wall).toContain(title);
         expect(wall).toContain(subtitle);
         expect(wall).toContain(captchaImageTag);
-        expect(wall).toContain(redirectUrl);
 
         // Assert that the generated template matches the snapshot
         expect(wall).toMatchSnapshot();
@@ -166,7 +163,6 @@ describe('📄 Generate Template', () => {
         const captchaWall = await renderCaptchaWall({
             hideCrowdSecMentions: true,
             captchaImageTag: '<img src="captcha.png" />',
-            redirectUrl: '/redirect',
         });
 
         expect(banWall).toBeTruthy();
@@ -181,14 +177,15 @@ describe('📄 Generate Template', () => {
         expect(captchaWall).toMatchSnapshot();
     });
 
-    it('should be table to display error message on captcha template', async () => {
+    it('should be able to display error message on captcha template', async () => {
         const error = 'Custom Error Message';
 
         // Call the generateTemplate function
         const wall = await renderCaptchaWall({
-            error: error,
             captchaImageTag: '<img src="captcha.png" />',
-            redirectUrl: '/redirect',
+            texts: {
+                error: error,
+            },
         });
 
         expect(wall).toBeTruthy();

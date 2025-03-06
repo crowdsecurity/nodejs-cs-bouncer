@@ -1,0 +1,8 @@
+services:
+    crowdsec:
+        container_name: nodejs-cs-crowdsec
+        image: crowdsecurity/crowdsec:latest
+        ports:
+            - '8080:8080'
+        env_file:
+            - ./crowdsec/.env

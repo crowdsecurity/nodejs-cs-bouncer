@@ -1,0 +1,146 @@
+name: Create and publish release
+# example: gh workflow run release.yml -f tag_name=v1.1.4
+on:
+    workflow_dispatch:
+        inputs:
+            tag_name:
+                type: string
+                required: true
+                description: Tag name
+            publish-to-npm:
+                type: boolean
+                description: Publish to NPM
+                default: true
+            first-release:
+                type: boolean
+                description: First release
+                default: false
+
+jobs:
+    create-release:
+        name: Create release
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            -   name: Check naming convention
+                run: |
+                    VERIF=$(echo ${{ github.event.inputs.tag_name }} | grep -E "^v([0-9]{1,}\.)([0-9]{1,}\.)([0-9]{1,})(-(alpha|beta)\.[0-9]{1,})?$")
+                    if [ ! ${VERIF} ]
+                    then
+                      echo "Tag name '${{ github.event.inputs.tag_name }}' does not comply with naming convention vX.Y.Z"
+                      exit 1
+                    fi
+
+            -   name: Set version number without v
+                run: |
+                    echo "VERSION_NUMBER=$(echo ${{ github.event.inputs.tag_name }} | sed 's/v//g' )" >> $GITHUB_ENV
+
+            -   name: Clone sources
+                uses: actions/checkout@v4
+
+            -   name: Check version consistency in files
+                # CHANGELOG.md, package.json, src/lib/lapi-client/index.ts
+                run: |
+                    # Check top ## [VERSION_NUMBER](GITHUB_URL/releases/tag/vVERSION_NUMBER) - yyyy-mm-dd in CHANGELOG.md
+                    # Example: ## [0.0.2](https://github.com/crowdsecurity/nodejs-cs-bouncer/releases/tag/v0.0.2) - 2025-02-07
+                    CURRENT_DATE=$(date +'%Y-%m-%d')
+                    echo $CURRENT_DATE
+                    CHANGELOG_VERSION=$(grep -o -E "## \[(.*)\].* - $CURRENT_DATE"  CHANGELOG.md | head -1 | sed 's/ //g')
+                    echo $CHANGELOG_VERSION
+                    if [[ $CHANGELOG_VERSION == "##[${{ env.VERSION_NUMBER }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/v${{ env.VERSION_NUMBER }})-$CURRENT_DATE" ]]
+                    then
+                        echo "CHANGELOG VERSION OK"
+                    else
+                        echo "CHANGELOG VERSION KO"
+                        echo $CHANGELOG_VERSION
+                        exit 1
+                    fi
+                    # Check top [_Compare with previous release_](GITHUB_URL/compare/vLAST_TAG...vVERSION_NUMBER) in CHANGELOG.md
+                    # Example: [_Compare with previous release_](https://github.com/crowdsecurity/nodejs-cs-bouncer/compare/v0.0.1...v0.0.2)
+                    if [[ ${{ github.event.inputs.first-release }} != "true" ]]
+                    then
+                      COMPARISON=$(grep -oP "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/\K(.*)$" CHANGELOG.md | head -1)
+                      LAST_TAG=$(curl -Ls -o /dev/null -w %{url_effective} $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest | grep -oP "\/tag\/\K(.*)$")
+                      if [[ $COMPARISON == "$LAST_TAG...v${{ env.VERSION_NUMBER }})" ]]
+                      then
+                        echo "VERSION COMPARISON OK"
+                      else
+                        echo "VERSION COMPARISON KO"
+                        echo $COMPARISON
+                        echo "$LAST_TAG...v${{ env.VERSION_NUMBER }})"
+                        exit 1
+                      fi
+                    fi
+                    
+                    # Check "version": "VERSION_NUMBER", in package.json
+                    JSON_VERSION=$(grep -E '\"version\": \"(.*)\",'  package.json | sed 's/ //g')
+                    if [[ $JSON_VERSION == "\"version\":\"${{ env.VERSION_NUMBER }}\"," ]]
+                    then
+                      echo "package.json VERSION OK"
+                    else
+                      echo "package.json VERSION KO"
+                      exit 1
+                    fi
+                    
+                    # Check this.userAgent = configs.userAgent ?? 'nodejs-cs-bouncer/v0.0.1'; in src/lib/lapi-client/index.ts
+                    AGENT_VERSION=$(grep -E "this.userAgent = configs.userAgent"  src/lib/lapi-client/index.ts | sed 's/ //g')
+                    if [[ $AGENT_VERSION == "this.userAgent=configs.userAgent??'nodejs-cs-bouncer/v${{ env.VERSION_NUMBER }}';" ]]
+                    then
+                      echo "User Agent VERSION OK"
+                    else
+                      echo "User Agent VERSION KO"
+                      exit 1
+                    fi
+
+            -   name: Create Tag
+                uses: actions/github-script@v7
+                with:
+                    github-token: ${{ github.token }}
+                    script: |
+                        github.rest.git.createRef({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          ref: "refs/tags/${{ github.event.inputs.tag_name }}",
+                          sha: context.sha
+                        })
+
+            -   name: Prepare release notes
+                run: |
+                    # Retrieve release body and remove ---
+                    VERSION_RELEASE_NOTES=$(awk -v ver="[${{ env.VERSION_NUMBER }}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/v${{ env.VERSION_NUMBER }})" '/^## / { if (p) { exit }; if ($2 == ver) { p=1; next} } p && NF' CHANGELOG.md | sed ':a;N;$!ba;s/\n---/ /g')
+                    echo "$VERSION_RELEASE_NOTES" >> CHANGELOG.txt
+
+            -   name: Create release ${{ env.VERSION_NUMBER }}
+                uses: softprops/action-gh-release@v2
+                with:
+                    body_path: CHANGELOG.txt
+                    name: ${{ env.VERSION_NUMBER }}
+                    tag_name: ${{ github.event.inputs.tag_name }}
+
+
+    publish-to-npm:
+
+        name: Publish to NPM
+        runs-on: ubuntu-latest
+        permissions:
+            # IMPORTANT: this permission is mandatory for publishing with provenance
+            id-token: write
+            contents: read
+        if: success() && github.event.inputs.publish-to-npm == 'true'
+        needs: [create-release]
+
+        steps:
+            -   uses: actions/checkout@v4
+            # Setup .npmrc file to publish to npm
+            -   uses: actions/setup-node@v4
+                with:
+                    node-version: '20.x'
+                    registry-url: 'https://registry.npmjs.org'
+            -   name: Install dependencies
+                run: npm ci
+            -   name: Publish to NPM
+                run: npm publish --provenance --access public
+                env:
+                    NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

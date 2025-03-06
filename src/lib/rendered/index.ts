@@ -1,17 +1,17 @@
 import { template } from 'lodash';
 
 import fs from 'fs';
-import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/libs/constants';
-import { BanWallOptions, BaseWallOptions, CaptchaWallOptions, TemplateType } from 'src/lib/rendered/libs/types';
+import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/constants';
+import { BanWallOptions, BaseWallOptions, CaptchaWallOptions, TemplateType } from 'src/lib/rendered/types';
 
-export const generateTemplate = async (templateName: TemplateType, data: Record<string, unknown>) => {
+export const generateTemplate = async (templateName: TemplateType, data: Record<string, unknown>): Promise<string> => {
     const templatePath = `${TEMPLATES_PATH}/${templateName}.ejs`;
     const content = await fs.promises.readFile(templatePath, 'utf8');
     const compiled = template(content);
     return compiled(data);
 };
 
-export const renderBanWall = async (options?: BanWallOptions) => {
+export const renderBanWall = async (options?: BanWallOptions): Promise<string> => {
     const texts = {
         ...DEFAULT_TEXTS.ban,
         ...options?.texts,
@@ -37,11 +37,10 @@ export const renderBanWall = async (options?: BanWallOptions) => {
         content,
     };
 
-    const base = await generateTemplate('base', baseOptions);
-    return base;
+    return generateTemplate('base', baseOptions);
 };
 
-export const renderCaptchaWall = async (options?: CaptchaWallOptions) => {
+export const renderCaptchaWall = async (options?: CaptchaWallOptions): Promise<string> => {
     const texts = {
         ...DEFAULT_TEXTS.captcha,
         ...options?.texts,
@@ -55,9 +54,7 @@ export const renderCaptchaWall = async (options?: CaptchaWallOptions) => {
     const captchaOptions: CaptchaWallOptions = {
         texts,
         colors,
-        error: options?.error ?? undefined,
         captchaImageTag: options?.captchaImageTag ?? '',
-        redirectUrl: options?.redirectUrl ?? '',
     };
 
     const content = await generateTemplate('captcha', captchaOptions);
@@ -71,6 +68,5 @@ export const renderCaptchaWall = async (options?: CaptchaWallOptions) => {
         content,
     };
 
-    const base = await generateTemplate('base', baseOptions);
-    return base;
+    return await generateTemplate('base', baseOptions);
 };

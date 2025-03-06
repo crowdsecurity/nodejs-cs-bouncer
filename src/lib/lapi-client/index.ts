@@ -1,4 +1,5 @@
-import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/libs/types';
+import { REFRESH_KEYS } from 'src/lib/constants';
+import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
 import { ConnectionHealth, Decision } from 'src/lib/types';
 
@@ -7,20 +8,20 @@ class LapiClient {
     private readonly lapiUrl: string;
     private readonly userAgent: string;
 
-    constructor(options: LapiClientConfigurations) {
-        const isValidUrl = options.url && (options.url.startsWith('http://') || options.url.startsWith('https://'));
+    constructor(configs: LapiClientConfigurations) {
+        const isValidUrl = configs.url && (configs.url.startsWith('http://') || configs.url.startsWith('https://'));
 
         if (!isValidUrl) {
             throw new Error('`lapiUrl` seems invalid. It should start with "http://" or "https://"');
         }
 
-        if (!options.bouncerApiToken) {
+        if (!configs.bouncerApiToken) {
             throw new Error('`bouncerApiToken` is required and must be non-empty');
         }
 
-        this.lapiUrl = options.url;
-        this.bouncerApiToken = options.bouncerApiToken;
-        this.userAgent = options.userAgent ?? 'nodejs-cs-bouncer';
+        this.lapiUrl = configs.url;
+        this.bouncerApiToken = configs.bouncerApiToken;
+        this.userAgent = configs.userAgent ?? 'nodejs-cs-bouncer/v0.0.1';
 
         this.initializeConnectionHealth();
     }
@@ -49,7 +50,7 @@ class LapiClient {
             throw new Error(`Call to ${path} failed`);
         }
 
-        return response.json() as T;
+        return (await response.json()) as T;
     };
 
     /**
@@ -67,7 +68,7 @@ class LapiClient {
         scopes,
         scenariosContaining,
         scenariosNotContaining,
-    }: GetDecisionsOptions = {}): Promise<{ new: Decision[]; deleted: Decision[] }> => {
+    }: GetDecisionsOptions = {}): Promise<Record<REFRESH_KEYS, Decision[] | null>> => {
         const params = new URLSearchParams({
             startup: isFirstFetch.toString(),
             ...(scopes ? { scopes: scopes.join(',') } : {}),
@@ -79,8 +80,8 @@ class LapiClient {
         const fullUrl = `v1/decisions/stream?${params.toString()}`;
 
         return this.callLapiGetEndpoint<{
-            new: Decision[];
-            deleted: Decision[];
+            [REFRESH_KEYS.NEW]: Decision[] | null;
+            [REFRESH_KEYS.DELETED]: Decision[] | null;
         }>(fullUrl);
     };
 

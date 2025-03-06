@@ -1,0 +1,58 @@
+name: End-to-End Tests
+
+permissions:
+    contents: read
+on:
+    push:
+        paths-ignore:
+            - '**.md'
+    workflow_dispatch:
+jobs:
+    express-server-tests:
+        name: Express Server
+        timeout-minutes: 60
+
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4
+
+            -   name: Use Node.js 20
+                uses: actions/setup-node@v4
+                with:
+                    node-version: '20.x'
+
+            -   name: Prepare express-server
+                run: |
+                    # Browse to the express-server example
+                    cd examples/express-server
+                    # Prepare the environment variables
+                    cp .env.example .env
+                    cp crowdsec/.env.example crowdsec/.env
+                    # Create a local archive of the Node.js Bouncer
+                    npm run pack-locally
+                    # Install the dependencies (do not use npm ci as it will fail to validate the tarball)
+                    rm package-lock.json
+                    npm install
+                    # Install Playwright Browsers
+                    npx playwright install --with-deps
+                    # Start docker services
+                    docker compose up -d
+                    # Create a bouncer with the "crowdsec/.env" file bouncer key
+                    BOUNCER_KEY=$(grep -o -E "BOUNCER_KEY=(.*)" crowdsec/.env | cut -d'=' -f2 | tr -d "'")   
+                    docker exec -i nodejs-cs-crowdsec sh -c 'cscli bouncers add NodeBouncer --key $BOUNCER_KEY'
+
+            -   name: Run Playwright tests
+                run: |
+                    cd examples/express-server
+                    E2E_TEST_NAME=live-mode npx playwright test live-mode
+                    E2E_TEST_NAME=custom-configs-1 npx playwright test custom-configs-1
+                    E2E_TEST_NAME=custom-configs-2 npx playwright test custom-configs-2
+                    E2E_TEST_NAME=stream-mode npx playwright test stream-mode
+
+            -   uses: actions/upload-artifact@v4
+                if: ${{ !cancelled() }}
+                with:
+                    name: playwright-report
+                    path: examples/express-server/playwright-report/
+                    retention-days: 10

@@ -1,8 +1,8 @@
 <p align="center">
   <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/app-sec.webp" width="200px" align="center" alt="Crowdsec Bouncer logo" />
-  <h1 align="center">CrowdSec NodeJS Bouncer</h1>
+  <h1 align="center">CrowdSec Node.js Bouncer</h1>
   <p align="center">
-    ✨ <a href="https://www.crowdsec.net/">Crowdsec</a> ✨
+    ✨ <a href="https://www.crowdsec.net/">CrowdSec</a> ✨
   </p>
 </p>
 <p align="center">
@@ -22,7 +22,7 @@
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://app.crowdsec.net/hub">Hub</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://www.npmjs.com/package/@crowdsec/express-bouncer">npm</a>
+  <a href="https://www.npmjs.com/package/@crowdsec/nodejs-bouncer">npm</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/crowdsecurity/nodejs-cs-bouncer/issues">Issues</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -31,112 +31,25 @@
   <br/>
 </div>
 
-CrowdSec is a behavior detection engine that blocks common attacks like credential brute-force, port scans, and web scans.
-It maintains a global IP reputation database, curated to avoid false positives, and shares it with all network members.
+## Overview
 
-## Basic Usage
+This bouncer allows you to protect your Node.js application from IPs that have been detected by CrowdSec. Depending on
+the decision taken by CrowdSec, user will either get denied (403) or have to fill a captcha (401).
 
-Invoking the bouncer is as simple as (Check our [examples](./examples)):
+It supports `ban` and `captcha` remediation, and all decisions with `Ip` or `Range` scope.
 
-```typescript
-import { CrowdSecBouncer, CrowdSecBouncerConfiguration } from '@crowdsec/nodejs-cs-bouncer';
+## Usage
 
-const config: CrowdSecBouncerConfiguration = {
-    url: 'http://localhost:8080',
-    bouncerApiToken: 'your-api-key',
-};
+See [User Guide](https://github.com/crowdsecurity/nodejs-cs-bouncer/blob/main/docs/USER_GUIDE.md)
 
-// Init the bouncer
-const bouncer = new CrowdSecBouncer(config);
+## Installation
 
-// Get the remediation for an IP
-const remediation = await bouncer.getIpRemediation(malevolentIp);
-```
+See [Installation Guide](https://github.com/crowdsecurity/nodejs-cs-bouncer/blob/main/docs/INSTALLATION_GUIDE.md)
 
-### Apply the remediation
+## Developer guide
 
-Thanks to the bouncer, you know the remediation about a given IP.
-To apply the remediation you can use render methods offered by the library. You can either display a ban wall or a captcha wall (Check our [examples](./examples)):
+See [Developer Guide](https://github.com/crowdsecurity/nodejs-cs-bouncer/blob/main/docs/DEVELOPER.md)
 
-```typescript
-import { renderBanWall, BanWallOptions } from '@crowdsec/nodejs-cs-bouncer';
+## License
 
-const wallOptions: BanWallOptions = {
-    texts: {
-        title: '⚠️ You have been banned ⚠️',
-        subtitle: 'You have been banned from accessing this website.',
-    },
-};
-
-// Render a full customizable HTML page
-const banWall = await renderBanWall(wallOptions);
-```
-
-Example of a ban or captcha wall:
-
-<div align="center">
-  <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/ban-wall.png" height="200px" align="center" alt="Crowdsec Bouncer Ban wall" />
-  <img src="https://github.com/crowdsecurity/nodejs-cs-bouncer/raw/main/docs/assets/captcha-wall.png" height="200px" align="center" alt="Crowdsec Bouncer Captcha wall" />
-</div>
-
-## API
-
-### CrowdSecBouncer
-
-[Check the initialization example](./examples/bouncer-init.ts)
-
--   `constructor(config: CrowdSecBouncerConfiguration)` : Create a new instance of the CrowdSecBouncer.
-
--   `CrowdSecBouncerConfiguration`
-
-```typescript
-{
-    url: 'string'; // The URL of your CrowdSec Local API
-    bouncerApiToken: 'string'; // The API token to use the bouncer
-    fallbackRemediation: 'RemediationType'; // The fallback remediation to use. Default: 'ban'
-}
-```
-
--   `getIpRemediation(ip: string): Promise<Remediation>`: Get the remediation for a given IP.
-
-### Render ban wall
-
--   `renderBanWall(options: BanWallOptions): Promise<string>`: Return a computed HTML page with the ban wall.
-
--   `BanWallOptions` Default options:
-
-```typescript
-{
-    tabTitle: 'CrowdSec | Ban Wall', // The title of the tab
-    title: 'Access Denied', // Title present in the ban wall card
-    subtitle: 'This page is secured against cyber attacks, and your IP has been blocked by our system', // Subtitle present in the ban wall card
-    footer: '', // Footer present in the ban wall card
-    hideCrowdSecMentions: false, // Hide the CrowdSec mentions
-    colors: // Check default colors
-    texts: // Check default texts
-}
-```
-
-### Render captcha wall
-
--   `renderCaptchaWall(options: CaptchaWallOptions): Promise<string>` : Return a computed HTML page with the captcha wall.
--   `CaptchaWallOptions` Default options:
-
-```typescript
-{
-    tabTitle: 'CrowdSec | Captcha Wall', // The title of the tab
-    title: 'Access Denied', // Title present in the captcha wall card
-    subtitle: 'This page is secured against cyber attacks, and your IP has been blocked by our system', // Subtitle present in the captcha wall card
-    footer: '', // Footer present in the captcha wall card
-    hideCrowdSecMentions: false, // Hide the CrowdSec mentions
-    colors: // Check default colors
-    texts: // Check default texts
-    error: '', // The error message to show when the captcha validation fails
-    captchaImageTag: '', // The captcha image tag
-    redirectUrl: '', // The URL to redirect after the captcha validation
-}
-```
-
-## MIT Licence
-
-[MIT Licence](./LICENCE)
+[MIT](https://github.com/crowdsecurity/nodejs-cs-bouncer/blob/main/LICENSE)

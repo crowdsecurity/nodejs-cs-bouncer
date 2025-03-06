@@ -9,6 +9,7 @@ import preferArrowFunctions from 'eslint-plugin-prefer-arrow-functions';
 import globals from 'globals';
 
 import path from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,7 +22,7 @@ const compat = new FlatCompat({
 
 export default [
     {
-        ignores: ['**/*.ejs', '**/dist/'],
+        ignores: process.env.CI ? ['**/*.ejs', '**/dist/', '**/examples'] : ['**/*.ejs', '**/dist/'],
     },
     ...fixupConfigRules(
         compat.extends(
@@ -69,9 +70,7 @@ export default [
                 'error',
                 {
                     groups: ['external', ['builtin', 'index', 'sibling', 'parent', 'internal'], 'object', 'type'],
-
                     'newlines-between': 'always',
-
                     alphabetize: {
                         order: 'asc',
                         caseInsensitive: true,
@@ -99,6 +98,19 @@ export default [
 
             'prefer-template': 'error',
             'no-nested-ternary': 'error',
+            'no-implicit-coercion': ['error', { boolean: true }],
+
+            '@typescript-eslint/naming-convention': [
+                'error',
+                {
+                    selector: 'typeLike',
+                    format: ['PascalCase'],
+                },
+                {
+                    selector: 'enum',
+                    format: ['UPPER_CASE'],
+                },
+            ],
         },
     },
     {

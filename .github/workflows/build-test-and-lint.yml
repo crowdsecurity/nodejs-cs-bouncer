@@ -1,39 +1,47 @@
 name: Build, test and lint
 
-on: push
+permissions:
+    contents: read
+
+on:
+    push:
+        paths-ignore:
+            - '**.md'
+
+    workflow_dispatch:
 
 jobs:
     lint:
         name: Build, lint and test the code base
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+            -   name: Checkout code
+                uses: actions/checkout@v4
 
-            - name: Use Node.js 20
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-                  cache: 'npm'
+            -   name: Use Node.js 20
+                uses: actions/setup-node@v4
+                with:
+                    node-version: '20.x'
+                    cache: 'npm'
 
-            - name: Install deps
-              run: npm ci
+            -   name: Install deps
+                run: npm ci
 
-            - name: Run tests
-              run: npm run test
+            -   name: Run tests
+                run: npm run test
 
-            - name: Check types with Typescript
-              run: npm run build
+            -   name: Check types with Typescript
+                run: npm run build
 
-            - name: Check code with ESLint
-              run: npm run lint
+            -   name: Check code with ESLint
+                run: npm run lint
 
-            - name: Check code formatting
-              run: npm run prettify-check
+            -   name: Check code formatting
+                run: npm run prettify-check
 
-            - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@v4.0.1
-              if: always()
-              with:
-                  token: ${{ secrets.CODECOV_TOKEN }}
-                  slug: crowdsecurity/nodejs-cs-bouncer
+            -   name: Upload coverage reports to Codecov
+                uses: codecov/codecov-action@v4.0.1
+                if: always()
+                with:
+                    token: ${{ secrets.CODECOV_TOKEN }}
+                    slug: crowdsecurity/nodejs-cs-bouncer
