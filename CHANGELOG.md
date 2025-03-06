@@ -13,6 +13,6 @@ properties and constants belonging to the `src` folder.
 
 ---
 
-## [0.0.1](https://github.com/crowdsecurity/nodejs-cs-bouncer/releases/tag/v0.0.1) - 2025-??-??
+## [0.0.1](https://github.com/crowdsecurity/nodejs-cs-bouncer/releases/tag/v0.0.1) - 2025-03-06
 
 - Initial release
