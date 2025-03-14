@@ -40,3 +40,5 @@ export enum BOUNCER_KEYS {
     ORIGIN = 'origin',
     CAPTCHA_PHRASE = 'captchaPhrase',
 }
+
+export const METRICS_TYPE = 'crowdsec-nodejs-bouncer';

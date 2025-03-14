@@ -4,7 +4,7 @@
   "main": "server.ts",
   "scripts": {
     "start": "ts-node server.ts",
-    "watch:src": "nodemon --watch server.ts --watch ../../src --ext ejs,ts,js --exec 'npm run pack-locally && npm install'",
+    "watch:src": "nodemon --watch server.ts --watch ../../src --ext ejs,ts,js --exec 'npm run pack-locally && npm update'",
     "watch:dist": "nodemon --watch ../../dist --ext ejs,ts,js --exec ts-node server.ts",
     "dev": "concurrently \"npm run watch:src\" \"npm run watch:dist\"",
     "start-e2e": "CS_NO_COLOR=1 ts-node server.ts | tee -a tests/logs/crowdsec.log",

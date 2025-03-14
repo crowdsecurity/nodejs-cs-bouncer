@@ -86,10 +86,10 @@ app.get('/', (_req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// This cron job will fetch the decisions from the CrowdSec API every 120 seconds
+// This cron job will fetch the decisions from the CrowdSec LAPI every 120 seconds
 let counter = 0;
 const DECISIONS_REFRESH_INTERVAL = 120; // seconds
-// Retrieve decisions from the CrowdSec API
+// Retrieve decisions from the CrowdSec LAPI
 nodeCron.schedule('* * * * * *', async () => {
     if (counter % DECISIONS_REFRESH_INTERVAL === 0) {
         logger.info('Running refreshDecisions cron task');
@@ -106,6 +106,22 @@ nodeCron.schedule('* * * * * *', async () => {
         }
     }
     counter++;
+});
+
+// This cron job will push usage metrics to the CrowdSec LAPI every 15 minutes
+let metricsCounter = 0;
+const USAGE_METRICS_INTERVAL = 15; // seconds TODO: Change to 900 (15 minutes)
+// Push usage metrics
+nodeCron.schedule('* * * * * *', async () => {
+    if (metricsCounter % USAGE_METRICS_INTERVAL === 0) {
+        logger.info('Running pushUsageMetrics cron task');
+        try {
+            await bouncer.pushUsageMetrics('crowdsec-express-server-bouncer', 'v0.0.1');
+        } catch (error) {
+            logger.error(`Error while pushing usage metrics: ${(error as Error).message}`);
+        }
+    }
+    metricsCounter++;
 });
 
 // For End-to-End tests only
