@@ -46,7 +46,7 @@ export type FinalMetrics = {
 };
 
 class Metrics {
-    toArray(): FinalMetrics {
+    format(): FinalMetrics {
         return {
             remediation_components: [
                 {
@@ -75,33 +75,33 @@ class Metrics {
 
 export class MetricsBuilder {
     public buildUsageMetrics(params: BuildUsageMetricsParams): Metrics {
-        const { properties, meta, items } = params;
-        const finalProperties: MetricsProperties = {
-            name: properties.name ?? '',
-            type: properties.type ?? METRICS_TYPE,
-            version: properties.version ?? '',
-            feature_flags: properties.feature_flags ?? [],
-            utc_startup_timestamp: properties.utc_startup_timestamp ?? 0,
-        };
-
-        if (properties.last_pull !== undefined) {
-            finalProperties.last_pull = properties.last_pull;
-        }
-
-        finalProperties.os = properties.os ?? {
-            name: os.type(),
-            version: os.release(),
-        };
-
-        const finalMeta: MetricsMeta = {
-            window_size_seconds: meta.window_size_seconds ?? 0,
-            utc_now_timestamp: meta.utc_now_timestamp ?? Math.floor(Date.now() / 1000),
-        };
-
         try {
+            const { properties, meta, items } = params;
+            const finalProperties: MetricsProperties = {
+                name: properties.name ?? '',
+                type: properties.type ?? METRICS_TYPE,
+                version: properties.version ?? '',
+                feature_flags: properties.feature_flags ?? [],
+                utc_startup_timestamp: properties.utc_startup_timestamp ?? 0,
+            };
+
+            if (properties.last_pull !== undefined) {
+                finalProperties.last_pull = properties.last_pull;
+            }
+
+            finalProperties.os = properties.os ?? {
+                name: os.type(),
+                version: os.release(),
+            };
+
+            const finalMeta: MetricsMeta = {
+                window_size_seconds: meta.window_size_seconds ?? 0,
+                utc_now_timestamp: meta.utc_now_timestamp ?? Math.floor(Date.now() / 1000),
+            };
+
             return new Metrics({ properties: finalProperties, meta: finalMeta, items: items ?? [] });
-        } catch (e) {
-            throw new Error(`Something went wrong while creating metrics: ${e instanceof Error ? e.message : String(e)}`);
+        } catch (error) {
+            throw new Error(`Something went wrong while creating metrics: ${error instanceof Error ? error.message : 'Unknown error.'}`);
         }
     }
 }

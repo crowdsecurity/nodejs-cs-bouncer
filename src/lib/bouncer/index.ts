@@ -245,7 +245,7 @@ class CrowdSecBouncer {
             },
             items,
         });
-        const metricsArray = metrics.toArray();
+        const metricsArray = metrics.format();
         await this.lapiClient.pushUsageMetrics(metricsArray);
 
         // Decrement the count of each origin/remediation

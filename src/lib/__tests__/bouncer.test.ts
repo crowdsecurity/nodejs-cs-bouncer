@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, beforeAll, describe, expect, it, jest, afterAll } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
+import os from 'os';
 import CrowdSecBouncer from 'src/lib/bouncer';
 import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
 import CacheStorage from 'src/lib/cache';
+import { ORIGINS_COUNT_KEY } from 'src/lib/cache/constants';
 import { getCacheKey } from 'src/lib/cache/helpers';
 import InMemory from 'src/lib/cache/in-memory';
 import { CachableDecisionContent, CachableDecisionItem } from 'src/lib/cache/types';
@@ -923,6 +925,184 @@ describe('🛡️ Bouncer', () => {
             expect(result).toEqual({
                 [REFRESH_KEYS.NEW]: [],
                 [REFRESH_KEYS.DELETED]: [],
+            });
+        });
+    });
+
+    describe('pushUsageMetrics', () => {
+        it('should push usage metrics', async () => {
+            const lastSent = 1741166923; // in seconds
+            const firstCall = 1741166111; // in seconds
+            const bouncer = new CrowdSecBouncer(configs);
+            const originalGetItem = bouncer['cacheStorage'].adapter.getItem; // Store the real method
+            jest.spyOn(os, 'type').mockImplementation(() => 'LinuxTest');
+            jest.spyOn(os, 'release').mockImplementation(() => 'test-release');
+            jest.spyOn(bouncer['cacheStorage'], 'getFirstLapiCall').mockResolvedValue(firstCall * 1000);
+            jest.spyOn(bouncer['cacheStorage'], 'getLastMetricsSent').mockResolvedValue(lastSent * 1000);
+            jest.spyOn(bouncer['cacheStorage'].adapter, 'getItem').mockImplementation(async (key) => {
+                if (key === ORIGINS_COUNT_KEY) {
+                    return {
+                        key: ORIGINS_COUNT_KEY,
+                        content: [
+                            {
+                                origin: 'CAPI',
+                                remediation: { ban: 2, captcha: 1 },
+                            },
+                            {
+                                origin: 'cscli',
+                                remediation: { ban: 3 },
+                            },
+                            {
+                                origin: 'clean',
+                                remediation: { bypass: 8 },
+                            },
+                        ],
+                    }; // Mocked value when key matches
+                }
+                return originalGetItem.call(bouncer['cacheStorage'].adapter, key); // Call the real method otherwise
+            });
+            const mockPushUsageMetrics = jest.spyOn(bouncer.lapiClient, 'pushUsageMetrics').mockResolvedValue(null);
+
+            const now = Math.floor(Date.now() / 1000);
+
+            await bouncer.pushUsageMetrics('test-bouncer', '1.0.0');
+
+            expect(mockPushUsageMetrics).toHaveBeenCalledTimes(1);
+
+            const metricsArray = mockPushUsageMetrics.mock.calls[0][0]; // Capture the first argument
+
+            expect(metricsArray).toEqual({
+                remediation_components: [
+                    {
+                        feature_flags: [],
+                        metrics: [
+                            {
+                                items: [
+                                    {
+                                        labels: { origin: 'CAPI', remediation: 'ban' },
+                                        name: 'dropped',
+                                        unit: 'request',
+                                        value: 2,
+                                    },
+                                    {
+                                        labels: { origin: 'CAPI', remediation: 'captcha' },
+                                        name: 'dropped',
+                                        unit: 'request',
+                                        value: 1,
+                                    },
+                                    {
+                                        labels: { origin: 'cscli', remediation: 'ban' },
+                                        name: 'dropped',
+                                        unit: 'request',
+                                        value: 3,
+                                    },
+                                    { name: 'processed', unit: 'request', value: 14 },
+                                ],
+                                meta: {
+                                    utc_now_timestamp: now,
+                                    window_size_seconds: now - lastSent,
+                                },
+                            },
+                        ],
+                        name: 'test-bouncer',
+                        os: { name: 'LinuxTest', version: 'test-release' },
+                        type: 'crowdsec-nodejs-bouncer',
+                        utc_startup_timestamp: firstCall,
+                        version: '1.0.0',
+                    },
+                ],
+            });
+        });
+        it('should not push usage empty metrics', async () => {
+            const bouncer = new CrowdSecBouncer(configs);
+            const originalGetItem = bouncer['cacheStorage'].adapter.getItem; // Store the real method
+            jest.spyOn(bouncer['cacheStorage'].adapter, 'getItem').mockImplementation(async (key) => {
+                if (key === ORIGINS_COUNT_KEY) {
+                    return null;
+                }
+                return originalGetItem.call(bouncer['cacheStorage'].adapter, key); // Call the real method otherwise
+            });
+            const mockPushUsageMetrics = jest.spyOn(bouncer.lapiClient, 'pushUsageMetrics').mockResolvedValue(null);
+
+            await bouncer.pushUsageMetrics('test-bouncer', '1.0.0');
+
+            expect(mockPushUsageMetrics).toHaveBeenCalledTimes(0);
+        });
+        it('should not push negative count', async () => {
+            const lastSent = 1741166923; // in seconds
+            const firstCall = 1741166111; // in seconds
+            const bouncer = new CrowdSecBouncer(configs);
+            const originalGetItem = bouncer['cacheStorage'].adapter.getItem; // Store the real method
+            jest.spyOn(os, 'type').mockImplementation(() => 'LinuxTest');
+            jest.spyOn(os, 'release').mockImplementation(() => 'test-release');
+            jest.spyOn(bouncer['cacheStorage'], 'getFirstLapiCall').mockResolvedValue(firstCall * 1000);
+            jest.spyOn(bouncer['cacheStorage'], 'getLastMetricsSent').mockResolvedValue(lastSent * 1000);
+            jest.spyOn(bouncer['cacheStorage'].adapter, 'getItem').mockImplementation(async (key) => {
+                if (key === ORIGINS_COUNT_KEY) {
+                    return {
+                        key: ORIGINS_COUNT_KEY,
+                        content: [
+                            {
+                                origin: 'CAPI',
+                                remediation: { ban: 2, captcha: -1 },
+                            },
+                            {
+                                origin: 'cscli',
+                                remediation: { ban: 3 },
+                            },
+                            {
+                                origin: 'clean',
+                                remediation: { bypass: 8 },
+                            },
+                        ],
+                    }; // Mocked value when key matches
+                }
+                return originalGetItem.call(bouncer['cacheStorage'].adapter, key); // Call the real method otherwise
+            });
+            const mockPushUsageMetrics = jest.spyOn(bouncer.lapiClient, 'pushUsageMetrics').mockResolvedValue(null);
+
+            const now = Math.floor(Date.now() / 1000);
+
+            await bouncer.pushUsageMetrics('test-bouncer', '1.0.0');
+
+            expect(mockPushUsageMetrics).toHaveBeenCalledTimes(1);
+
+            const metricsArray = mockPushUsageMetrics.mock.calls[0][0]; // Capture the first argument
+
+            expect(metricsArray).toEqual({
+                remediation_components: [
+                    {
+                        feature_flags: [],
+                        metrics: [
+                            {
+                                items: [
+                                    {
+                                        labels: { origin: 'CAPI', remediation: 'ban' },
+                                        name: 'dropped',
+                                        unit: 'request',
+                                        value: 2,
+                                    },
+                                    {
+                                        labels: { origin: 'cscli', remediation: 'ban' },
+                                        name: 'dropped',
+                                        unit: 'request',
+                                        value: 3,
+                                    },
+                                    { name: 'processed', unit: 'request', value: 13 },
+                                ],
+                                meta: {
+                                    utc_now_timestamp: now,
+                                    window_size_seconds: now - lastSent,
+                                },
+                            },
+                        ],
+                        name: 'test-bouncer',
+                        os: { name: 'LinuxTest', version: 'test-release' },
+                        type: 'crowdsec-nodejs-bouncer',
+                        utc_startup_timestamp: firstCall,
+                        version: '1.0.0',
+                    },
+                ],
             });
         });
     });

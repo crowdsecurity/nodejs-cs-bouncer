@@ -400,6 +400,42 @@ describe('Cache', () => {
             expect(result).toEqual(true);
         });
     });
+    describe('CacheStorage - getLastMetricsSent', () => {
+        let cacheStorage: CacheStorage;
+
+        beforeEach(() => {
+            // ✅ Create an instance of CacheStorage with InMemory as the adapter
+            const cacheAdapter = new InMemory();
+            cacheStorage = new CacheStorage({ cacheAdapter });
+        });
+
+        afterEach(async () => {
+            jest.restoreAllMocks();
+        });
+
+        afterAll(async () => {
+            jest.restoreAllMocks();
+        });
+
+        it('should return 123456789', async () => {
+            jest.spyOn(cacheStorage['adapter'], 'getItem').mockResolvedValue({
+                key: 'config_last_metrics_sent',
+                content: 123456789,
+            });
+
+            const result = await cacheStorage.getLastMetricsSent();
+
+            expect(result).toEqual(123456789);
+        });
+
+        it('should return 0', async () => {
+            jest.spyOn(cacheStorage['adapter'], 'getItem').mockResolvedValue(null);
+
+            const result = await cacheStorage.getLastMetricsSent();
+
+            expect(result).toEqual(0);
+        });
+    });
     describe('CacheStorage - upsertMetricsOriginsCount', () => {
         let cacheStorage: CacheStorage;
 
@@ -609,7 +645,7 @@ describe('Cache', () => {
             jest.restoreAllMocks();
         });
 
-        it('should be abel to flag warm up', async () => {
+        it('should be able to flag warm up', async () => {
             const isWarm = await cacheStorage.isWarm();
 
             expect(isWarm).toEqual(false);
@@ -619,6 +655,35 @@ describe('Cache', () => {
             const isWarmAfter = await cacheStorage.isWarm();
 
             expect(isWarmAfter).toEqual(true);
+        });
+    });
+    describe('CacheStorage - storeLastMetricsSent', () => {
+        let cacheStorage: CacheStorage;
+
+        beforeEach(() => {
+            // ✅ Create an instance of CacheStorage with InMemory as the adapter
+            const cacheAdapter = new InMemory();
+            cacheStorage = new CacheStorage({ cacheAdapter });
+        });
+
+        afterEach(async () => {
+            jest.restoreAllMocks();
+        });
+
+        afterAll(async () => {
+            jest.restoreAllMocks();
+        });
+
+        it('should be able to flag warm up', async () => {
+            const lastMetricsSent = await cacheStorage.getLastMetricsSent();
+
+            expect(lastMetricsSent).toEqual(0);
+
+            await cacheStorage.storeLastMetricsSent(12345678910);
+
+            const lastMetricsSentAfter = await cacheStorage.getLastMetricsSent();
+
+            expect(lastMetricsSentAfter).toEqual(12345678910);
         });
     });
 });
