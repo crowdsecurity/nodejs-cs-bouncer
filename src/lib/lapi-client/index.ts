@@ -2,7 +2,7 @@ import { REFRESH_KEYS } from 'src/lib/constants';
 import { FinalMetrics } from 'src/lib/lapi-client/metrics';
 import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
-import { CachableOrigin, ConnectionHealth, Decision, Remediation } from 'src/lib/types';
+import { ConnectionHealth, Decision } from 'src/lib/types';
 
 type CallLapiParams = {
     path: string;
