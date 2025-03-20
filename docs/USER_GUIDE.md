@@ -248,6 +248,28 @@ await bouncer.refreshDecisions({
 In live mode, it could also be useful to refresh the cache to get the latest decisions.
 Indeed, bouncer will first check the cached decisions for the current IP before calling the CrowdSec API.
 
+### Push usage metrics
+
+You can push usage metrics to the CrowdSec LAPI, allowing for a unified view of its behavior and insights.
+
+Please see [CrowdSec documentation](https://doc.crowdsec.net/docs/next/observability/usage_metrics/) for more
+information.
+
+First param of the `pushUsageMetrics` method is the name of the bouncer and is mandatory. The second param is the
+version
+of the bouncer and is optional (default this package version).
+
+```typescript
+await bouncer.pushUsageMetrics('bouncer-name', 'bouncer-version');
+
+```
+
+We recommend calling this method every 15 minutes, using a CRON job for example.
+
+Metrics are sent to the CrowdSec LAPI and can be viewed in your [CrowdSec dashboard](https://app.crowdsec.net/).
+
+![Console metrics](images/screenshots/console-metrics.png)
+
 ### Custom Captcha
 
 By default, this bouncer generates captcha using [
