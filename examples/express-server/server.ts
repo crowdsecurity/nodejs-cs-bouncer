@@ -110,7 +110,7 @@ nodeCron.schedule('* * * * * *', async () => {
 
 // This cron job will push usage metrics to the CrowdSec LAPI every 15 minutes
 let metricsCounter = 0;
-const USAGE_METRICS_INTERVAL = 15; // seconds TODO: Change to 900 (15 minutes)
+const USAGE_METRICS_INTERVAL = 900; // seconds (15 minutes)
 // Push usage metrics
 nodeCron.schedule('* * * * * *', async () => {
     if (metricsCounter % USAGE_METRICS_INTERVAL === 0) {

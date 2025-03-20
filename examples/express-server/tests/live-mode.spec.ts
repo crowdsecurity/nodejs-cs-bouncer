@@ -141,6 +141,25 @@ test('Should solve a captcha', async ({ page }) => {
     await expect(page).toHaveTitle(HOME_TITLE);
 });
 
+test('Should push usage metrics', async ({ page }) => {
+    await page.goto(`${E2E_ENDPOINT}?action=push-metrics`);
+    const locator = page.locator('body');
+    await expect(locator).toHaveText('Usage metrics pushed');
+    // Verify expected log messages
+    await wait(1000, 'Wait for logs to be written');
+    const logContent = await getFileContent(LOG_PATH);
+    // Should push well formatted metrics
+    expect(logContent).toMatch(
+        new RegExp(
+            `Pushing usage metrics to LAPI: {"remediation_components":\\[{"name":"crowdsec-express-e2e-bouncer","type":"crowdsec-nodejs-bouncer","version":"v0\\.0\\.0","feature_flags":\\[\\],"utc_startup_timestamp":\\d+,"os":{"name":"\\S+","version":"\\S+"},"metrics":\\[{"meta":{"window_size_seconds":\\d+,"utc_now_timestamp":\\d+},"items":\\[{"name":"dropped","value":3,"unit":"request","labels":{"origin":"cscli","remediation":"ban"}},{"name":"dropped","value":8,"unit":"request","labels":{"origin":"cscli","remediation":"captcha"}},{"name":"processed","value":15,"unit":"request"}\\]}\\]}\\]}`,
+        ),
+    );
+    // Should reset all counters
+    expect(logContent).toContain(
+        'Updated origins count: [{"origin":"clean","remediation":{"bypass":0}},{"origin":"cscli","remediation":{"ban":0,"captcha":0,"bypass":0}}]',
+    );
+});
+
 test('Should fallback to default fallback in case of unknown ', async ({ page }) => {
     // Remove all cscli decisions
     removeCscliDecisions();

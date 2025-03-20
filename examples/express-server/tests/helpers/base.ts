@@ -66,6 +66,11 @@ export const addE2ERoutes = (app: any, bouncer: any) => {
                 });
                 return res.send('Decisions refreshed');
             }
+            if (action === 'push-metrics') {
+                // Push usage metrics
+                await bouncer.pushUsageMetrics('crowdsec-express-e2e-bouncer', 'v0.0.0');
+                return res.send('Usage metrics pushed');
+            }
             return res.send('Unknown action');
         });
     }
