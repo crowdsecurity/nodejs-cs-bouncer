@@ -1,4 +1,4 @@
-import { REFRESH_KEYS } from 'src/lib/constants';
+import { REFRESH_KEYS, VERSION, USER_AGENT_PREFIX } from 'src/lib/constants';
 import { FinalMetrics } from 'src/lib/lapi-client/metrics';
 import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/types';
 import logger from 'src/lib/logger';
@@ -158,7 +158,7 @@ class LapiClient {
 
         this.lapiUrl = configs.url;
         this.bouncerApiToken = configs.bouncerApiToken;
-        this.userAgent = configs.userAgent ?? 'nodejs-cs-bouncer/v0.0.1';
+        this.userAgent = configs.userAgent ?? `${USER_AGENT_PREFIX}/${VERSION}`;
 
         this.initializeConnectionHealth();
     }

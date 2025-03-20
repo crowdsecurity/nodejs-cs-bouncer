@@ -116,7 +116,7 @@ nodeCron.schedule('* * * * * *', async () => {
     if (metricsCounter % USAGE_METRICS_INTERVAL === 0) {
         logger.info('Running pushUsageMetrics cron task');
         try {
-            await bouncer.pushUsageMetrics('crowdsec-express-server-bouncer', 'v0.0.1');
+            await bouncer.pushUsageMetrics('crowdsec-express-server-bouncer');
         } catch (error) {
             logger.error(`Error while pushing usage metrics: ${(error as Error).message}`);
         }

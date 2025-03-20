@@ -9,7 +9,7 @@ import { ORIGINS_COUNT_KEY } from 'src/lib/cache/constants';
 import { getCacheKey } from 'src/lib/cache/helpers';
 import InMemory from 'src/lib/cache/in-memory';
 import { CachableDecisionContent, CachableDecisionItem } from 'src/lib/cache/types';
-import { BOUNCER_KEYS, REFRESH_KEYS, REMEDIATION_BAN, REMEDIATION_BYPASS, REMEDIATION_CAPTCHA, SCOPE_IP } from 'src/lib/constants';
+import { BOUNCER_KEYS, REFRESH_KEYS, REMEDIATION_BAN, REMEDIATION_BYPASS, REMEDIATION_CAPTCHA, SCOPE_IP, VERSION } from 'src/lib/constants';
 import logger from 'src/lib/logger';
 import * as rendered from 'src/lib/rendered';
 import { Remediation } from 'src/lib/types';
@@ -1028,7 +1028,7 @@ describe('🛡️ Bouncer', () => {
 
             expect(mockPushUsageMetrics).toHaveBeenCalledTimes(0);
         });
-        it('should not push negative count', async () => {
+        it('should not push negative count and use fallback version', async () => {
             const lastSent = 1741166923; // in seconds
             const firstCall = 1741166111; // in seconds
             const bouncer = new CrowdSecBouncer(configs);
@@ -1063,7 +1063,7 @@ describe('🛡️ Bouncer', () => {
 
             const now = Math.floor(Date.now() / 1000);
 
-            await bouncer.pushUsageMetrics('test-bouncer', '1.0.0');
+            await bouncer.pushUsageMetrics('test-bouncer');
 
             expect(mockPushUsageMetrics).toHaveBeenCalledTimes(1);
 
@@ -1100,7 +1100,7 @@ describe('🛡️ Bouncer', () => {
                         os: { name: 'LinuxTest', version: 'test-release' },
                         type: 'crowdsec-nodejs-bouncer',
                         utc_startup_timestamp: firstCall,
-                        version: '1.0.0',
+                        version: VERSION,
                     },
                 ],
             });

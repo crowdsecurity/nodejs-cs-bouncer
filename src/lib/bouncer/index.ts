@@ -29,6 +29,7 @@ import {
     REMEDIATION_CAPTCHA,
     SCOPE_IP,
     SCOPE_RANGE,
+    VERSION,
 } from 'src/lib/constants';
 import LapiClient from 'src/lib/lapi-client';
 import { MetricsBuilder, MetricItem } from 'src/lib/lapi-client/metrics';
@@ -218,7 +219,7 @@ class CrowdSecBouncer {
         };
     };
 
-    public pushUsageMetrics = async (bouncerName: string, bouncerVersion: string): Promise<void> => {
+    public pushUsageMetrics = async (bouncerName: string, bouncerVersion?: string): Promise<void> => {
         const start = Math.floor((await this.cacheStorage.getFirstLapiCall()) / 1000);
         const now = Math.floor(Date.now() / 1000);
         const lastSent = Math.floor((await this.cacheStorage.getLastMetricsSent()) / 1000) || start;
@@ -237,7 +238,7 @@ class CrowdSecBouncer {
             properties: {
                 name: bouncerName,
                 type: METRICS_TYPE,
-                version: bouncerVersion,
+                version: bouncerVersion ?? VERSION,
                 utc_startup_timestamp: start,
             },
             meta: {

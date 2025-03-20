@@ -107,7 +107,7 @@ Once you are ready to release a new version (e.g. when all your changes are on t
   release.
     - Each release description must respect the same format as the previous ones.
 - Update the `package.json` file with the new version number.
-- Update the `src/lib/lapi-client/index.ts` file with the new version number for the LAPI client's user-agent.
+- Update the `src/lib/constants.ts` file with the new version number for the `VERSION` constant.
 
 
 - Commit the changes with a message like `chore(changelog) Prepare for release MAJOR.MINOR.PATCH`.
