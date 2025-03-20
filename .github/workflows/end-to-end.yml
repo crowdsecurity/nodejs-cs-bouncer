@@ -35,7 +35,6 @@ jobs:
                     # Create a local archive of the Node.js Bouncer
                     npm run pack-locally
                     # Install the dependencies (do not use npm ci as it will fail to validate the tarball)
-                    rm package-lock.json
                     npm install
                     # Install Playwright Browsers
                     npx playwright install --with-deps
