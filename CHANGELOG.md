@@ -13,6 +13,16 @@ properties and constants belonging to the `src` folder.
 
 ---
 
+## [0.1.0](https://github.com/crowdsecurity/nodejs-cs-bouncer/releases/tag/v0.1.0) - 2025-03-28
+
+[_Compare with previous release_](https://github.com/crowdsecurity/nodejs-cs-bouncer/compare/v0.0.1...v0.1.0)
+
+### Added
+
+- Add usage metrics support
+
+---
+
 ## [0.0.1](https://github.com/crowdsecurity/nodejs-cs-bouncer/releases/tag/v0.0.1) - 2025-03-06
 
 - Initial release

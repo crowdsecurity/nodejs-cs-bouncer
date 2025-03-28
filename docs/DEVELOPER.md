@@ -10,12 +10,12 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Unit tests](#unit-tests)
-    - [Coverage](#coverage)
+  - [Coverage](#coverage)
 - [Linting](#linting)
 - [Prettier](#prettier)
 - [End-to-end tests](#end-to-end-tests)
-    - [Prepare the environment](#prepare-the-environment)
-    - [Run tests](#run-tests)
+  - [Prepare the environment](#prepare-the-environment)
+  - [Run tests](#run-tests)
 - [Update documentation table of contents](#update-documentation-table-of-contents)
 - [Release process](#release-process)
 

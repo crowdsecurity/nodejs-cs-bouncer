@@ -45,4 +45,4 @@ export enum BOUNCER_KEYS {
 
 export const METRICS_TYPE = 'crowdsec-nodejs-bouncer';
 
-export const VERSION = 'v0.0.1';
+export const VERSION = 'v0.1.0';

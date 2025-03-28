@@ -21,6 +21,7 @@
     - [Instantiation](#instantiation)
     - [Apply a remediation](#apply-a-remediation)
     - [Refresh decision cache](#refresh-decision-cache)
+    - [Push usage metrics](#push-usage-metrics)
     - [Custom Captcha](#custom-captcha)
     - [Custom Cache Adapter](#custom-cache-adapter)
 - [Examples](#examples)
@@ -43,6 +44,7 @@ Please note that first and foremost a CrowdSec agent must be installed on a serv
 
     - Handle `ip` and `range` scoped decisions
     - `Live mode` or `Stream mode`
+    - Usage metrics push
 
 - Support IpV4 and Ipv6 (Ipv6 range decisions are yet only supported in `Live mode`)
 
@@ -253,18 +255,22 @@ Indeed, bouncer will first check the cached decisions for the current IP before 
 You can push usage metrics to the CrowdSec LAPI, allowing for a unified view of its behavior and insights.
 
 Please see [CrowdSec documentation](https://doc.crowdsec.net/docs/next/observability/usage_metrics/) for more
-information.
+information about usage metrics.
 
-First param of the `pushUsageMetrics` method is the name of the bouncer and is mandatory. The second param is the
-version
-of the bouncer and is optional (default this package version).
+First param of the `pushUsageMetrics` method is the name of the bouncer and is mandatory.
+
+The second param is the version of the bouncer and is optional (by default, this package version).
 
 ```typescript
 await bouncer.pushUsageMetrics('bouncer-name', 'bouncer-version');
 
 ```
 
-We recommend calling this method every 15 minutes, using a CRON job for example.
+We recommend calling this method at intervals of at least 15 minutes.
+
+You can do this directly from the code (during a remediation attempt, for example) or with a CRON job.
+
+For an example of a cron job, please see the [Express Server example](#express-server) (`server.ts` file).
 
 Metrics are sent to the CrowdSec LAPI and can be viewed in your [CrowdSec dashboard](https://app.crowdsec.net/).
 
