@@ -158,6 +158,59 @@ describe('👩🏻‍⚖️ LAPI Client', () => {
         });
     });
 
+    describe('pushUsageMetrics', () => {
+        const metrics = {
+            remediation_components: [
+                {
+                    name: 'test-node-bouncer',
+                    type: 'nodejs-bouncer',
+                    version: '0.0.0',
+                    feature_flags: [],
+                    utc_startup_timestamp: 0,
+                    os: {
+                        name: 'Linux',
+                        version: 'Ubuntu 20.04.2 LTS',
+                    },
+                    metrics: [
+                        {
+                            meta: {
+                                window_size_seconds: 600,
+                                utc_now_timestamp: 0,
+                            },
+                            items: [
+                                {
+                                    name: 'dropped',
+                                    value: 7,
+                                    unit: 'requests',
+                                    labels: {
+                                        origin: 'CAPI',
+                                        remediation: 'ban',
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        it('should push usage metrics', async () => {
+            const nockScope = nock(configs.url)
+                .post('/v1/usage-metrics', (body) => {
+                    return JSON.stringify(body) === JSON.stringify(metrics); // Validate request body
+                })
+                .matchHeader('X-Api-Key', configs.bouncerApiToken)
+                .matchHeader('User-Agent', configs.userAgent)
+                .matchHeader('Content-Type', 'application/json')
+                .reply(201, 'ok', {
+                    'Content-Type': 'application/json',
+                });
+
+            const response = await client.pushUsageMetrics(metrics);
+            expect(nockScope.isDone()).toBe(true);
+            expect(response).toEqual(201);
+        });
+    });
+
     describe('checkConnectionHealth', () => {
         it('should return an OK status when the connection is healthy', async () => {
             const nockScope = nock(configs.url)

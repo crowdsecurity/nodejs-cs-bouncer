@@ -84,13 +84,13 @@ jobs:
                       exit 1
                     fi
                     
-                    # Check this.userAgent = configs.userAgent ?? 'nodejs-cs-bouncer/v0.0.1'; in src/lib/lapi-client/index.ts
-                    AGENT_VERSION=$(grep -E "this.userAgent = configs.userAgent"  src/lib/lapi-client/index.ts | sed 's/ //g')
-                    if [[ $AGENT_VERSION == "this.userAgent=configs.userAgent??'nodejs-cs-bouncer/v${{ env.VERSION_NUMBER }}';" ]]
+                    # Check export const VERSION = vVERSION_NUMBER'; in src/lib/constants.ts
+                    VERSION=$(grep -E "export const VERSION"  src/lib/constants.ts | sed 's/ //g')
+                    if [[ $VERSION == "exportconstVERSION='v${{ env.VERSION_NUMBER }}';" ]]
                     then
-                      echo "User Agent VERSION OK"
+                      echo "const VERSION OK"
                     else
-                      echo "User Agent VERSION KO"
+                      echo "const VERSION KO"
                       exit 1
                     fi
 
