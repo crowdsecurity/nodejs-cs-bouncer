@@ -1,4 +1,9 @@
 {
     "conventionalCommits.scopes": ["dx", "rendering"],
-    "cSpell.words": ["Lapi", "pino", "REMEDIATIONS"]
+    "cSpell.words": [
+        "CROWDSEC",
+        "Lapi",
+        "pino",
+        "REMEDIATIONS"
+    ]
 }
