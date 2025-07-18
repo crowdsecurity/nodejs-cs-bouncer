@@ -1,15 +1,17 @@
-import { max } from 'lodash';
+import lodash from 'lodash';
 
-import { getIpV4BucketRange, IpV4Range, getIpOrRangeType, getIpV4BucketIndexForIp, isIpV4InRange } from 'src/helpers/ip';
-import { CONFIG, WARMUP, IPV4_BUCKET_KEY, ORIGINS_COUNT_KEY, FIRST_LAPI_CALL, LAST_METRICS_SENT } from 'src/lib/cache/constants';
-import { updateDecisionItem } from 'src/lib/cache/decisions';
-import { getCacheKey } from 'src/lib/cache/helpers';
-import InMemory from 'src/lib/cache/in-memory';
-import { CacheAdapter } from 'src/lib/cache/interfaces';
-import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations, CachableOriginsCount, OriginCount } from 'src/lib/cache/types';
-import { SCOPE_IP, SCOPE_RANGE, IP_TYPE_V4 } from 'src/lib/constants';
-import logger from 'src/lib/logger';
-import { CachableDecision, CachableIdentifier, Value, Remediation, CachableOrigin } from 'src/lib/types';
+import { SCOPE_IP, SCOPE_RANGE, IP_TYPE_V4 } from '../constants';
+import logger from '../logger';
+import { CONFIG, WARMUP, IPV4_BUCKET_KEY, ORIGINS_COUNT_KEY, FIRST_LAPI_CALL, LAST_METRICS_SENT } from './constants';
+import { updateDecisionItem } from './decisions';
+import { getCacheKey } from './helpers';
+import InMemory from './in-memory';
+import { CacheAdapter } from './interfaces';
+import { CachableDecisionContent, CachableDecisionItem, CacheConfigurations, CachableOriginsCount, OriginCount } from './types';
+import { getIpV4BucketRange, IpV4Range, getIpOrRangeType, getIpV4BucketIndexForIp, isIpV4InRange } from '../../helpers/ip';
+import { CachableDecision, CachableIdentifier, Value, Remediation, CachableOrigin } from '../types';
+
+const { max } = lodash;
 
 type UpsertMetricsOriginsCountParams = {
     origin: CachableOrigin;

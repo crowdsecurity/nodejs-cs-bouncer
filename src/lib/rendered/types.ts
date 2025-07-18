@@ -1,4 +1,4 @@
-import { DEFAULT_COLORS, DEFAULT_TEXTS } from 'src/lib/rendered/constants';
+import { DEFAULT_COLORS, DEFAULT_TEXTS } from './constants';
 
 export type TemplateType = 'ban' | 'captcha' | 'base' | 'captcha-css';
 

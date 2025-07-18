@@ -1,5 +1,5 @@
 import { describe, expect, it, jest, afterAll, beforeAll, afterEach, beforeEach } from '@jest/globals';
-import Keyv from 'keyv';
+import KeyvStore from 'keyv';
 
 import * as ipModule from 'src/helpers/ip';
 import CacheStorage from 'src/lib/cache';
@@ -14,7 +14,7 @@ let keyvAdapter: KeyvAdapter;
 describe('Cache', () => {
     describe('KeyvAdapter', () => {
         beforeAll(() => {
-            const storage = new Keyv();
+            const storage = new KeyvStore();
             keyvAdapter = new KeyvAdapter(storage);
         });
 

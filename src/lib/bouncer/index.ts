@@ -1,21 +1,15 @@
-import { last, sortBy } from 'lodash';
+import lodash from 'lodash';
 import svgCaptcha from 'svg-captcha-fixed';
 
-import { buildCachableDecision, convertRawDecisionsToDecisions } from 'src/helpers/decision';
-import { getFirstIpFromRange, getIpOrRangeType, getIpToRemediate } from 'src/helpers/ip';
-import { CaptchaGenerator } from 'src/lib/bouncer/captcha';
-import {
-    BOUNCING_LEVEL_DISABLED,
-    BOUNCING_LEVEL_FLEX,
-    BOUNCING_LEVEL_NORMAL,
-    ORDERED_REMEDIATIONS,
-    CAPTCHA_ERROR,
-} from 'src/lib/bouncer/constants';
-import { CaptchaSubmission, CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
-import CacheStorage from 'src/lib/cache';
-import { CAPTCHA_FLOW, ORIGINS_COUNT_KEY } from 'src/lib/cache/constants';
-import { getCacheKey } from 'src/lib/cache/helpers';
-import { CachableCaptchaFlow, CachableDecisionContent, CachableOriginsCount, CaptchaFlow, OriginCount } from 'src/lib/cache/types';
+import { CaptchaGenerator } from './captcha';
+import { BOUNCING_LEVEL_DISABLED, BOUNCING_LEVEL_FLEX, BOUNCING_LEVEL_NORMAL, ORDERED_REMEDIATIONS, CAPTCHA_ERROR } from './constants';
+import { CaptchaSubmission, CrowdSecBouncerConfigurations } from './types';
+import { buildCachableDecision, convertRawDecisionsToDecisions } from '../../helpers/decision';
+import { getFirstIpFromRange, getIpOrRangeType, getIpToRemediate } from '../../helpers/ip';
+import CacheStorage from '../cache';
+import { CAPTCHA_FLOW, ORIGINS_COUNT_KEY } from '../cache/constants';
+import { getCacheKey } from '../cache/helpers';
+import { CachableCaptchaFlow, CachableDecisionContent, CachableOriginsCount, CaptchaFlow, OriginCount } from '../cache/types';
 import {
     BOUNCER_KEYS,
     CACHE_EXPIRATION_FOR_CAPTCHA_FLOW,
@@ -30,14 +24,16 @@ import {
     SCOPE_IP,
     SCOPE_RANGE,
     VERSION,
-} from 'src/lib/constants';
-import LapiClient from 'src/lib/lapi-client';
-import { MetricsBuilder, MetricItem } from 'src/lib/lapi-client/metrics';
-import { GetDecisionsOptions } from 'src/lib/lapi-client/types';
-import logger from 'src/lib/logger';
-import { renderBanWall, renderCaptchaWall } from 'src/lib/rendered';
-import { BanWallOptions, CaptchaWallOptions, WallsOptions } from 'src/lib/rendered/types';
-import { CachableDecision, CachableOrigin, Remediation } from 'src/lib/types';
+} from '../constants';
+import LapiClient from '../lapi-client';
+import { MetricsBuilder, MetricItem } from '../lapi-client/metrics';
+import { GetDecisionsOptions } from '../lapi-client/types';
+import logger from '../logger';
+import { renderBanWall, renderCaptchaWall } from '../rendered';
+import { BanWallOptions, CaptchaWallOptions, WallsOptions } from '../rendered/types';
+import { CachableDecision, CachableOrigin, Remediation } from '../types';
+
+const { last, sortBy } = lodash;
 
 type CaptchaCreation = {
     cacheKey: string;
@@ -55,6 +51,8 @@ type GetResponseParams = {
     origin: CachableOrigin;
 };
 
+type IpRemediationResult = Record<typeof BOUNCER_KEYS.REMEDIATION, Remediation> & Record<typeof BOUNCER_KEYS.ORIGIN, CachableOrigin>;
+
 class CrowdSecBouncer {
     public readonly cacheStorage: CacheStorage;
     private readonly captcha: CaptchaGenerator;
@@ -67,12 +65,7 @@ class CrowdSecBouncer {
      * @param ip - The IP address to get the remediation for.
      * @returns The remediation and its origin for the IP address.
      */
-    public getIpRemediation = async (
-        ip: string,
-    ): Promise<{
-        [BOUNCER_KEYS.REMEDIATION]: Remediation;
-        [BOUNCER_KEYS.ORIGIN]: CachableOrigin;
-    }> => {
+    public getIpRemediation = async (ip: string): Promise<IpRemediationResult> => {
         const ipToRemediate = getIpToRemediate(ip);
         logger.debug(`Getting remediation for IP ${ip}`);
 

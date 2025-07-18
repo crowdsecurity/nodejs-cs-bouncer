@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-import { E2E_ENDPOINT, LOG_PATH } from 'examples/express-server/tests/constants';
-import { getBouncedIp } from 'examples/express-server/tests/helpers/base';
-import { addIpDecision } from 'examples/express-server/tests/helpers/cscli';
-import { getFileContent } from 'examples/express-server/tests/helpers/log';
-import { wait } from 'examples/express-server/tests/helpers/time';
-import { removeCscliDecisions, setupCommon } from 'examples/express-server/tests/setup/common';
+import { E2E_ENDPOINT, LOG_PATH } from './constants';
+import { getBouncedIp } from './helpers/base';
+import { addIpDecision } from './helpers/cscli';
+import { getFileContent } from './helpers/log';
+import { wait } from './helpers/time';
+import { removeCscliDecisions, setupCommon } from './setup/common';
 
 const TEST_NAME = 'custom-configs-1';
 const bouncedIp = getBouncedIp();

@@ -5,7 +5,12 @@ import { defineConfig, devices } from '@playwright/test';
  */
 import dotenv from 'dotenv';
 
-import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// recreate __dirname for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, 'crowdsec/.env') });
 const currentDateTime = new Date().toISOString().replace(/[:.]/g, '_').slice(0, -1);

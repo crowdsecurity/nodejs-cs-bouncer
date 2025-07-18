@@ -37,11 +37,11 @@ export enum REFRESH_KEYS {
     DELETED = 'deleted',
 }
 
-export enum BOUNCER_KEYS {
-    REMEDIATION = 'remediation',
-    ORIGIN = 'origin',
-    CAPTCHA_PHRASE = 'captchaPhrase',
-}
+export const BOUNCER_KEYS = {
+    REMEDIATION: 'remediation',
+    ORIGIN: 'origin',
+    CAPTCHA_PHRASE: 'captchaPhrase',
+} as const;
 
 export const METRICS_TYPE = 'crowdsec-nodejs-bouncer';
 

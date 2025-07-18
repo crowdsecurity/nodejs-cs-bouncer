@@ -2,9 +2,13 @@ import { CrowdSecBouncer, CrowdSecBouncerConfigurations } from '@crowdsec/nodejs
 import express from 'express';
 import nodeCron from 'node-cron';
 
-import { getExcludedPaths, getLogger, loadEnv } from 'examples/express-server/helpers';
-import { getE2ETestConfig, getE2EExcludedPaths, addE2ERoutes } from 'examples/express-server/tests/helpers/base';
-import path from 'path';
+import { getExcludedPaths, getLogger, loadEnv } from './helpers';
+import { getE2ETestConfig, getE2EExcludedPaths, addE2ERoutes } from './tests/helpers/base';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load and validate environment variables
 loadEnv();
@@ -83,7 +87,7 @@ app.use(async (req, res, next) => {
 
 // Serve a simple webpage ("home" page)
 app.get('/', (_req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(join(__dirname, 'index.html'));
 });
 
 // This cron job will fetch the decisions from the CrowdSec LAPI every 120 seconds

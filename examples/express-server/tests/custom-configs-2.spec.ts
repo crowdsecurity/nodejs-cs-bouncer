@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-import { CAPTCHA_TITLE } from 'examples/express-server/tests/constants';
-import { getBouncedIp } from 'examples/express-server/tests/helpers/base';
-import { addIpDecision } from 'examples/express-server/tests/helpers/cscli';
-import { wait } from 'examples/express-server/tests/helpers/time';
-import { setupCommon } from 'examples/express-server/tests/setup/common';
+import { CAPTCHA_TITLE } from './constants';
+import { getBouncedIp } from './helpers/base';
+import { addIpDecision } from './helpers/cscli';
+import { wait } from './helpers/time';
+import { setupCommon } from './setup/common';
 
 const TEST_NAME = 'custom-configs-2';
 const bouncedIp = getBouncedIp();

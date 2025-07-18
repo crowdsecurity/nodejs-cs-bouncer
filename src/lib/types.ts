@@ -1,4 +1,4 @@
-import { ID_SEPARATOR } from 'src/lib/constants';
+import { ID_SEPARATOR } from './constants';
 
 export type OkConnectionHealth = {
     status: 'OK';

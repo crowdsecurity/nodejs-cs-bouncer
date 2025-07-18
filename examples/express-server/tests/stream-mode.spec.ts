@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-import { BAN_TITLE, E2E_ENDPOINT, HOME_TITLE, LOG_PATH } from 'examples/express-server/tests/constants';
-import { getBouncedIp } from 'examples/express-server/tests/helpers/base';
-import { addIpDecision } from 'examples/express-server/tests/helpers/cscli';
-import { getFileContent } from 'examples/express-server/tests/helpers/log';
-import { wait } from 'examples/express-server/tests/helpers/time';
-import { setupCommon } from 'examples/express-server/tests/setup/common';
+import { BAN_TITLE, E2E_ENDPOINT, HOME_TITLE, LOG_PATH } from './constants';
+import { getBouncedIp } from './helpers/base';
+import { addIpDecision } from './helpers/cscli';
+import { getFileContent } from './helpers/log';
+import { wait } from './helpers/time';
+import { setupCommon } from './setup/common';
 
 const TEST_NAME = 'stream-mode';
 const bouncedIp = getBouncedIp();

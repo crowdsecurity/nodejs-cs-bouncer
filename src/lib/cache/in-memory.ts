@@ -1,11 +1,11 @@
-import Keyv from 'keyv';
+import KeyvStore from 'keyv';
 
-import KeyvAdapter from 'src/lib/cache/keyv-adapter';
+import KeyvAdapter from './keyv-adapter';
 
-const globalStorage = new Keyv();
+const globalStorage = new KeyvStore();
 
 class InMemory extends KeyvAdapter {
-    constructor(storage: Keyv = globalStorage) {
+    constructor(storage: KeyvStore = globalStorage) {
         super(storage);
     }
 }

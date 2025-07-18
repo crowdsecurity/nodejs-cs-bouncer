@@ -47,6 +47,6 @@ describe('⏳ Parse duration', () => {
 
         expect(() => {
             convertDurationToMilliseconds(duration);
-        }).toThrowError('Unable to parse the following duration: invalid.');
+        }).toThrow('Unable to parse the following duration: invalid.');
     });
 });

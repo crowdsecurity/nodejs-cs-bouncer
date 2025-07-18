@@ -1,4 +1,4 @@
-import { CachableItem } from 'src/lib/cache/types';
+import { CachableItem } from './types';
 
 export interface CacheAdapter {
     /**

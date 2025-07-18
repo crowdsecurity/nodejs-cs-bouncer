@@ -28,7 +28,7 @@ describe('getIpToRemediate', () => {
 
     it('should throw an error for range', () => {
         const ip = '192.168.0.0/24';
-        expect(() => getIpToRemediate(ip)).toThrowError('Input IP (192.168.0.0/24): range is not supported');
+        expect(() => getIpToRemediate(ip)).toThrow('Input IP (192.168.0.0/24): range is not supported');
     });
 
     it('should parse a valid IPv6 address', () => {
@@ -39,7 +39,7 @@ describe('getIpToRemediate', () => {
 
     it('should throw an error for an invalid IP format', () => {
         const ip = 'invalid-ip';
-        expect(() => getIpToRemediate(ip)).toThrowError('Input IP format: invalid-ip is invalid');
+        expect(() => getIpToRemediate(ip)).toThrow('Input IP format: invalid-ip is invalid');
     });
 });
 
@@ -58,12 +58,12 @@ describe('getFirstIpFromRange', () => {
 
     it('should throw an error for an invalid range format', () => {
         const range = 'invalid-range';
-        expect(() => getFirstIpFromRange(range)).toThrowError('Input (invalid-range) is not a range.');
+        expect(() => getFirstIpFromRange(range)).toThrow('Input (invalid-range) is not a range.');
     });
 
     it('should throw an error for a single IP address', () => {
         const range = '192.168.0.1';
-        expect(() => getFirstIpFromRange(range)).toThrowError('Input (192.168.0.1) is not a range.');
+        expect(() => getFirstIpFromRange(range)).toThrow('Input (192.168.0.1) is not a range.');
     });
 });
 
@@ -94,7 +94,7 @@ describe('getIpOrRangeType', () => {
 
     it('should throw an error for an invalid IP or range format', () => {
         const invalidInput = 'invalid-ip';
-        expect(() => getIpOrRangeType(invalidInput)).toThrowError('Input IP format: invalid-ip is invalid');
+        expect(() => getIpOrRangeType(invalidInput)).toThrow('Input IP format: invalid-ip is invalid');
     });
 });
 
@@ -110,22 +110,22 @@ describe('getIpV4BucketRange', () => {
 
     it('should throw an error for an invalid range format', () => {
         const range = 'invalid-range';
-        expect(() => getIpV4BucketRange(range)).toThrowError('Input Range format (invalid-range).');
+        expect(() => getIpV4BucketRange(range)).toThrow('Input Range format (invalid-range).');
     });
 
     it('should throw an error for a single IP address', () => {
         const range = '192.168.0.1';
-        expect(() => getIpV4BucketRange(range)).toThrowError('Input Range format (192.168.0.1).');
+        expect(() => getIpV4BucketRange(range)).toThrow('Input Range format (192.168.0.1).');
     });
 
     it('should throw an error for an IPv6 range', () => {
         const range = '2001:0db8:85a3::/64';
-        expect(() => getIpV4BucketRange(range)).toThrowError('Only Ip V4 Range format is supported.');
+        expect(() => getIpV4BucketRange(range)).toThrow('Only Ip V4 Range format is supported.');
     });
 
     it('should throw an error for an empty string', () => {
         const range = '';
-        expect(() => getIpV4BucketRange(range)).toThrowError('Input Range format ().');
+        expect(() => getIpV4BucketRange(range)).toThrow('Input Range format ().');
     });
 });
 
@@ -187,7 +187,7 @@ describe('isIpV4InRange', () => {
             throw new Error('Test error');
         });
 
-        expect(() => isIpV4InRange(ip, range)).toThrowError('Error checking IP in range: Test error');
+        expect(() => isIpV4InRange(ip, range)).toThrow('Error checking IP in range: Test error');
     });
     it('should throw error when an unexpected error occurs', () => {
         const ip = '192.168.1.1';
@@ -198,7 +198,7 @@ describe('isIpV4InRange', () => {
             throw 'Test error';
         });
 
-        expect(() => isIpV4InRange(ip, range)).toThrowError('Error checking IP in range: Unknown error');
+        expect(() => isIpV4InRange(ip, range)).toThrow('Error checking IP in range: Unknown error');
     });
 });
 
@@ -211,16 +211,16 @@ describe('getIpV4BucketIndexForIp', () => {
 
     it('should throw an error for an IPv6 address', () => {
         const ip = '2001:0db8:85a3:0000:0000:8a2e:0370:7334';
-        expect(() => getIpV4BucketIndexForIp(ip)).toThrowError('Only Ip V4 format is supported.');
+        expect(() => getIpV4BucketIndexForIp(ip)).toThrow('Only Ip V4 format is supported.');
     });
 
     it('should throw an error for an invalid IP format', () => {
         const ip = 'invalid-ip';
-        expect(() => getIpV4BucketIndexForIp(ip)).toThrowError('Input IP format: invalid-ip is invalid');
+        expect(() => getIpV4BucketIndexForIp(ip)).toThrow('Input IP format: invalid-ip is invalid');
     });
 
     it('should throw an error for an empty string', () => {
         const ip = '';
-        expect(() => getIpV4BucketIndexForIp(ip)).toThrowError('Input IP format:  is invalid');
+        expect(() => getIpV4BucketIndexForIp(ip)).toThrow('Input IP format:  is invalid');
     });
 });

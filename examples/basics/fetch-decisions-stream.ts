@@ -1,5 +1,4 @@
-import CrowdSecBouncer from 'src/lib/bouncer';
-import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
+import { CrowdSecBouncer, CrowdSecBouncerConfigurations } from '../../src';
 
 /**
  * Example usage of fetching decisions stream.

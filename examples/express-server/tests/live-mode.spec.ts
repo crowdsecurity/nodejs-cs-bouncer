@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-import { HOME_TITLE, BAN_TITLE, CAPTCHA_TITLE, E2E_ENDPOINT, LOG_PATH } from 'examples/express-server/tests/constants';
-import { getBouncedIp, getCaptchaPhrase } from 'examples/express-server/tests/helpers/base';
-import { addIpDecision, removeIpDecision } from 'examples/express-server/tests/helpers/cscli';
-import { getFileContent, deleteFileContent } from 'examples/express-server/tests/helpers/log';
-import { wait } from 'examples/express-server/tests/helpers/time';
-import { setupCommon, removeCscliDecisions } from 'examples/express-server/tests/setup/common';
+import { HOME_TITLE, BAN_TITLE, CAPTCHA_TITLE, E2E_ENDPOINT, LOG_PATH } from './constants';
+import { getBouncedIp, getCaptchaPhrase } from './helpers/base';
+import { addIpDecision, removeIpDecision } from './helpers/cscli';
+import { getFileContent, deleteFileContent } from './helpers/log';
+import { wait } from './helpers/time';
+import { setupCommon, removeCscliDecisions } from './setup/common';
 
 const TEST_NAME = 'live-mode';
 const bouncedIp = getBouncedIp();

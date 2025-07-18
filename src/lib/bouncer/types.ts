@@ -1,8 +1,8 @@
-import { BOUNCING_LEVEL_DISABLED, BOUNCING_LEVEL_FLEX, BOUNCING_LEVEL_NORMAL } from 'src/lib/bouncer/constants';
-import { CacheConfigurations } from 'src/lib/cache/types';
-import { LapiClientConfigurations } from 'src/lib/lapi-client/types';
-import { WallsOptions } from 'src/lib/rendered/types';
-import { CachableOrigin, Remediation } from 'src/lib/types';
+import { BOUNCING_LEVEL_DISABLED, BOUNCING_LEVEL_FLEX, BOUNCING_LEVEL_NORMAL } from './constants';
+import { CacheConfigurations } from '../cache/types';
+import { LapiClientConfigurations } from '../lapi-client/types';
+import { WallsOptions } from '../rendered/types';
+import { CachableOrigin, Remediation } from '../types';
 
 type BouncingLevel = typeof BOUNCING_LEVEL_DISABLED | typeof BOUNCING_LEVEL_FLEX | typeof BOUNCING_LEVEL_NORMAL;
 
