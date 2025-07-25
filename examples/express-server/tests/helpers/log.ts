@@ -21,8 +21,8 @@ export const deleteFileContent = async (filePath: string) => {
 export const parseJsonLogs = (logContent: string): string[] => {
     return logContent
         .split('\n')
-        .filter(line => line.trim())
-        .map(line => {
+        .filter((line) => line.trim())
+        .map((line) => {
             try {
                 const parsed = JSON.parse(line);
                 return parsed.msg || '';

@@ -244,7 +244,7 @@ class CrowdSecBouncer {
 
         // Decrement the count of each origin/remediation
         for (const [origin, remediationCount] of Object.entries(origins)) {
-            for (const [remediation, delta] of Object.entries(remediationCount as Record<string, number>)) {
+            for (const [remediation, delta] of Object.entries(remediationCount)) {
                 await this.cacheStorage.upsertMetricsOriginsCount({ origin, remediation, delta });
             }
         }
@@ -307,7 +307,7 @@ class CrowdSecBouncer {
         const originsToUpdate: Record<CachableOrigin, Record<Remediation, number>> = {};
 
         for (const { origin, remediation } of originsCount) {
-            for (const [remediationType, count] of Object.entries(remediation) as [Remediation, number][]) {
+            for (const [remediationType, count] of Object.entries(remediation)) {
                 if (count <= 0) {
                     continue;
                 }
