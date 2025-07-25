@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { HOME_TITLE, BAN_TITLE, CAPTCHA_TITLE, E2E_ENDPOINT, LOG_PATH } from './constants';
 import { getBouncedIp, getCaptchaPhrase } from './helpers/base';
 import { addIpDecision, removeIpDecision } from './helpers/cscli';
-import { getFileContent, deleteFileContent } from './helpers/log';
+import { deleteFileContent, getLogMessages } from './helpers/log';
 import { wait } from './helpers/time';
 import { setupCommon, removeCscliDecisions } from './setup/common';
 
@@ -18,7 +18,7 @@ test('Should access Home Page', async ({ page }) => {
     await expect(page).toHaveTitle(HOME_TITLE);
     // Verify expected log messages
     await wait(1000, 'Wait for logs to be written');
-    const logContent = await getFileContent(LOG_PATH);
+    const logContent = await getLogMessages(LOG_PATH);
     expect(logContent).toContain(`Cache found for IP ${bouncedIp}: []`); // No cache for this IP as we just cleared it
     expect(logContent).toMatch(
         new RegExp(`Stored decisions: \\[{"id":"clean-bypass-ip-${bouncedIp}","origin":"clean","expiresAt":\\d+,"value":"bypass"}\\]`),
@@ -36,13 +36,13 @@ test('Should be banned', async ({ page }) => {
     await expect(page).toHaveTitle(BAN_TITLE);
     // Verify expected log messages
     await wait(1000, 'Wait for logs to be written');
-    const logContent = await getFileContent(LOG_PATH);
+    const logContent = await getLogMessages(LOG_PATH);
     expect(logContent).toContain(`Cache found for IP ${bouncedIp}: []`); // No cache for this IP as cache is 1 second for clean IP (see configs/live-mode.json)
     expect(logContent).toMatch(
         new RegExp(`Stored decisions: \\[{"id":"cscli-ban-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"ban"}\\]`),
     );
     expect(logContent).toContain(
-        'Updated origins count: [{"origin":"clean","remediation":{"bypass":1}},{"origin":"cscli","remediation":{"ban":1}}]\n',
+        'Updated origins count: [{"origin":"clean","remediation":{"bypass":1}},{"origin":"cscli","remediation":{"ban":1}}]',
     );
 });
 
@@ -57,7 +57,7 @@ test('Should be banned the time of cached decision', async ({ page }) => {
     await expect(page).toHaveTitle(BAN_TITLE);
     // Verify expected log messages
     await wait(1000, 'Wait for logs to be written');
-    const logContent = await getFileContent(LOG_PATH);
+    const logContent = await getLogMessages(LOG_PATH);
     expect(logContent).toMatch(
         new RegExp(
             `Cache found for IP ${bouncedIp}: \\[{"id":"cscli-ban-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"ban"}\\]`,
@@ -86,7 +86,7 @@ test('Should retrieve the highest remediation', async ({ page }) => {
     // Remediation should be a ban because ban > captcha
     await expect(page).toHaveTitle(BAN_TITLE);
     await wait(1000, 'Wait for logs to be written');
-    const logContent = await getFileContent(LOG_PATH);
+    const logContent = await getLogMessages(LOG_PATH);
     expect(logContent).toMatch(
         new RegExp(
             `Stored decisions: \\[{"id":"cscli-ban-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"ban"},{"id":"cscli-captcha-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"captcha"}\\]`,
@@ -147,7 +147,7 @@ test('Should push usage metrics', async ({ page }) => {
     await expect(locator).toHaveText('Usage metrics pushed');
     // Verify expected log messages
     await wait(1000, 'Wait for logs to be written');
-    const logContent = await getFileContent(LOG_PATH);
+    const logContent = await getLogMessages(LOG_PATH);
     // Should push well formatted metrics
     expect(logContent).toMatch(
         new RegExp(
@@ -175,7 +175,7 @@ test('Should fallback to default fallback in case of unknown ', async ({ page })
     // Remediation should be a captcha (default)
     await expect(page).toHaveTitle(CAPTCHA_TITLE);
     await wait(1000, 'Wait for logs to be written');
-    const logContent = await getFileContent(LOG_PATH);
+    const logContent = await getLogMessages(LOG_PATH);
     expect(logContent).toMatch(
         new RegExp(`Stored decisions: \\[{"id":"cscli-mfa-ip-${bouncedIp}","origin":"cscli","expiresAt":\\d+,"value":"mfa"}\\]`),
     );
