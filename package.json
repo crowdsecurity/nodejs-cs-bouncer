@@ -48,7 +48,6 @@
   },
   "homepage": "https://github.com/crowdsecurity/nodejs-cs-bouncer#readme",
   "dependencies": {
-    "cache-manager": "^6.1.3",
     "ip-address": "^10.0.0",
     "keyv": "^5.3.4",
     "lodash": "^4.17.21",

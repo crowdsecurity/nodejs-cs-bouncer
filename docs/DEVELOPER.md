@@ -90,7 +90,7 @@ npm install -g doctoc
 Then, run it in the relevant folders:
 
 ```bash
-doctoc docs/* --maxlevel 4 && doctoc examples/express-server/README.md --maxlevel 4
+doctoc docs/* --maxlevel 4 && doctoc examples/express-server/README.md --maxlevel 4 && doctoc examples/nextjs/README.md --maxlevel 4
 ```
 
 ## Release process

@@ -13,20 +13,20 @@
 - [Features](#features)
 - [Usage](#usage)
 - [Configurations](#configurations)
-    - [Bouncer behavior](#bouncer-behavior)
-    - [Local API Connection](#local-api-connection)
-    - [Cache](#cache)
-    - [Captcha and Ban walls settings](#captcha-and-ban-walls-settings)
+  - [Bouncer behavior](#bouncer-behavior)
+  - [Local API Connection](#local-api-connection)
+  - [Cache](#cache)
+  - [Captcha and Ban walls settings](#captcha-and-ban-walls-settings)
 - [Implement your own bouncer](#implement-your-own-bouncer)
-    - [Instantiation](#instantiation)
-    - [Apply a remediation](#apply-a-remediation)
-    - [Refresh decision cache](#refresh-decision-cache)
-    - [Push usage metrics](#push-usage-metrics)
-    - [Custom Captcha](#custom-captcha)
-    - [Custom Cache Adapter](#custom-cache-adapter)
+  - [Instantiation](#instantiation)
+  - [Apply a remediation](#apply-a-remediation)
+  - [Refresh decision cache](#refresh-decision-cache)
+  - [Push usage metrics](#push-usage-metrics)
+  - [Custom Captcha](#custom-captcha)
+  - [Custom Cache Adapter](#custom-cache-adapter)
 - [Examples](#examples)
-    - [Basics](#basics)
-    - [Express server](#express-server)
+  - [Basics](#basics)
+  - [Express server](#express-server)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -161,6 +161,7 @@ Below is the list of available settings (see also `CrowdSecBouncerConfigurations
   },
   "captcha": {
     "captchaImageTag": "Generated with svg-captcha-fixed",
+    "captchaAction": "Optional action of the captcha form (e.g. '/crowdsec-captcha'). Empty by default.",
     "texts": {
       "tabTitle": "CrowdSec | Captcha Wall",
       "title": "Access Denied",

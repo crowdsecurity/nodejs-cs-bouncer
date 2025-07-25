@@ -1,9 +1,9 @@
-# Express server basic implementation
+# NextJS basic implementation
 
-The `express-server` folder contains a basic implementation of the CrowdSec NodeJs
-remediation component.
+The `nextjs` folder contains a basic implementation of the CrowdSec NodeJs
+remediation component for Next.js applications.
 
-It aims to help developers to understand how to integrate CrowdSec remediation in their NodeJs application.
+It aims to help developers to understand how to integrate CrowdSec remediation in their Next.js application.
 
 **Table of Contents**
 
@@ -11,51 +11,83 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Technical overview](#technical-overview)
+  - [Middleware (`src/middleware.ts`)](#middleware-srcmiddlewarets)
+  - [API Route (`src/app/api/crowdsec/route.ts`)](#api-route-srcappapicrowdsecroutets)
+  - [Captcha Handler (`src/app/crowdsec-captcha/route.ts`)](#captcha-handler-srcappcrowdsec-captcharoutets)
 - [Test the bouncer](#test-the-bouncer)
-    - [Pre-requisites](#pre-requisites)
-    - [Prepare the tests](#prepare-the-tests)
-    - [Test a "bypass" remediation](#test-a-bypass-remediation)
-    - [Test a "ban" remediation](#test-a-ban-remediation)
-    - [Test a "captcha" remediation](#test-a-captcha-remediation)
+  - [Pre-requisites](#pre-requisites)
+  - [Prepare the tests](#prepare-the-tests)
+  - [Test a "bypass" remediation](#test-a-bypass-remediation)
+  - [Test a "ban" remediation](#test-a-ban-remediation)
+  - [Test a "captcha" remediation](#test-a-captcha-remediation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Technical overview
 
-All the logic is done in the `src/middleware.ts` and `src/app/api/crowdsec` files:
+The implementation uses Next.js App Router with middleware and API routes:
 
-- we use a middleware to act before rendering the page
+### Middleware (`src/middleware.ts`)
 
-- We retrieve the remediation for the current tested IP:
+The middleware intercepts all requests and calls the CrowdSec API:
 
 ```js
-const remediationData = await bouncer.getIpRemediation(ip);
-const { origin, remediation } = remediationData;
+export async function middleware(req: NextRequest) {
+    // Skip CrowdSec check for captcha route and non-HTML requests
+    if (pathname === '/crowdsec-captcha' || !acceptHeader.includes('text/html')) {
+        return NextResponse.next();
+    }
+    
+    // Call internal API to check IP remediation
+    const checkUrl = `${req.nextUrl.origin}/api/crowdsec`;
+    const res = await fetch(checkUrl, { method: 'POST' });
+    
+    if (res.status !== 200) {
+        // Return ban/captcha wall HTML
+        const html = await res.text();
+        return new NextResponse(html, {
+            status: res.status,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+    }
+    
+    return NextResponse.next();
+}
 ```
 
-- Depending on the value of the remediation, we apply it:
+### API Route (`src/app/api/crowdsec/route.ts`)
 
-    - let the process continue if there is no remediation (bypass)
+The API route handles the CrowdSec logic:
 
-    - block the user with a ban wall remediation:
+```js
+export async function POST(req: Request) {
+    const { remediation, origin } = await bouncer.getIpRemediation(ip);
+    const bouncerResponse = await bouncer.getResponse({ ip, origin, remediation });
 
-  ```js
- 
-  // Display Ban wall
-  if (remediation === 'ban') {
-       const bouncerResponse = await bouncer.getResponse({
-          ip,
-          origin,
-          remediation,
-        });
+    if (remediation === 'ban' || remediation === 'captcha') {
         return new NextResponse(bouncerResponse.html, {
-                    status: bouncerResponse.status,
-                    headers: {
-                        'Content-Type': 'text/html; charset=utf-8',
-                    },
-                });
-  }
-  ```
+            status: bouncerResponse.status,
+        });
+    }
+
+    return new NextResponse(null, { status: 200 });
+}
+```
+
+### Captcha Handler (`src/app/crowdsec-captcha/route.ts`)
+
+Handles captcha form submissions:
+
+```js
+export async function POST(req: Request) {
+    const form = await req.formData();
+    const phrase = form.get('phrase')?.toString() || '';
+    const refresh = form.get('crowdsec_captcha_refresh')?.toString() || '0';
+    
+    await bouncer.handleCaptchaSubmission({ ip, userPhrase: phrase, refresh, origin });
+    return NextResponse.redirect(new URL('/', req.url));
+}
+```
 
 ## Test the bouncer
 
@@ -71,7 +103,7 @@ const { origin, remediation } = remediationData;
 
 - Install all dependencies using a local archive.
 
-  Run the following commands from the `express-server` folder:
+  Run the following commands from the `nextjs` folder:
 
   ```shell
   npm run pack-locally && npm install
@@ -97,7 +129,7 @@ docker exec -ti nodejs-cs-nextjs-crowdsec sh -c 'cscli bouncers add NodeBouncer 
 
 We are using here the `BOUNCER_KEY` variable defined in `crowdsec/.env` file.
 
-3. Launch the Express Server
+3. Launch the Next.js Server
 
 ```shell
 npm run start
@@ -109,15 +141,13 @@ For development, you can use:
 npm run dev
 ```
 
-This will launch an Express server accessible on `http://localhost:3000` (aka "the home page") with
-`tests/express-server/server.ts` file as entry point.
+This will launch a Next.js server accessible on `http://localhost:3000` (aka "the home page").
 
 You should see different log messages in your terminal when you access the home page.
 
 ### Test a "bypass" remediation
 
-As you don't have yet any decisions, you can access the `http://localhost:3000` page and just see the normal content "
-Welcome to the Test Page".
+As you don't have yet any decisions, you can access the `http://localhost:3000` page and just see the normal Next.js content.
 
 ![](./docs/bypass.png)
 
@@ -163,4 +193,4 @@ Denied" captcha wall.
 
 You should see `Final remediation for IP <BOUNCED_IP> is captcha` in terminal.
 
-For this basic implementation, we just redirect user to `/` after resolution.
+When a user solves the captcha successfully, they are redirected to the home page (`/`).
