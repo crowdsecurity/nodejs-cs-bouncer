@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && tsup --config tsup.config.ts",
+    "build": "npm run clean && npm install && tsup --config tsup.config.ts",
     "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap false --outDir dist",
     "prepack": "npm run build",
     "lint": "eslint .",
