@@ -25,7 +25,11 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 
 ## Technical overview
 
-The implementation uses Next.js App Router with middleware and API routes:
+The implementation uses Next.js App Router with middleware and API routes.
+
+**Important Note**: We cannot use the CrowdSec bouncer directly in the Next.js middleware because middleware runs on the Edge Runtime, which doesn't have access to Node.js APIs that the bouncer requires. While Next.js offers an experimental `nodeMiddleware` feature that would allow Node.js APIs in middleware, we prefer not to rely on experimental features for production use. Instead, we use a custom API route (`/api/crowdsec`) that runs in the Node.js runtime and can access the full bouncer functionality.
+
+**Additional Note**: We had to update the Next.js configuration (`next.config.ts`) to copy font files from the `svg-captcha-fixed` library to make them available at runtime. This is necessary because Next.js doesn't automatically include these assets in the build, and the captcha functionality requires access to these fonts to generate captcha images.
 
 ### Middleware (`src/middleware.ts`)
 
