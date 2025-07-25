@@ -1,0 +1,10 @@
+services:
+    crowdsec:
+        container_name: nodejs-cs-nextjs-crowdsec
+        image: crowdsecurity/crowdsec:latest
+        ports:
+            - '8080:8080'
+        env_file:
+            - ./crowdsec/.env
+        volumes:
+            - ./crowdsec/custom-config.yaml:/etc/crowdsec/config.yaml.local

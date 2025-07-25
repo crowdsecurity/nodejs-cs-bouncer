@@ -26,6 +26,7 @@ export type CaptchaWallOptions = BaseWallOptions &
         texts: Partial<(typeof DEFAULT_TEXTS)['captcha']>;
     }> & {
         captchaImageTag?: string;
+        captchaAction?: string;
     };
 
 export type WallsOptions = {

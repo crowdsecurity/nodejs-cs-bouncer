@@ -13,6 +13,20 @@ properties and constants belonging to the `src` folder.
 
 ---
 
+## [0.2.0](https://github.com/crowdsecurity/nodejs-cs-bouncer/releases/tag/v0.2.0) - 2025-??-??
+
+[_Compare with previous release_](https://github.com/crowdsecurity/nodejs-cs-bouncer/compare/v0.1.0...v0.2.0)
+
+### Changed
+
+- **Breaking Change**: Migrate from CommonJS to ESM
+
+### Added
+
+- Add optional `captchaAction` configuration to set the action attribute of the captcha form
+
+---
+
 ## [0.1.0](https://github.com/crowdsecurity/nodejs-cs-bouncer/releases/tag/v0.1.0) - 2025-03-28
 
 [_Compare with previous release_](https://github.com/crowdsecurity/nodejs-cs-bouncer/compare/v0.0.1...v0.1.0)

@@ -12,11 +12,11 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 
 - [Technical overview](#technical-overview)
 - [Test the bouncer](#test-the-bouncer)
-  - [Pre-requisites](#pre-requisites)
-  - [Prepare the tests](#prepare-the-tests)
-  - [Test a "bypass" remediation](#test-a-bypass-remediation)
-  - [Test a "ban" remediation](#test-a-ban-remediation)
-  - [Test a "captcha" remediation](#test-a-captcha-remediation)
+    - [Pre-requisites](#pre-requisites)
+    - [Prepare the tests](#prepare-the-tests)
+    - [Test a "bypass" remediation](#test-a-bypass-remediation)
+    - [Test a "ban" remediation](#test-a-ban-remediation)
+    - [Test a "captcha" remediation](#test-a-captcha-remediation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -35,7 +35,7 @@ const { origin, remediation } = remediationData;
 
 - Depending on the value of the remediation, we apply it:
 
-    - let the process continue with `next()`if there is no remediation (bypass)
+    - let the process continue with `next()` if there is no remediation (bypass)
 
     - block the user with a ban or captcha wall remediation:
 

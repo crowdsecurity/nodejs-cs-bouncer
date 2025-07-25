@@ -1,20 +1,34 @@
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { validateRequestWithCrowdSec } from '../libs/crowdsec';
+import type { NextRequest } from 'next/server';
 
-// force Node.js runtime for this middleware
-export const config = {
-    runtime: 'nodejs', // ← switch from Edge to Node.js
-    matcher: ['/:path*'], // ← or whatever paths you need
-};
+export async function middleware(req: NextRequest) {
+    const { pathname } = req.nextUrl;
+    if (pathname === '/crowdsec-captcha') {
+        return NextResponse.next();
+    }
 
-export async function middleware(_req: NextRequest) {
-    console.log('Middleware triggered: validating request with CrowdSec');
-    const crowdsecResponse = await validateRequestWithCrowdSec();
+    const acceptHeader = req.headers.get('accept') || '';
 
-    if (crowdsecResponse) {
-        // This returns your CrowdSec response (e.g., Forbidden)
-        return crowdsecResponse;
+    // Only run middleware for full HTML page requests
+    if (!acceptHeader.includes('text/html')) {
+        return NextResponse.next();
+    }
+    const checkUrl = `${req.nextUrl.origin}/api/crowdsec`;
+
+    try {
+        const res = await fetch(checkUrl, {
+            method: 'POST',
+        });
+
+        if (res.status !== 200) {
+            const html = await res.text();
+            return new NextResponse(html, {
+                status: res.status,
+                headers: { 'Content-Type': 'text/html; charset=utf-8' },
+            });
+        }
+    } catch (err) {
+        console.error('CrowdSec check failed in middleware:', err);
     }
 
     return NextResponse.next();

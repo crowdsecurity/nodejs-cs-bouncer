@@ -4,9 +4,6 @@ import CopyWebpackPlugin from 'copy-webpack-plugin';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-    experimental: {
-        nodeMiddleware: true, // ← enable Node.js middleware support
-    },
     webpack(config, { isServer }) {
         if (isServer) {
             config.plugins = config.plugins || [];
