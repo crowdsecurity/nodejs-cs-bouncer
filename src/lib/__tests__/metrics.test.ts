@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { METRICS_TYPE } from '../constants';
+import { MetricsBuilder } from '../lapi-client/metrics';
 import os from 'os';
-import { METRICS_TYPE } from 'src/lib/constants';
-import { MetricsBuilder } from 'src/lib/lapi-client/metrics';
 
 jest.mock('os', () => ({
     type: jest.fn(() => 'Linux'),

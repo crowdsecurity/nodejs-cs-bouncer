@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import dotenvSafe from 'dotenv-safe';
+import pino from 'pino';
 
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,4 +21,10 @@ export const loadEnv = () => {
         example: resolve(__dirname, '../../../../../crowdsec/.env.example'),
     });
     dotenv.config({ path: resolve(__dirname, '../../../../../crowdsec/.env') });
+};
+
+export const getLogger = () => {
+    return pino({
+        level: process.env.TEST_LOG_LEVEL ?? 'debug',
+    });
 };

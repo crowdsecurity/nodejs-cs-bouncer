@@ -1,8 +1,8 @@
 import { afterAll, afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import { convertRawDecisionsToDecisions } from 'src/helpers/decision';
-import * as decisionModule from 'src/helpers/decision';
-import logger from 'src/lib/logger';
+import logger from '../../lib/logger';
+import * as decisionModule from '../decision';
+import { convertRawDecisionsToDecisions } from '../decision';
 
 const configs = {
     url: 'http://example.com/api',

@@ -3,15 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run pack-locally && npm install --no-save ./cs-nodejs-bouncer.tgz && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "npm run pack-locally && npm install --no-save ./cs-nodejs-bouncer.tgz && next build && next start",
     "lint": "next lint",
     "pack-locally": "(cd ../../ && npm run build && npm pack --silent) && mv ../../crowdsec-nodejs-bouncer-*.tgz ./cs-nodejs-bouncer.tgz"
   },
   "dependencies": {
     "@crowdsec/nodejs-bouncer": "file:./cs-nodejs-bouncer.tgz",
+    "dotenv": "^17.2.0",
+    "dotenv-safe": "^9.1.0",
     "next": "^15.4.2",
+    "pino": "^9.4.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
@@ -22,8 +25,6 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "copy-webpack-plugin": "^13.0.0",
-    "dotenv": "^17.2.0",
-    "dotenv-safe": "^9.1.0",
     "eslint": "^9",
     "eslint-config-next": "^15.4.1",
     "typescript": "^5"

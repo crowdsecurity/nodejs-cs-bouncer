@@ -3,7 +3,7 @@
 import { CrowdSecBouncer, CrowdSecBouncerConfigurations } from '@crowdsec/nodejs-bouncer';
 import { NextResponse } from 'next/server';
 
-import { loadEnv } from './helpers';
+import { loadEnv, getLogger } from './helpers';
 
 // Load and validate environment variables
 loadEnv();
@@ -20,10 +20,13 @@ const config: CrowdSecBouncerConfigurations = {
 
 const bouncer = new CrowdSecBouncer(config);
 
+// Set up the logger for this example
+const logger = getLogger();
+
 export async function POST(req: Request) {
     const ip = process.env.BOUNCED_IP as string; // In a production scenario, the user's real IP should be retrieved.
 
-    console.log('CrowdSec API route called with IP:', ip);
+    logger.info(`CrowdSec API route called with IP: ${ip}`);
 
     try {
         const { remediation, origin } = await bouncer.getIpRemediation(ip);
@@ -37,7 +40,8 @@ export async function POST(req: Request) {
 
         return new NextResponse(null, { status: 200 });
     } catch (err) {
-        console.error('CrowdSec API route error:', err);
-        return new NextResponse(null, { status: 500 });
+        logger.error(`CrowdSec API route error: ${err}`);
+        // If an error occurs, don't block the user
+        return new NextResponse(null, { status: 200 });
     }
 }

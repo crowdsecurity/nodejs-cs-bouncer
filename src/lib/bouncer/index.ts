@@ -51,7 +51,7 @@ type GetResponseParams = {
     origin: CachableOrigin;
 };
 
-type IpRemediationResult = Record<typeof BOUNCER_KEYS.REMEDIATION, Remediation> & Record<typeof BOUNCER_KEYS.ORIGIN, CachableOrigin>;
+export type IpRemediationResult = Record<typeof BOUNCER_KEYS.REMEDIATION, Remediation> & Record<typeof BOUNCER_KEYS.ORIGIN, CachableOrigin>;
 
 class CrowdSecBouncer {
     public readonly cacheStorage: CacheStorage;

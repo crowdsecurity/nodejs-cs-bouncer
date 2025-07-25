@@ -53,7 +53,6 @@
     "keyv": "^5.3.4",
     "lodash": "^4.17.21",
     "pino": "^9.4.0",
-    "pino-pretty": "^11.2.2",
     "svg-captcha-fixed": "^1.5.2"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { CrowdSecBouncer, CrowdSecBouncerConfigurations } from '@crowdsec/nodejs-bouncer';
-import { loadEnv } from '../../app/api/crowdsec/helpers';
+import { loadEnv } from '@/app/api/crowdsec/helpers';
 
 // Load and validate environment variables
 loadEnv();

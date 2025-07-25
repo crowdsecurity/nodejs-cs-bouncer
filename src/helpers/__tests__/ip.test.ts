@@ -1,15 +1,8 @@
 import { jest, describe, expect, it, afterEach, afterAll } from '@jest/globals';
 import { Address4 } from 'ip-address';
 
-import {
-    getIpToRemediate,
-    getFirstIpFromRange,
-    getIpOrRangeType,
-    getIpV4BucketRange,
-    isIpV4InRange,
-    getIpV4BucketIndexForIp,
-} from 'src/helpers/ip';
-import { IP_TYPE_V4, IP_TYPE_V6 } from 'src/lib/constants';
+import { IP_TYPE_V4, IP_TYPE_V6 } from '../../lib/constants';
+import { getIpToRemediate, getFirstIpFromRange, getIpOrRangeType, getIpV4BucketRange, isIpV4InRange, getIpV4BucketIndexForIp } from '../ip';
 
 afterEach(() => {
     jest.restoreAllMocks();

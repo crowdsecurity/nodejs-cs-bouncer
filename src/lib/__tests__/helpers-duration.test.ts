@@ -1,6 +1,6 @@
 import { describe, expect, it, jest, afterAll, beforeAll, afterEach } from '@jest/globals';
 
-import { convertDurationToMilliseconds } from 'src/helpers/duration';
+import { convertDurationToMilliseconds } from '../../helpers/duration';
 
 beforeAll(() => {
     jest.useFakeTimers().setSystemTime(new Date('2020-01-01'));

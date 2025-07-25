@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { generateTemplate, renderBanWall, renderCaptchaWall } from 'src/lib/rendered';
-import { DEFAULT_COLORS, DEFAULT_TEXTS } from 'src/lib/rendered/constants';
-import { BaseWallOptions } from 'src/lib/rendered/types';
+import { generateTemplate, renderBanWall, renderCaptchaWall } from '../rendered';
+import { DEFAULT_COLORS, DEFAULT_TEXTS } from '../rendered/constants';
+import { BaseWallOptions } from '../rendered/types';
 
 describe('📄 Generate Template', () => {
     it('should generate a base template', async () => {

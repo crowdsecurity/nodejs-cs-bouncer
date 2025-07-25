@@ -1,6 +1,6 @@
 import { afterAll, afterEach, describe, expect, it } from '@jest/globals';
 
-import logger from 'src/lib/logger';
+import logger from '../logger';
 
 describe('Logger', () => {
     afterAll(async () => {

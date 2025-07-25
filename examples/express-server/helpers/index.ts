@@ -21,12 +21,6 @@ export const getExcludedPaths = () => {
 export const getLogger = () => {
     return pino({
         level: process.env.TEST_LOG_LEVEL ?? 'debug',
-        transport: {
-            target: 'pino-pretty',
-            options: {
-                colorize: false,
-            },
-        },
     });
 };
 
