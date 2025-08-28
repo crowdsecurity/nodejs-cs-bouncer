@@ -1,25 +1,12 @@
-import { NextResponse } from 'next/server';
-import { CrowdSecBouncer, CrowdSecBouncerConfigurations } from '@crowdsec/nodejs-bouncer';
-import { loadEnv } from '@/app/api/crowdsec/helpers';
+import { NextRequest, NextResponse } from 'next/server';
+import { getCrowdSecBouncer } from '@/helpers/crowdsec';
+import { getIpFromRequest } from '@/helpers/ip';
 
-// Load and validate environment variables
-loadEnv();
+export async function POST(req: NextRequest) {
+    const bouncer = await getCrowdSecBouncer();
 
-const config: CrowdSecBouncerConfigurations = {
-    url: process.env.LAPI_URL ?? 'http://localhost:8080',
-    bouncerApiToken: process.env.BOUNCER_KEY ?? '',
-    wallsOptions: {
-        captcha: {
-            captchaAction: '/crowdsec-captcha',
-        },
-    },
-};
-
-const bouncer = new CrowdSecBouncer(config);
-
-export async function POST(req: Request) {
+    const ip = await getIpFromRequest(req);
     const form = await req.formData();
-    const ip = process.env.BOUNCED_IP!;
     const phrase = form.get('phrase')?.toString() || '';
     const refresh = (form.get('crowdsec_captcha_refresh')?.toString() as '1') || '0';
 

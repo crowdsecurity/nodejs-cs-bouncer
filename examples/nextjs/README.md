@@ -10,16 +10,18 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Technical overview](#technical-overview)
-  - [Middleware (`src/middleware.ts`)](#middleware-srcmiddlewarets)
-  - [API Route (`src/app/api/crowdsec/route.ts`)](#api-route-srcappapicrowdsecroutets)
-  - [Captcha Handler (`src/app/crowdsec-captcha/route.ts`)](#captcha-handler-srcappcrowdsec-captcharoutets)
-- [Test the bouncer](#test-the-bouncer)
-  - [Pre-requisites](#pre-requisites)
-  - [Prepare the tests](#prepare-the-tests)
-  - [Test a "bypass" remediation](#test-a-bypass-remediation)
-  - [Test a "ban" remediation](#test-a-ban-remediation)
-  - [Test a "captcha" remediation](#test-a-captcha-remediation)
+- [NextJS basic implementation](#nextjs-basic-implementation)
+  - [Technical overview](#technical-overview)
+    - [Middleware (`src/middleware.ts`)](#middleware-srcmiddlewarets)
+    - [API Routes](#api-routes)
+      - [Remediation Check (`src/app/api/crowdsec/remediation/route.ts`)](#remediation-check-srcappapicrowdsecremediationroutets)
+      - [Captcha Handler (`src/app/api/crowdsec/captcha/route.ts`)](#captcha-handler-srcappapicrowdseccaptcharoutets)
+  - [Test the bouncer](#test-the-bouncer)
+    - [Pre-requisites](#pre-requisites)
+    - [Prepare the tests](#prepare-the-tests)
+    - [Test a "bypass" remediation](#test-a-bypass-remediation)
+    - [Test a "ban" remediation](#test-a-ban-remediation)
+    - [Test a "captcha" remediation](#test-a-captcha-remediation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -27,9 +29,12 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 
 The implementation uses Next.js App Router with middleware and API routes.
 
-**Important Note**: We cannot use the CrowdSec bouncer directly in the Next.js middleware because middleware runs on the Edge Runtime, which doesn't have access to Node.js APIs that the bouncer requires. While Next.js offers an experimental `nodeMiddleware` feature that would allow Node.js APIs in middleware, we prefer not to rely on experimental features for production use. Instead, we use a custom API route (`/api/crowdsec`) that runs in the Node.js runtime and can access the full bouncer functionality.
+**Important Note**: Starting from Next.js 15.5, the middleware now supports the Node.js runtime, which is required for the CrowdSec bouncer to function properly. You will need Next.js version 15.5 or higher to use this implementation. The middleware configuration includes `runtime: 'nodejs'` to enable this feature. For compatibility reasons, we still use custom API routes (`/api/crowdsec/remediation` and `/api/crowdsec/captcha`) to handle the bouncer logic separately from the middleware.
 
-**Additional Note**: We had to update the Next.js configuration (`next.config.ts`) to copy font files from the `svg-captcha-fixed` library to make them available at runtime. This is necessary because Next.js doesn't automatically include these assets in the build, and the captcha functionality requires access to these fonts to generate captcha images.
+**Additional Notes**:
+- The Next.js configuration (`next.config.ts`) includes a custom Webpack plugin to copy font files from the `svg-captcha-fixed` library, making them available at runtime for captcha generation.
+- The project now includes Tailwind CSS v4 for styling the captcha page and other UI components.
+- Environment variables are loaded from `.env` files in the `nextjs` directory using `dotenv` and `dotenv-safe` for validation.
 
 ### Middleware (`src/middleware.ts`)
 
@@ -37,34 +42,35 @@ The middleware intercepts all requests and calls the CrowdSec API:
 
 ```js
 export async function middleware(req: NextRequest) {
-    // Skip CrowdSec check for captcha route and non-HTML requests
-    if (pathname === '/crowdsec-captcha' || !acceptHeader.includes('text/html')) {
-        return NextResponse.next();
-    }
+    // Check CrowdSec remediation using helper function
+    const res = await checkRequestRemediation(req);
     
-    // Call internal API to check IP remediation
-    const checkUrl = `${req.nextUrl.origin}/api/crowdsec`;
-    const res = await fetch(checkUrl, { method: 'POST' });
-    
-    if (res.status !== 200) {
-        // Return ban/captcha wall HTML
-        const html = await res.text();
-        return new NextResponse(html, {
-            status: res.status,
-            headers: { 'Content-Type': 'text/html; charset=utf-8' },
-        });
+    if (res) {
+        // Return ban/captcha wall if remediation is required
+        return res;
     }
     
     return NextResponse.next();
 }
+
+export const config = {
+    matcher: [
+        // Match all routes except static files, APIs, and captcha page
+        '/((?!api|_next/static|_next/image|fonts/|favicon.ico|robots.txt|sitemap.*\.xml|opengraph-image|captcha|ban).*)'
+    ],
+    runtime: 'nodejs'
+}
 ```
 
-### API Route (`src/app/api/crowdsec/route.ts`)
+### API Routes
 
-The API route handles the CrowdSec logic:
+#### Remediation Check (`src/app/api/crowdsec/remediation/route.ts`)
+
+The remediation API route checks IP addresses and returns appropriate responses:
 
 ```js
-export async function POST(req: Request) {
+export async function GET(req: Request) {
+    const ip = getIpFromRequest(req);
     const { remediation, origin } = await bouncer.getIpRemediation(ip);
     const bouncerResponse = await bouncer.getResponse({ ip, origin, remediation });
 
@@ -78,15 +84,17 @@ export async function POST(req: Request) {
 }
 ```
 
-### Captcha Handler (`src/app/crowdsec-captcha/route.ts`)
+#### Captcha Handler (`src/app/api/crowdsec/captcha/route.ts`)
 
-Handles captcha form submissions:
+Handles both captcha display and form submissions:
 
 ```js
+// Handle captcha form submission
 export async function POST(req: Request) {
     const form = await req.formData();
     const phrase = form.get('phrase')?.toString() || '';
     const refresh = form.get('crowdsec_captcha_refresh')?.toString() || '0';
+    const ip = getIpFromRequest(req);
     
     await bouncer.handleCaptchaSubmission({ ip, userPhrase: phrase, refresh, origin });
     return NextResponse.redirect(new URL('/', req.url));
@@ -101,17 +109,19 @@ export async function POST(req: Request) {
 
     - You can run `nvm use` from the root folder to use the recommended NodeJS version for this project
 
-- Copy the `.env.example` file to `.env` and fill in the required values
+- Copy the `.env.example` file to `.env` in the `nextjs` folder and fill in the required values
 
 - Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
 
-- Install all dependencies using a local archive.
+- Install all dependencies.
 
-  Run the following commands from the `nextjs` folder:
+  Run the following command from the `nextjs` folder:
 
   ```shell
-  npm run pack-locally && npm install
+  npm install
   ```
+
+  **Note**: The `npm run dev` and `npm run start` commands will automatically build and pack the bouncer library before starting the server.
 
 ### Prepare the tests
 

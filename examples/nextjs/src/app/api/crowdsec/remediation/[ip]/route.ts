@@ -1,30 +1,20 @@
 'use server';
 
-import { CrowdSecBouncer, CrowdSecBouncerConfigurations } from '@crowdsec/nodejs-bouncer';
+import { getLogger } from '@/helpers';
+import { getCrowdSecBouncer } from '@/helpers/crowdsec';
 import { NextResponse } from 'next/server';
-
-import { loadEnv, getLogger } from './helpers';
-
-// Load and validate environment variables
-loadEnv();
-
-const config: CrowdSecBouncerConfigurations = {
-    url: process.env.LAPI_URL ?? 'http://localhost:8080',
-    bouncerApiToken: process.env.BOUNCER_KEY ?? '',
-    wallsOptions: {
-        captcha: {
-            captchaAction: '/crowdsec-captcha',
-        },
-    },
-};
-
-const bouncer = new CrowdSecBouncer(config);
 
 // Set up the logger for this example
 const logger = getLogger();
 
-export async function POST(req: Request) {
-    const ip = process.env.BOUNCED_IP as string; // In a production scenario, the user's real IP should be retrieved.
+export async function GET(_req: Request) {
+    const bouncer = await getCrowdSecBouncer();
+    const ip = _req.url.split('/').pop(); // Get the IP from the request URL
+
+    if (!ip) {
+        logger.warn('CrowdSec API route called without IP');
+        return new NextResponse('IP not found', { status: 400 });
+    }
 
     logger.info(`CrowdSec API route called with IP: ${ip}`);
 

@@ -1,35 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { checkIpRemediation as checkRequestRemediation } from './helpers/crowdsec';
 
 export async function middleware(req: NextRequest) {
-    const { pathname } = req.nextUrl;
-    if (pathname === '/crowdsec-captcha') {
-        return NextResponse.next();
-    }
-
-    const acceptHeader = req.headers.get('accept') || '';
-
-    // Only run middleware for full HTML page requests
-    if (!acceptHeader.includes('text/html')) {
-        return NextResponse.next();
-    }
-    const checkUrl = `${req.nextUrl.origin}/api/crowdsec`;
-
-    try {
-        const res = await fetch(checkUrl, {
-            method: 'POST',
-        });
-
-        if (res.status !== 200) {
-            const html = await res.text();
-            return new NextResponse(html, {
-                status: res.status,
-                headers: { 'Content-Type': 'text/html; charset=utf-8' },
-            });
-        }
-    } catch (err) {
-        console.error('CrowdSec check failed in middleware:', err);
-    }
+    // Check CrowdSec remediation, and redirect if necessary using the given response
+    const res = await checkRequestRemediation(req);
+    if (res) return res;
 
     return NextResponse.next();
 }
+
+export const config = {
+    matcher: [
+        // match all routes except static files and APIs
+        '/((?!api|_next/static|_next/image|fonts/|favicon.ico).*)',
+    ],
+    runtime: 'nodejs', // Mandatory for CrowdSec to work properly
+};
