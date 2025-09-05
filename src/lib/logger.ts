@@ -1,15 +1,7 @@
-import { pino } from 'pino';
+import { pino, Logger } from 'pino';
 
-const LOG_LEVEL = process.env.LOG_LEVEL || 'debug';
+const LOG_LEVEL = process?.env?.LOG_LEVEL ?? 'debug';
 
-const logger = pino({
-    level: LOG_LEVEL,
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: !process.env.CS_NO_COLOR,
-        },
-    },
-});
+const logger: Logger = pino({ level: LOG_LEVEL });
 
 export default logger;

@@ -1,20 +1,20 @@
 import { describe, expect, it, jest, afterAll, beforeAll, afterEach, beforeEach } from '@jest/globals';
-import Keyv from 'keyv';
+import KeyvStore from 'keyv';
 
-import * as ipModule from 'src/helpers/ip';
-import CacheStorage from 'src/lib/cache';
-import InMemory from 'src/lib/cache/in-memory';
-import KeyvAdapter from 'src/lib/cache/keyv-adapter';
-import { SCOPE_IP, SCOPE_RANGE } from 'src/lib/constants';
-import logger from 'src/lib/logger';
-import { CachableDecision } from 'src/lib/types';
+import * as ipModule from '../../helpers/ip';
+import CacheStorage from '../cache';
+import InMemory from '../cache/in-memory';
+import KeyvAdapter from '../cache/keyv-adapter';
+import { SCOPE_IP, SCOPE_RANGE } from '../constants';
+import logger from '../logger';
+import { CachableDecision } from '../types';
 
 let keyvAdapter: KeyvAdapter;
 
 describe('Cache', () => {
     describe('KeyvAdapter', () => {
         beforeAll(() => {
-            const storage = new Keyv();
+            const storage = new KeyvStore();
             keyvAdapter = new KeyvAdapter(storage);
         });
 

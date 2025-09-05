@@ -1,5 +1,5 @@
-import { REMEDIATION_BYPASS, REMEDIATION_CAPTCHA, REMEDIATION_BAN } from 'src/lib/constants';
-import { Remediation } from 'src/lib/types';
+import { REMEDIATION_BYPASS, REMEDIATION_CAPTCHA, REMEDIATION_BAN } from '../constants';
+import { Remediation } from '../types';
 
 // From lower priority to higher priority.
 export const ORDERED_REMEDIATIONS: Remediation[] = [REMEDIATION_BYPASS, REMEDIATION_CAPTCHA, REMEDIATION_BAN];

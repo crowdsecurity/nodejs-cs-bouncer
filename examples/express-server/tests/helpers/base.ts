@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { E2E_ENDPOINT } from 'examples/express-server/tests/constants';
+import { E2E_ENDPOINT } from '../constants';
 import fs from 'fs';
-import path from 'path';
+
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// recreate __dirname for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const getBouncedIp = (): string => {
     const bouncedIp = process.env.BOUNCED_IP ?? '';

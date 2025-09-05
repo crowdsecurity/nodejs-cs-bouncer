@@ -1,14 +1,14 @@
-import { template } from 'lodash';
+import lodash from 'lodash';
 
-import fs from 'fs';
-import { DEFAULT_COLORS, DEFAULT_TEXTS, TEMPLATES_PATH } from 'src/lib/rendered/constants';
-import { BanWallOptions, BaseWallOptions, CaptchaWallOptions, TemplateType } from 'src/lib/rendered/types';
+import { DEFAULT_COLORS, DEFAULT_TEXTS, RENDERED_TEMPLATES } from './constants';
+import { BanWallOptions, BaseWallOptions, CaptchaWallOptions, TemplateType } from './types';
+
+const { template: compileTemplate } = lodash;
 
 export const generateTemplate = async (templateName: TemplateType, data: Record<string, unknown>): Promise<string> => {
-    const templatePath = `${TEMPLATES_PATH}/${templateName}.ejs`;
-    const content = await fs.promises.readFile(templatePath, 'utf8');
-    const compiled = template(content);
-    return compiled(data);
+    const src = RENDERED_TEMPLATES[templateName];
+    if (!src) throw new Error(`Unknown template: ${templateName}`);
+    return compileTemplate(src)(data);
 };
 
 export const renderBanWall = async (options?: BanWallOptions): Promise<string> => {
@@ -55,6 +55,7 @@ export const renderCaptchaWall = async (options?: CaptchaWallOptions): Promise<s
         texts,
         colors,
         captchaImageTag: options?.captchaImageTag ?? '',
+        captchaAction: options?.captchaAction,
     };
 
     const content = await generateTemplate('captcha', captchaOptions);

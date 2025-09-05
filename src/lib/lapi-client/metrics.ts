@@ -1,6 +1,6 @@
+import { METRICS_TYPE } from '../constants';
+import { CachableOrigin, Remediation } from '../types';
 import os from 'os';
-import { METRICS_TYPE } from 'src/lib/constants';
-import { CachableOrigin, Remediation } from 'src/lib/types';
 
 type MetricsProperties = {
     name: string;

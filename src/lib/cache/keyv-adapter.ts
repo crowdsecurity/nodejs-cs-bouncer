@@ -1,37 +1,32 @@
-import { createCache } from 'cache-manager';
-// @ts-expect-error - Keyv is a CommonJS module, TypeScript expects a different import style
-import { Keyv } from 'keyv';
+import KeyvStore from 'keyv';
 
-import { CacheAdapter } from 'src/lib/cache/interfaces';
-import { CachableItem } from 'src/lib/cache/types';
-
-type CacheAdapterType = ReturnType<typeof createCache>;
+import type { CacheAdapter } from './interfaces';
+import type { CachableItem } from './types';
 
 class KeyvAdapter implements CacheAdapter {
-    private readonly adapter: CacheAdapterType;
+    private readonly storage: KeyvStore;
 
-    constructor(storage: Keyv) {
-        this.adapter = createCache({
-            stores: [storage],
-        });
+    constructor(storage: KeyvStore) {
+        this.storage = storage;
     }
 
     async getItem(key: string): Promise<CachableItem | null> {
-        const content = await this.adapter.get(key);
-        return content ? { key, content } : null;
+        const content = await this.storage.get(key);
+        return content === undefined || content === null ? null : { key, content };
     }
 
     async setItem(item: CachableItem, ttl?: number): Promise<CachableItem> {
-        await this.adapter.set(item.key, item.content, ttl);
+        await this.storage.set(item.key, item.content, ttl);
         return item;
     }
 
     async deleteItem(key: string): Promise<boolean> {
-        return this.adapter.del(key);
+        return this.storage.delete(key);
     }
 
     async clear(): Promise<boolean> {
-        return this.adapter.clear();
+        await this.storage.clear();
+        return true;
     }
 }
 

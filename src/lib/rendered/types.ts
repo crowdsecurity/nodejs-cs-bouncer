@@ -1,4 +1,4 @@
-import { DEFAULT_COLORS, DEFAULT_TEXTS } from 'src/lib/rendered/constants';
+import { DEFAULT_COLORS, DEFAULT_TEXTS } from './constants';
 
 export type TemplateType = 'ban' | 'captcha' | 'base' | 'captcha-css';
 
@@ -26,6 +26,7 @@ export type CaptchaWallOptions = BaseWallOptions &
         texts: Partial<(typeof DEFAULT_TEXTS)['captcha']>;
     }> & {
         captchaImageTag?: string;
+        captchaAction?: string;
     };
 
 export type WallsOptions = {

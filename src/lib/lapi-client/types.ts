@@ -1,4 +1,4 @@
-import { Origin, Scope } from 'src/lib/types';
+import { Origin, Scope } from '../types';
 
 export type LapiClientConfigurations = {
     url: string;

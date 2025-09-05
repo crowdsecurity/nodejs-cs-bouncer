@@ -1,18 +1,18 @@
 import { afterEach, beforeEach, beforeAll, describe, expect, it, jest, afterAll } from '@jest/globals';
 import nock, { cleanAll as nockCleanAll } from 'nock';
 
+import CrowdSecBouncer from '../bouncer';
+import { CrowdSecBouncerConfigurations } from '../bouncer/types';
+import CacheStorage from '../cache';
+import { ORIGINS_COUNT_KEY } from '../cache/constants';
+import { getCacheKey } from '../cache/helpers';
+import InMemory from '../cache/in-memory';
+import { CachableDecisionContent, CachableDecisionItem } from '../cache/types';
+import { BOUNCER_KEYS, REFRESH_KEYS, REMEDIATION_BAN, REMEDIATION_BYPASS, REMEDIATION_CAPTCHA, SCOPE_IP, VERSION } from '../constants';
+import logger from '../logger';
+import * as rendered from '../rendered';
+import { Remediation } from '../types';
 import os from 'os';
-import CrowdSecBouncer from 'src/lib/bouncer';
-import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
-import CacheStorage from 'src/lib/cache';
-import { ORIGINS_COUNT_KEY } from 'src/lib/cache/constants';
-import { getCacheKey } from 'src/lib/cache/helpers';
-import InMemory from 'src/lib/cache/in-memory';
-import { CachableDecisionContent, CachableDecisionItem } from 'src/lib/cache/types';
-import { BOUNCER_KEYS, REFRESH_KEYS, REMEDIATION_BAN, REMEDIATION_BYPASS, REMEDIATION_CAPTCHA, SCOPE_IP, VERSION } from 'src/lib/constants';
-import logger from 'src/lib/logger';
-import * as rendered from 'src/lib/rendered';
-import { Remediation } from 'src/lib/types';
 
 const configs: CrowdSecBouncerConfigurations = {
     url: 'http://example.com/api',

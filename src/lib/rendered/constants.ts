@@ -1,4 +1,7 @@
-import path from 'path';
+import banTpl from './templates/ban.ejs';
+import baseTpl from './templates/base.ejs';
+import captchaCssTpl from './templates/captcha-css.ejs';
+import captchaTpl from './templates/captcha.ejs';
 
 export const DEFAULT_COLORS = {
     text: {
@@ -33,4 +36,9 @@ export const DEFAULT_TEXTS = {
     },
 };
 
-export const TEMPLATES_PATH = path.join(__dirname, '..', 'rendered', 'templates');
+export const RENDERED_TEMPLATES = {
+    ban: banTpl,
+    captcha: captchaTpl,
+    base: baseTpl,
+    'captcha-css': captchaCssTpl,
+} as const;

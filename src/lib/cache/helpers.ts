@@ -1,4 +1,4 @@
-import { CACHE_SEPARATOR } from 'src/lib/constants';
+import { CACHE_SEPARATOR } from '../constants';
 
 export const getCacheKey = (prefix: string, value: string): string => {
     const result = `${prefix}${CACHE_SEPARATOR}${value}`;

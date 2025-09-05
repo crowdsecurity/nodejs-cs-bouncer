@@ -35,7 +35,7 @@ const { origin, remediation } = remediationData;
 
 - Depending on the value of the remediation, we apply it:
 
-    - let the process continue with `next()`if there is no remediation (bypass)
+    - let the process continue with `next()` if there is no remediation (bypass)
 
     - block the user with a ban or captcha wall remediation:
 

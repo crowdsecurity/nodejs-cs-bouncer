@@ -1,6 +1,6 @@
 import { Address4, Address6 } from 'ip-address';
 
-import { IP_TYPE_V4, IP_TYPE_V6, IPV4_BUCKET_SIZE } from 'src/lib/constants';
+import { IP_TYPE_V4, IP_TYPE_V6, IPV4_BUCKET_SIZE } from '../lib/constants';
 
 export type IpType = typeof IP_TYPE_V4 | typeof IP_TYPE_V6;
 

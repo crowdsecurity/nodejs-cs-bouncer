@@ -1,13 +1,13 @@
-import { REFRESH_KEYS, VERSION, USER_AGENT_PREFIX } from 'src/lib/constants';
-import { FinalMetrics } from 'src/lib/lapi-client/metrics';
-import { GetDecisionsOptions, LapiClientConfigurations } from 'src/lib/lapi-client/types';
-import logger from 'src/lib/logger';
-import { ConnectionHealth, Decision } from 'src/lib/types';
+import { FinalMetrics } from './metrics';
+import { GetDecisionsOptions, LapiClientConfigurations } from './types';
+import { REFRESH_KEYS, VERSION, USER_AGENT_PREFIX } from '../constants';
+import logger from '../logger';
+import { ConnectionHealth, Decision } from '../types';
 
 type CallLapiParams = {
     path: string;
     method: 'GET' | 'POST';
-    body?: BodyInit | null;
+    body?: RequestInit['body'];
 };
 
 class LapiClient {

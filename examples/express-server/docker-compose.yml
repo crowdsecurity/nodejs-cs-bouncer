@@ -5,6 +5,10 @@ services:
         ports:
             - '8080:8080'
         env_file:
-            - ./crowdsec/.env
+            - crowdsec/.env
         volumes:
             - ./crowdsec/custom-config.yaml:/etc/crowdsec/config.yaml.local
+            - crowdsec_data:/var/lib/crowdsec/data
+
+volumes:
+    crowdsec_data:

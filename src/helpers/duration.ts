@@ -1,4 +1,4 @@
-import { Duration } from 'src/lib/types';
+import { Duration } from '../lib/types';
 
 /**
  * The function `parseExpiration` takes a duration string and returns the TTL in milliseconds.

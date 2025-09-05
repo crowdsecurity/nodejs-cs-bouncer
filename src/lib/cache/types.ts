@@ -1,6 +1,6 @@
-import { CaptchaObj } from 'src/lib/bouncer/captcha';
-import { CacheAdapter } from 'src/lib/cache/interfaces';
-import { CachableOrigin, CachableIdentifier, Remediation, CachableExpiresAt } from 'src/lib/types';
+import { CachableOrigin, CachableIdentifier, Remediation, CachableExpiresAt } from '../types';
+import { CacheAdapter } from './interfaces';
+import { CaptchaObj } from '../bouncer/captcha';
 
 export type CachableDecisionContent = {
     id: CachableIdentifier;

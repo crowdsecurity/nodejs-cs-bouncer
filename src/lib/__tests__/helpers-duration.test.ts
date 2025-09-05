@@ -1,6 +1,6 @@
 import { describe, expect, it, jest, afterAll, beforeAll, afterEach } from '@jest/globals';
 
-import { convertDurationToMilliseconds } from 'src/helpers/duration';
+import { convertDurationToMilliseconds } from '../../helpers/duration';
 
 beforeAll(() => {
     jest.useFakeTimers().setSystemTime(new Date('2020-01-01'));
@@ -47,6 +47,6 @@ describe('⏳ Parse duration', () => {
 
         expect(() => {
             convertDurationToMilliseconds(duration);
-        }).toThrowError('Unable to parse the following duration: invalid.');
+        }).toThrow('Unable to parse the following duration: invalid.');
     });
 });

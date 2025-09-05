@@ -1,7 +1,7 @@
-import { convertDurationToMilliseconds } from 'src/helpers/duration';
-import { CrowdSecBouncerConfigurations } from 'src/lib/bouncer/types';
-import { ID_SEPARATOR, REMEDIATION_BYPASS, CACHE_EXPIRATION_FOR_BAD_IP, ORIGIN_LISTS, ORIGIN_LISTS_SEPARATOR } from 'src/lib/constants';
-import logger from 'src/lib/logger';
+import { convertDurationToMilliseconds } from './duration';
+import { CrowdSecBouncerConfigurations } from '../lib/bouncer/types';
+import { ID_SEPARATOR, REMEDIATION_BYPASS, CACHE_EXPIRATION_FOR_BAD_IP, ORIGIN_LISTS, ORIGIN_LISTS_SEPARATOR } from '../lib/constants';
+import logger from '../lib/logger';
 import {
     CachableDecision,
     Decision,
@@ -14,7 +14,7 @@ import {
     Duration,
     Scenario,
     CachableOrigin,
-} from 'src/lib/types';
+} from '../lib/types';
 
 const validateRawDecision = (rawDecision: Decision): boolean => {
     if (rawDecision.origin === ORIGIN_LISTS && !rawDecision.scenario) {
