@@ -11,17 +11,19 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [NextJS basic implementation](#nextjs-basic-implementation)
-  - [Technical overview](#technical-overview)
-    - [Middleware (`src/middleware.ts`)](#middleware-srcmiddlewarets)
-    - [API Routes](#api-routes)
-      - [Remediation Check (`src/app/api/crowdsec/remediation/route.ts`)](#remediation-check-srcappapicrowdsecremediationroutets)
-      - [Captcha Handler (`src/app/api/crowdsec/captcha/route.ts`)](#captcha-handler-srcappapicrowdseccaptcharoutets)
-  - [Test the bouncer](#test-the-bouncer)
-    - [Pre-requisites](#pre-requisites)
-    - [Prepare the tests](#prepare-the-tests)
-    - [Test a "bypass" remediation](#test-a-bypass-remediation)
-    - [Test a "ban" remediation](#test-a-ban-remediation)
-    - [Test a "captcha" remediation](#test-a-captcha-remediation)
+    - [Technical overview](#technical-overview)
+        - [Middleware (`src/middleware.ts`)](#middleware-srcmiddlewarets)
+        - [API Routes](#api-routes)
+            - [Remediation Check (
+              `src/app/api/crowdsec/remediation/route.ts`)](#remediation-check-srcappapicrowdsecremediationroutets)
+            - [Captcha Handler (
+              `src/app/api/crowdsec/captcha/route.ts`)](#captcha-handler-srcappapicrowdseccaptcharoutets)
+    - [Test the bouncer](#test-the-bouncer)
+        - [Pre-requisites](#pre-requisites)
+        - [Prepare the tests](#prepare-the-tests)
+        - [Test a "bypass" remediation](#test-a-bypass-remediation)
+        - [Test a "ban" remediation](#test-a-ban-remediation)
+        - [Test a "captcha" remediation](#test-a-captcha-remediation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -29,12 +31,19 @@ It aims to help developers to understand how to integrate CrowdSec remediation i
 
 The implementation uses Next.js App Router with middleware and API routes.
 
-**Important Note**: Starting from Next.js 15.5, the middleware now supports the Node.js runtime, which is required for the CrowdSec bouncer to function properly. You will need Next.js version 15.5 or higher to use this implementation. The middleware configuration includes `runtime: 'nodejs'` to enable this feature. For compatibility reasons, we still use custom API routes (`/api/crowdsec/remediation` and `/api/crowdsec/captcha`) to handle the bouncer logic separately from the middleware.
+**Important Note**: Starting from Next.js 15.5, the middleware now supports the Node.js runtime, which is required for
+the CrowdSec bouncer to function properly. You will need Next.js version 15.5 or higher to use this implementation. The
+middleware configuration includes `runtime: 'nodejs'` to enable this feature. For compatibility reasons, we still use
+custom API routes (`/api/crowdsec/remediation` and `/api/crowdsec/captcha`) to handle the bouncer logic separately from
+the middleware.
 
 **Additional Notes**:
-- The Next.js configuration (`next.config.ts`) includes a custom Webpack plugin to copy font files from the `svg-captcha-fixed` library, making them available at runtime for captcha generation.
+
+- The Next.js configuration (`next.config.ts`) includes a custom Webpack plugin to copy font files from the
+  `svg-captcha-fixed` library, making them available at runtime for captcha generation.
 - The project now includes Tailwind CSS v4 for styling the captcha page and other UI components.
-- Environment variables are loaded from `.env` files in the `nextjs` directory using `dotenv` and `dotenv-safe` for validation.
+- Environment variables are loaded from `.env` files in the `nextjs` directory using `dotenv` and `dotenv-safe` for
+  validation.
 
 ### Middleware (`src/middleware.ts`)
 
@@ -44,12 +53,12 @@ The middleware intercepts all requests and calls the CrowdSec API:
 export async function middleware(req: NextRequest) {
     // Check CrowdSec remediation using helper function
     const res = await checkRequestRemediation(req);
-    
+
     if (res) {
         // Return ban/captcha wall if remediation is required
         return res;
     }
-    
+
     return NextResponse.next();
 }
 
@@ -95,7 +104,7 @@ export async function POST(req: Request) {
     const phrase = form.get('phrase')?.toString() || '';
     const refresh = form.get('crowdsec_captcha_refresh')?.toString() || '0';
     const ip = getIpFromRequest(req);
-    
+
     await bouncer.handleCaptchaSubmission({ ip, userPhrase: phrase, refresh, origin });
     return NextResponse.redirect(new URL('/', req.url));
 }
@@ -111,8 +120,6 @@ export async function POST(req: Request) {
 
 - Copy the `.env.example` file to `.env` in the `nextjs` folder and fill in the required values
 
-- Copy the `crowdsec/.env.example` file to `crowdsec/.env` and fill in the required values
-
 - Install all dependencies.
 
   Run the following command from the `nextjs` folder:
@@ -121,7 +128,8 @@ export async function POST(req: Request) {
   npm install
   ```
 
-  **Note**: The `npm run dev` and `npm run start` commands will automatically build and pack the bouncer library before starting the server.
+  **Note**: The `npm run dev` and `npm run start` commands will automatically build and pack the bouncer library before
+  starting the server.
 
 ### Prepare the tests
 
@@ -141,7 +149,7 @@ In another terminal, create a bouncer if you haven't already:
 docker exec -ti nodejs-cs-nextjs-crowdsec sh -c 'cscli bouncers add NodeBouncer --key $BOUNCER_KEY'
 ```
 
-We are using here the `BOUNCER_KEY` variable defined in `crowdsec/.env` file.
+We are using here the `BOUNCER_KEY` variable defined in `.env` file.
 
 3. Launch the Next.js Server
 
@@ -161,7 +169,8 @@ You should see different log messages in your terminal when you access the home 
 
 ### Test a "bypass" remediation
 
-As you don't have yet any decisions, you can access the `http://localhost:3000` page and just see the normal Next.js content.
+As you don't have yet any decisions, you can access the `http://localhost:3000` page and just see the normal Next.js
+content.
 
 ![](./docs/bypass.png)
 
@@ -175,7 +184,7 @@ First, add a ban remediation for the IP that will be tested:
 docker exec -ti nodejs-cs-nextjs-crowdsec sh -c 'cscli decisions add --ip $BOUNCED_IP --duration 12m --type ban'
 ```
 
-We are using here the `BOUNCED_IP` variable defined in `crowdsec/.env` file.
+We are using here the `BOUNCED_IP` variable defined in `.env` file.
 
 You should see the success message `Decision successfully added`.
 
@@ -191,13 +200,13 @@ You should see `Final remediation for IP <BOUNCED_IP> is ban` in terminal.
 First, remove your last decision:
 
 ```shell
-docker exec -ti nodejs-cs-crowdsec sh -c 'cscli decisions delete --ip $BOUNCED_IP'
+docker exec -ti nodejs-cs-nextjs-crowdsec sh -c 'cscli decisions delete --ip $BOUNCED_IP'
 ```
 
 Then, add a captcha decision:
 
 ```shell
-docker exec -ti nodejs-cs-crowdsec sh -c 'cscli decisions add --ip $BOUNCED_IP --duration 12m --type captcha'
+docker exec -ti nodejs-cs-nextjs-crowdsec sh -c 'cscli decisions add --ip $BOUNCED_IP --duration 12m --type captcha'
 ```
 
 If you try to access the home page (after two minutes as it is the default ttl for malicious IP), you should the "Access
