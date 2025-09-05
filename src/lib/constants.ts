@@ -45,4 +45,4 @@ export const BOUNCER_KEYS = {
 
 export const METRICS_TYPE = 'crowdsec-nodejs-bouncer';
 
-export const VERSION = 'v0.1.0';
+export const VERSION = 'v0.2.0';
