@@ -35,7 +35,7 @@ jobs:
                     cp .env.example .env
                     cp crowdsec/.env.example crowdsec/.env
                     # Set tested version
-                    sed -i 's|"file:cs-nodejs-bouncer.tgz"|"${{env.version}}"|g' package.json
+                    sed -i 's|"file:./cs-nodejs-bouncer.tgz"|"${{env.version}}"|g' package.json
                     # Install tsconfig-paths (required by tsconfig.json)
                     npm --prefix ../.. install tsconfig-paths
                     # Install the dependencies (do not use npm ci to ensure we use the released version)
